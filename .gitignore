@@ -73,6 +73,7 @@ InitTestScene*.unity*
 
 # Python / ML-Agents
 python/.venv/
+python/.rag/
 __pycache__/
 .pytest_cache/
 .coverage

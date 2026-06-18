@@ -11,16 +11,16 @@ Lightweight, growable testing foundation for reproducibility and CI regression. 
 
 ## Tool Matrix
 
-| Layer | Tool | Phase |
-|-------|------|-------|
-| Python smoke/unit | `pytest` + `pytest-cov` | 1 (now) |
-| Config validation | YAML schema checks in pytest | 1 (now) |
-| Terraform | `terraform validate` + `tflint` | 1 (now) |
-| Docker | `docker build` + `mlagents-learn --help` | 1 (now) |
-| Unity C# | Unity Test Framework (NUnit) | 2 (after `Assets/`) |
-| Training integration | Short episode runs, reward trends | 3 (Week 2) |
-| E2E / Visual | WebGL smoke, training GIFs | 3 (Week 3) |
-| Metrics | TensorBoard assertions, `plot_rewards.py` | 3 (optional) |
+| Layer                | Tool                                      | Phase               |
+| -------------------- | ----------------------------------------- | ------------------- |
+| Python smoke/unit    | `pytest` + `pytest-cov`                   | 1 (now)             |
+| Config validation    | YAML schema checks in pytest              | 1 (now)             |
+| Terraform            | `terraform validate` + `tflint`           | 1 (now)             |
+| Docker               | `docker build` + `mlagents-learn --help`  | 1 (now)             |
+| Unity C#             | Unity Test Framework (NUnit)              | 2 (after `Assets/`) |
+| Training integration | Short episode runs, reward trends         | 3 (Week 2)          |
+| E2E / Visual         | WebGL smoke, training GIFs                | 3 (Week 3)          |
+| Metrics              | TensorBoard assertions, `plot_rewards.py` | 3 (optional)        |
 
 ## Apple Silicon Caveat
 
@@ -42,10 +42,10 @@ pytest tests/ -v --cov=scripts --cov-report=term-missing
 
 Tests in `python/tests/`:
 
-| File | Coverage |
-|------|----------|
-| `test_env.py` | YAML config parse, Bob behavior schema, `mlagents-learn --help` (CI only) |
-| `test_plot_rewards.py` | `find_training_log`, `load_rewards`, plot output |
+| File                   | Coverage                                                                  |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `test_env.py`          | YAML config parse, Bob behavior schema, `mlagents-learn --help` (CI only) |
+| `test_plot_rewards.py` | `find_training_log`, `load_rewards`, plot output                          |
 
 ### Infrastructure (CI)
 
@@ -76,16 +76,17 @@ docker compose build train
 
 ## CI Jobs
 
-| Job | What it validates |
-|-----|-------------------|
-| Python Tests | pytest suite + mlagents on Ubuntu |
-| Terraform Validate | fmt, validate, tflint |
-| Docker Build Test | Dockerfile builds; mlagents-learn works |
+| Job                | What it validates                       |
+| ------------------ | --------------------------------------- |
+| Python Tests       | pytest suite + mlagents on Ubuntu       |
+| Terraform Validate | fmt, validate, tflint                   |
+| Docker Build Test  | Dockerfile builds; mlagents-learn works |
 
 See [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
 ## Related Docs
 
+- [what-right-looks-like.md](what-right-looks-like.md) — **North Star** milestone + workflow diagrams
 - [finalized-dev-env.md](finalized-dev-env.md) — environment setup
 - [project-plan.md](project-plan.md) — milestones
 - [PROJECT.md](../PROJECT.md) — living status

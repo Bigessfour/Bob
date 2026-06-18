@@ -33,9 +33,9 @@ public static class BobSceneValidator
             return;
         }
 
-        if (behavior.BrainParameters.VectorObservationSize != 9)
+        if (behavior.BrainParameters.VectorObservationSize != 8)
         {
-            Debug.LogError("VALIDATE_FAIL: Expected 9 vector observations");
+            Debug.LogError("VALIDATE_FAIL: Expected 8 vector observations");
             EditorApplication.Exit(1);
             return;
         }

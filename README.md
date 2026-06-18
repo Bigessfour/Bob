@@ -6,7 +6,7 @@ A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube 
 
 **Live demo:** _Coming soon — WebGL build hosted on AWS Free Tier_
 
-**Project status:** See [PROJECT.md](PROJECT.md) | **Agent context:** See [AGENTS.md](AGENTS.md) | **Dev setup:** See [docs/finalized-dev-env.md](docs/finalized-dev-env.md) | **Testing:** See [docs/testing-strategy.md](docs/testing-strategy.md)
+**Project status:** See [PROJECT.md](PROJECT.md) | **North Star:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agent context:** See [AGENTS.md](AGENTS.md) | **Dev setup:** See [docs/finalized-dev-env.md](docs/finalized-dev-env.md) | **Testing:** See [docs/testing-strategy.md](docs/testing-strategy.md)
 
 ---
 
@@ -30,14 +30,14 @@ Bob starts with clumsy throws and gradually masters free-throw mechanics through
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Engine | Unity 6 LTS (Personal) |
-| RL Framework | Unity ML-Agents Toolkit |
-| Agent / Environment | C# |
-| Training | Python 3.10 + `mlagents` |
-| Hosting | Terraform + AWS (WebGL) |
-| Tooling | GitHub, Cursor |
+| Layer               | Technology               |
+| ------------------- | ------------------------ |
+| Engine              | Unity 6 LTS (Personal)   |
+| RL Framework        | Unity ML-Agents Toolkit  |
+| Agent / Environment | C#                       |
+| Training            | Python 3.10 + `mlagents` |
+| Hosting             | Terraform + AWS (WebGL)  |
+| Tooling             | GitHub, Cursor           |
 
 ## Repository Structure
 
@@ -48,7 +48,7 @@ bob/
 ├── Packages/
 ├── config/                    # ML-Agents YAML trainer configs
 ├── python/                    # Training venv and scripts
-├── docs/                      # Planning, diagrams, results
+├── docs/                      # Planning, diagrams, results, North Star
 ├── terraform/                 # AWS IaC (bootstrap + dev S3/CloudFront)
 ├── .github/workflows/         # CI (Python + Terraform validate)
 ├── .cursor/rules/             # Cursor agent context
@@ -129,11 +129,11 @@ Workspace settings in [`.vscode/`](.vscode/). See [docs/cursor-setup.md](docs/cu
 
 ## Timeline (Part-Time)
 
-| Week | Focus |
-|------|-------|
-| 1 | Setup, basic agent, court scene |
-| 2 | Training iteration, reward tuning, capture GIFs |
-| 3 | Polish, WebGL build, AWS deploy, documentation |
+| Week | Focus                                           |
+| ---- | ----------------------------------------------- |
+| 1    | Setup, basic agent, court scene                 |
+| 2    | Training iteration, reward tuning, capture GIFs |
+| 3    | Polish, WebGL build, AWS deploy, documentation  |
 
 See [docs/project-plan.md](docs/project-plan.md) for full scope details.
 

@@ -1,0 +1,4 @@
+# Bob repository RAG (ChromaDB + MCP). Install: ./scripts/rag-setup.sh
+# Note: installs alongside the main venv; chromadb may upgrade protobuf (fine on Apple Silicon IDE venv).
+chromadb>=0.5.5,<0.6
+mcp>=1.2.0,<2

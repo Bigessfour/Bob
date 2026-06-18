@@ -2,6 +2,8 @@
 
 Supplement to [`.cursor/rules/bob.mdc`](rules/bob.mdc) and [`AGENTS.md`](../AGENTS.md).
 
+**North Star:** [docs/what-right-looks-like.md](../docs/what-right-looks-like.md) — align infrastructure and CI work with the milestone flowchart and PR workflow diagram.
+
 ## Infrastructure as Code
 
 - **All AWS resources** must be defined in `terraform/` — no manual console-only setup without matching IaC
@@ -24,7 +26,7 @@ Supplement to [`.cursor/rules/bob.mdc`](rules/bob.mdc) and [`AGENTS.md`](../AGEN
 
 ## Git and Security
 
-- Clear, descriptive commit messages focused on *why*
+- Clear, descriptive commit messages focused on _why_
 - No secrets, API keys, or `.tfstate` files in the repo
 - Use GitHub Secrets for CI credentials when deploy pipeline is added (Week 3)
 

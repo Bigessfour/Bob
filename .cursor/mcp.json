@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "bob-rag": {
+      "command": "./scripts/rag-mcp.sh",
+      "args": []
+    },
+    "bob-unity": {
+      "command": "./scripts/unity-mcp.sh",
+      "args": []
+    }
+  }
+}

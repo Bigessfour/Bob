@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+PYTHON_ROOT = REPO_ROOT / "python"
+if str(PYTHON_ROOT) not in sys.path:
+    sys.path.insert(0, str(PYTHON_ROOT))
+
 CONFIG_PATH = REPO_ROOT / "config" / "bob_free_throw.yaml"
 
 
@@ -43,7 +47,9 @@ def pytest_collection_modifyitems(
 ) -> None:
     if mlagents_available():
         return
-    skip = pytest.mark.skip(reason="mlagents-learn not installed (use CI or Docker on Apple Silicon)")
+    skip = pytest.mark.skip(
+        reason="mlagents-learn not installed (use CI or Docker on Apple Silicon)"
+    )
     for item in items:
         if "requires_mlagents" in item.keywords:
             item.add_marker(skip)

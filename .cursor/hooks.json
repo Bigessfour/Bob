@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/rag-session-start.sh"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/rag-pre-code.sh",
+        "matcher": "Write|StrReplace|EditNotebook"
+      },
+      {
+        "command": ".cursor/hooks/unity-pre-code.sh",
+        "matcher": "Write|StrReplace|EditNotebook"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/rag-stop-index.sh"
+      }
+    ]
+  }
+}

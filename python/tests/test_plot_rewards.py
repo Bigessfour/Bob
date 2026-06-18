@@ -4,8 +4,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 # Allow importing from python/scripts/
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from plot_rewards import find_training_log, load_rewards, plot_rewards  # noqa: E402

@@ -1,5 +1,7 @@
 # Bob — Project Plan
 
+> **North Star:** [What Right Looks Like](what-right-looks-like.md) — milestone flowchart and repo/workflow compass. Cross-check every planned task against both diagrams before adding scope.
+
 ## Vision
 
 A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) learns to shoot perfect free throws. Inspired by AI Warehouse videos — entertaining training progress, great for portfolio.
@@ -43,7 +45,8 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 ### Week 2 — Training & Iteration
 
 - [ ] Tune reward shaping (approach, release angle, make/miss)
-- [ ] Record training progress GIFs
+- [x] Progress screenshot history in `docs/progress/` (edit-mode; CLI + Editor menu)
+- [ ] Record training progress GIFs (Week 2 — play-mode capture + Recorder/ffmpeg)
 - [ ] Iterate on observation space and action space
 - [ ] Document hyperparameters in `config/`
 
@@ -61,15 +64,15 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 ## Key Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Unity location | Repo root | Standard Unity layout; ML-Agents expects `Assets/` at project root |
-| Trainer | PPO | Default ML-Agents algorithm; good for continuous control |
-| Behavior name | `Bob` | Matches agent character and config YAML |
-| Python version | 3.10 | ML-Agents compatibility |
-| Terraform state | S3 remote backend | Production-style DevOps; bootstrap creates state bucket |
-| Static hosting | S3 + CloudFront OAC | HTTPS CDN; no public S3 ACL |
-| CI | GitHub Actions | pytest + Terraform validate + tflint + Docker build |
+| Decision        | Choice              | Rationale                                                          |
+| --------------- | ------------------- | ------------------------------------------------------------------ |
+| Unity location  | Repo root           | Standard Unity layout; ML-Agents expects `Assets/` at project root |
+| Trainer         | PPO                 | Default ML-Agents algorithm; good for continuous control           |
+| Behavior name   | `Bob`               | Matches agent character and config YAML                            |
+| Python version  | 3.10                | ML-Agents compatibility                                            |
+| Terraform state | S3 remote backend   | Production-style DevOps; bootstrap creates state bucket            |
+| Static hosting  | S3 + CloudFront OAC | HTTPS CDN; no public S3 ACL                                        |
+| CI              | GitHub Actions      | pytest + Terraform validate + tflint + Docker build                |
 
 ## DevOps Milestones
 
@@ -93,5 +96,6 @@ See [testing-strategy.md](testing-strategy.md) for the full phased plan.
 
 ## References
 
+- [What Right Looks Like](what-right-looks-like.md) — canonical milestone + workflow diagrams (North Star)
 - [Unity ML-Agents Documentation](https://docs.unity3d.com/Packages/com.unity.ml-agents@latest)
 - [ML-Agents GitHub](https://github.com/Unity-Technologies/ml-agents)
