@@ -105,9 +105,9 @@ public static class ArcAcademyHdrpSetup
         if (profile.TryGet(out Bloom bloom))
         {
             bloom.intensity.overrideState = true;
-            bloom.intensity.value = 0.55f;
+            bloom.intensity.value = 0.62f;
             bloom.threshold.overrideState = true;
-            bloom.threshold.value = 0.75f;
+            bloom.threshold.value = 0.68f;
         }
 
         if (profile.TryGet(out ScreenSpaceReflection ssr))

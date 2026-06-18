@@ -10,6 +10,7 @@ public class HoopScoreZone : MonoBehaviour
     public float minDownwardSpeed = 0.5f;
 
     [SerializeField] private HoopRimContact rimContact;
+    [SerializeField] private HoopSwishVfx swishVfx;
 
     private void Awake()
     {
@@ -19,6 +20,11 @@ public class HoopScoreZone : MonoBehaviour
         if (rimContact == null)
         {
             rimContact = GetComponentInParent<HoopRimContact>();
+        }
+
+        if (swishVfx == null && transform.parent != null)
+        {
+            swishVfx = transform.parent.GetComponentInChildren<HoopSwishVfx>();
         }
     }
 
@@ -40,6 +46,11 @@ public class HoopScoreZone : MonoBehaviour
         bool swish = !rimHit
                      && rb != null
                      && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
+
+        if (swish)
+        {
+            swishVfx?.PlaySwish();
+        }
 
         if (ArcAcademyManager.Instance != null)
         {

@@ -85,9 +85,10 @@ public static class BobSceneValidator
             return;
         }
 
-        if (Object.FindObjectsByType<RoboticLauncherVisual>().Length < ArcAcademyLayout.TrainingBayCount)
+        if (Object.FindObjectsByType<RoboticLauncherVisual>().Length
+            < ArcAcademyLayout.TrainingBayCount + ArcAcademyLayout.DecorativeHoopRootPositions.Length)
         {
-            Debug.LogError("VALIDATE_FAIL: Expected robotic launcher visuals on each training bay");
+            Debug.LogError("VALIDATE_FAIL: Expected robotic launcher visuals on each training bay and display hoop");
             EditorApplication.Exit(1);
             return;
         }
@@ -353,6 +354,13 @@ public static class BobSceneValidator
         if (Object.FindAnyObjectByType<HoopNetPhysics>() == null)
         {
             Debug.LogError("VALIDATE_FAIL: HoopNetPhysics missing on active hoop");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<HoopSwishVfx>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopSwishVfx missing on active hoop net");
             EditorApplication.Exit(1);
             return;
         }

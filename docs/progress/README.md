@@ -20,4 +20,5 @@ See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.
 | 006 | 2026-06-18 | arc-academy-hdrp-v1 | edit | ![arc-academy-hdrp-v1](006-2026-06-18-arc-academy-hdrp-v1/capture.png) |
 | 007 | 2026-06-18 | post-merge-hdrp-compare | edit | ![post-merge-hdrp-compare](007-2026-06-18-post-merge-hdrp-compare/capture.png) |
 | 008 | 2026-06-18 | arc-academy-polish-v1 | edit | ![arc-academy-polish-v1](008-2026-06-18-arc-academy-polish-v1/capture.png) |
+| 009 | 2026-06-18 | arc-academy-final-polish | edit | ![arc-academy-final-polish](009-2026-06-18-arc-academy-final-polish/capture.png) |
 

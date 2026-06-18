@@ -138,6 +138,9 @@ def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
     assert "CreateDecorativeHoops" in builder
     assert "CreateTrajectoryVisuals" in builder
     assert "CreateRoboticLauncherArm" in builder
+    assert "CreateBayPartitionDecal" in builder
+    assert "GetActiveBackboardGlass" in builder
+    assert "HoopSwishVfx" in builder
     assert "CreateHdrpVolume" in builder
     assert "CreateAdaptiveProbeVolume" in builder
     assert "CreateReflectionProbes" in builder or "ReflectionProbe_Window" in builder
@@ -157,6 +160,7 @@ def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
     assert "DecorativeHoops" in validator
     assert "DecorativeHoopMarker" in validator
     assert "RoboticLauncherVisual" in validator
+    assert "HoopSwishVfx" in validator
     assert "HdrpVolume" in validator
     assert "AdaptiveProbeVolume" in validator
     assert "ArcTrajectoryVisual" in validator
@@ -176,9 +180,15 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/CameraFacingBillboard.cs").is_file()
     assert (repo_root / "Assets/Scripts/DecorativeHoopMarker.cs").is_file()
     assert (repo_root / "Assets/Scripts/RoboticLauncherVisual.cs").is_file()
+    assert (repo_root / "Assets/Scripts/HoopSwishVfx.cs").is_file()
+    launcher = (repo_root / "Assets/Scripts/RoboticLauncherVisual.cs").read_text()
+    assert "Update" in launcher
+    assert "LauncherArm" in launcher
     assert (repo_root / "Assets/Scripts/Editor/ArcAcademyHdrpSetup.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/ArcAcademyShaderGraphSetup.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/ArcAcademyMaterialPaths.cs").is_file()
+    factory = (repo_root / "Assets/Scripts/Editor/ArcAcademyMaterialFactory.cs").read_text()
+    assert "GetActiveBackboardGlass" in factory
 
 
 def test_arc_academy_builder_wiring(repo_root: Path) -> None:
