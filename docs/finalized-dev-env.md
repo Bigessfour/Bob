@@ -12,6 +12,7 @@ Canonical checklist before writing C# agent code. Complete every item, then star
 - [ ] Unity 6 **6000.5.0f1** project at repo root (`Assets/` exists)
 - [ ] `com.unity.ml-agents` installed in Package Manager
 - [ ] CI green on `main` ([Actions](https://github.com/Bigessfour/Bob/actions))
+- [ ] `pytest tests/ -v` passes locally ([testing-strategy.md](testing-strategy.md))
 - [ ] Workspace extensions installed (see below)
 
 ## Locked Tool Versions
@@ -73,6 +74,7 @@ Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env
 | Unity batchmode | `./scripts/unity.sh -batchmode -quit` | Local |
 | Terraform validate | `terraform validate` in `terraform/bootstrap` | Local |
 | Lint all | `trunk check` | Local |
+| Run tests | `cd python && pytest tests/ -v` | Local venv |
 
 ## Apple Silicon Notes
 
@@ -92,7 +94,7 @@ Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env
 
 ## GitHub
 
-- **CI:** [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — Python 3.10.12 + Terraform validate
+- **CI:** [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — pytest + Terraform validate + tflint + Docker build
 - **Secrets (Week 3):** `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` for deploy
 - **Branch protection (recommended):** require CI checks on `main`
 
@@ -102,3 +104,4 @@ Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env
 - [setup-checklist.md](setup-checklist.md) — Unity Hub + Python install
 - [unity-dev.md](unity-dev.md) — Unity CLI and ML-Agents package
 - [project-plan.md](project-plan.md) — milestones
+- [testing-strategy.md](testing-strategy.md) — pytest, CI, phased test plan

@@ -35,9 +35,12 @@ if [[ "$ARCH" == "arm64" ]]; then
     "numpy>=1.23.5,<1.24.0" \
     "matplotlib>=3.7,<3.9" \
     "tensorboard>=2.14" \
-    "protobuf>=3.6,<3.21"
+    "protobuf>=3.6,<3.21" \
+    "pytest>=8.0" \
+    "pytest-cov>=5.0" \
+    "pyyaml>=6.0"
 else
-  python -m pip install -r requirements.txt
+  python -m pip install -r requirements-dev.txt
 fi
 
 echo ""

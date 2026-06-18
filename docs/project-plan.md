@@ -32,7 +32,11 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 - [ ] Unity project at repo root
 - [ ] ML-Agents package installed
-- [ ] Python venv and `mlagents` verified
+- [ ] Python venv and `mlagents` verified (Docker on Apple Silicon)
+- [x] CI green (Python 3.10.12 + Terraform validate)
+- [x] Baseline pytest suite (`python/tests/`)
+- [x] Docker build in CI
+- [ ] Unity Test Framework (after `Assets/`)
 - [ ] Basic court scene (floor, hoop, ball)
 - [ ] Bob agent with `Agent` subclass, observations, actions
 - [ ] Placeholder reward function (made basket = +1)
@@ -67,7 +71,7 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 | Python version | 3.10 | ML-Agents compatibility |
 | Terraform state | S3 remote backend | Production-style DevOps; bootstrap creates state bucket |
 | Static hosting | S3 + CloudFront OAC | HTTPS CDN; no public S3 ACL |
-| CI | GitHub Actions placeholder | Python + Terraform validate now; Unity build Week 3 |
+| CI | GitHub Actions | pytest + Terraform validate + tflint + Docker build |
 
 ## DevOps Milestones
 
@@ -81,9 +85,13 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 ### CI/CD
 
-- [x] Placeholder CI: Python smoke test + Terraform fmt/validate
+- [x] Baseline CI: pytest + Terraform fmt/validate/tflint + Docker build
 - [ ] Unity WebGL build pipeline (game-ci)
 - [ ] Automated S3 deploy + CloudFront invalidation on merge to `main`
+
+## Testing
+
+See [testing-strategy.md](testing-strategy.md) for the full phased plan.
 
 ## References
 
