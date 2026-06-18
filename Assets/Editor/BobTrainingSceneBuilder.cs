@@ -75,7 +75,7 @@ public static class BobTrainingSceneBuilder
         var agent = bob.AddComponent<BobAgent>();
         agent.hoop = rim.transform;
 
-        var behavior = bob.AddComponent<BehaviorParameters>();
+        var behavior = bob.GetComponent<BehaviorParameters>();
         behavior.BehaviorName = "Bob";
         behavior.TeamId = 0;
         behavior.BrainParameters.VectorObservationSize = 9;

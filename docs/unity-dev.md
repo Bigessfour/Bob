@@ -86,8 +86,24 @@ This is optional for MVP — manual scene setup in Week 1 is fine.
 In Unity Package Manager:
 
 1. **Window → Package Manager → + → Add package by name**
-2. Enter: `com.unity.ml-agents`
-3. Match version to `mlagents==1.1.0` in `python/requirements.txt`
+2. Enter: `com.unity.ml-agents` version **4.0.3** (Unity 6; pairs with `mlagents==1.1.0` in Python)
+3. Unity 6 also pulls `com.unity.ai.inference` (replaces Sentis)
+
+### Automated scene setup (CLI)
+
+```bash
+/Applications/Unity/Hub/Editor/6000.5.0f1/Unity.app/Contents/MacOS/Unity \
+  -batchmode -quit -nographics -projectPath "$(pwd)" \
+  -logFile logs/unity-scene-build.log \
+  -executeMethod BobTrainingSceneBuilder.CreateTrainingSceneFromCli
+
+/Applications/Unity/Hub/Editor/6000.5.0f1/Unity.app/Contents/MacOS/Unity \
+  -batchmode -quit -nographics -projectPath "$(pwd)" \
+  -logFile logs/unity-validate.log \
+  -executeMethod BobSceneValidator.VerifyFromCli
+```
+
+Or in the Editor: **Bob → Create Training Scene**
 
 ### Behavior Setup Checklist
 

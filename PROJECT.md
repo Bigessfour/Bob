@@ -10,13 +10,12 @@
 
 **Week 1 — Setup + Basic Agent**
 
-Unity project initialized at repo root with `BobAgent.cs`, ML-Agents 3.0.0, and automated scene builder. Next: first training run.
+Unity project initialized at repo root with `BobAgent.cs`, ML-Agents 4.0.3 (Unity 6), and automated scene builder. Trainer listens on port 5004 — press Play in Unity to connect.
 
 ## Next Actions
 
-- [ ] Open project in Unity Hub → **Bob → Create Training Scene** (if scene not built via CLI)
-- [ ] Press Play — confirm Bob logs to console
-- [ ] Run `./scripts/train.sh` with Unity Play to connect trainer
+- [ ] Press Play in `BobTraining` scene — confirm Bob logs to console
+- [ ] Run `./scripts/train.sh` with Unity Play to start first training run
 - [ ] Tune reward shaping (Week 2)
 
 ## Links
@@ -42,7 +41,7 @@ Unity project initialized at repo root with `BobAgent.cs`, ML-Agents 3.0.0, and 
 | Docker training image | Built locally (`bob-train:latest`) |
 | Baseline pytest suite | `python/tests/` — config + plot_rewards + unity alignment |
 | Unity project | `Assets/`, `ProjectSettings/`, `Packages/` at repo root |
-| ML-Agents | `com.unity.ml-agents` 3.0.0 |
+| ML-Agents | `com.unity.ml-agents` 4.0.3 + `com.unity.ai.inference` 2.2.1 |
 | WebGL deploy pipeline | Week 3 |
 
 ## Update Log

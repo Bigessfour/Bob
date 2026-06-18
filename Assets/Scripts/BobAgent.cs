@@ -18,7 +18,7 @@ public class BobAgent : Agent
     public override void OnEpisodeBegin()
     {
         transform.localPosition = new Vector3(0f, 1f, 0f);
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
     }
 
@@ -26,7 +26,7 @@ public class BobAgent : Agent
     {
         sensor.AddObservation(transform.localPosition);
         sensor.AddObservation(hoop.position - transform.position);
-        sensor.AddObservation(rb.velocity);
+        sensor.AddObservation(rb.linearVelocity);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
