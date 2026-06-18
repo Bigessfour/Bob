@@ -30,16 +30,14 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 ### Week 1 — Setup + Basic Agent
 
-- [ ] Unity project at repo root
-- [ ] ML-Agents package installed
+- [x] Unity project at repo root
+- [x] ML-Agents package installed (`com.unity.ml-agents` 3.0.0)
 - [ ] Python venv and `mlagents` verified (Docker on Apple Silicon)
 - [x] CI green (Python 3.10.12 + Terraform validate)
 - [x] Baseline pytest suite (`python/tests/`)
 - [x] Docker build in CI
-- [ ] Unity Test Framework (after `Assets/`)
-- [ ] Basic court scene (floor, hoop, ball)
-- [ ] Bob agent with `Agent` subclass, observations, actions
-- [ ] Placeholder reward function (made basket = +1)
+- [x] Basic court scene builder (`Bob/Create Training Scene`)
+- [x] Bob agent with `Agent` subclass, observations, actions
 - [ ] First training run completes without errors
 
 ### Week 2 — Training & Iteration

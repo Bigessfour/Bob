@@ -1,6 +1,6 @@
 # Bob — Free Throw RL Agent
 
-**Status:** Planning / Setup  
+**Status:** Week 1 — Basic Agent  
 **Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio  
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + Terraform + GitHub Actions
 
@@ -10,14 +10,14 @@
 
 **Week 1 — Setup + Basic Agent**
 
-Repo scaffold, DevOps foundations, and baseline testing are in place. Next: Unity project at repo root, ML-Agents package, first court scene.
+Unity project initialized at repo root with `BobAgent.cs`, ML-Agents 3.0.0, and automated scene builder. Next: first training run.
 
 ## Next Actions
 
-- [ ] Install Unity Hub + Unity 6 LTS (WebGL module)
-- [ ] Create 3D project at repo root
-- [ ] Add `com.unity.ml-agents` in Package Manager
-- [ ] Build basic court scene and Bob `Agent` script
+- [ ] Open project in Unity Hub → **Bob → Create Training Scene** (if scene not built via CLI)
+- [ ] Press Play — confirm Bob logs to console
+- [ ] Run `./scripts/train.sh` with Unity Play to connect trainer
+- [ ] Tune reward shaping (Week 2)
 
 ## Links
 
@@ -26,6 +26,7 @@ Repo scaffold, DevOps foundations, and baseline testing are in place. Next: Unit
 | Live demo | _Coming soon — CloudFront URL after Week 3 deploy_ |
 | CI workflow | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | Testing strategy | [`docs/testing-strategy.md`](docs/testing-strategy.md) |
+| Unity dev guide | [`docs/unity-dev.md`](docs/unity-dev.md) |
 | Terraform | [`terraform/README.md`](terraform/README.md) |
 | Agent rules | [`AGENTS.md`](AGENTS.md) |
 | Setup guide | [`docs/setup-checklist.md`](docs/setup-checklist.md) |
@@ -39,7 +40,9 @@ Repo scaffold, DevOps foundations, and baseline testing are in place. Next: Unit
 | Terraform dev (S3 + CloudFront) | Scaffolded — not yet applied |
 | GitHub Actions CI | pytest + Terraform validate + tflint + Docker build |
 | Docker training image | Built locally (`bob-train:latest`) |
-| Baseline pytest suite | `python/tests/` — config + plot_rewards |
+| Baseline pytest suite | `python/tests/` — config + plot_rewards + unity alignment |
+| Unity project | `Assets/`, `ProjectSettings/`, `Packages/` at repo root |
+| ML-Agents | `com.unity.ml-agents` 3.0.0 |
 | WebGL deploy pipeline | Week 3 |
 
 ## Update Log
@@ -50,3 +53,4 @@ Repo scaffold, DevOps foundations, and baseline testing are in place. Next: Unit
 | 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config) |
 | 2026-06-18 | Dev environment locked (Python 3.10.12, CI green) |
 | 2026-06-18 | Baseline testing strategy + pytest suite added |
+| 2026-06-18 | Unity project + BobAgent + training scene builder added |
