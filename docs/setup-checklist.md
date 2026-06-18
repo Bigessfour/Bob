@@ -117,12 +117,12 @@ mlagents-learn --help
 
 ## Troubleshooting
 
-| Issue | Fix |
-|-------|-----|
-| `mlagents-learn` not found | Activate venv: `source python/.venv/bin/activate` |
-| Unity can't find Python | Set **Edit → Preferences → External Tools → Python** to `python/.venv/bin/python3.10` |
-| Behavior name mismatch | Unity Behavior Name must match `behaviors: Bob:` in `config/bob_free_throw.yaml` |
-| Training hangs at "Waiting for connection" | Press Play in Unity; check firewall isn't blocking localhost |
+| Issue                                      | Fix                                                                                   |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `mlagents-learn` not found                 | Activate venv: `source python/.venv/bin/activate`                                     |
+| Unity can't find Python                    | Set **Edit → Preferences → External Tools → Python** to `python/.venv/bin/python3.10` |
+| Behavior name mismatch                     | Unity Behavior Name must match `behaviors: Bob:` in `config/bob_free_throw.yaml`      |
+| Training hangs at "Waiting for connection" | Press Play in Unity; check firewall isn't blocking localhost                          |
 
 ## Next Steps
 

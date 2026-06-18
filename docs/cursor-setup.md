@@ -14,13 +14,13 @@ Workspace-local configuration is committed in `.vscode/`. This guide covers manu
 
 Cursor will prompt to install these from [`.vscode/extensions.json`](../.vscode/extensions.json):
 
-| Extension | ID | Purpose |
-|-----------|-----|---------|
-| Python | `ms-python.python` | venv, linting, formatting |
-| C# | `ms-dotnettools.csharp` | Unity scripts |
-| Unity | `visualstudiotoolsforunity.vstuc` | Unity integration |
-| Terraform | `hashicorp.terraform` | IaC syntax and validation |
-| Markdown | `yzhang.markdown-all-in-one` | docs editing |
+| Extension | ID                                | Purpose                   |
+| --------- | --------------------------------- | ------------------------- |
+| Python    | `ms-python.python`                | venv, linting, formatting |
+| C#        | `ms-dotnettools.csharp`           | Unity scripts             |
+| Unity     | `visualstudiotoolsforunity.vstuc` | Unity integration         |
+| Terraform | `hashicorp.terraform`             | IaC syntax and validation |
+| Markdown  | `yzhang.markdown-all-in-one`      | docs editing              |
 
 ## Python Interpreter
 
@@ -72,9 +72,33 @@ See [docs/unity-dev.md](unity-dev.md) for Unity CLI, batchmode builds, and AI as
 
 Cursor reads these for project context:
 
-- [`AGENTS.md`](../AGENTS.md) — canonical agent instructions
+- [docs/what-right-looks-like.md](what-right-looks-like.md) — **North Star** milestone + workflow diagrams
+- [`AGENTS.md`](../AGENTS.md) — canonical agent instructions (includes **North Star**, **RAG workflow**)
 - [`.cursor/rules/bob.mdc`](../.cursor/rules/bob.mdc) — always-on rules
 - [`.cursor/project-rules.md`](../.cursor/project-rules.md) — DevOps emphasis
+- [`.cursor/mcp.json`](../.cursor/mcp.json) — **`bob-rag`** + **`unityMCP`** MCP servers
+- [`.cursor/hooks.json`](../.cursor/hooks.json) — RAG + Unity MCP query injection + auto re-index
+
+### Repository RAG (required for code agents)
+
+```bash
+./scripts/setup-python.sh
+./scripts/rag-setup.sh
+./scripts/rag-index.sh
+```
+
+Then enable **bob-rag** in Cursor MCP settings (project config above). Agents must call **`rag_query`** before code edits and **`rag_index_paths`** after significant method changes.
+
+See [docs/rag.md](rag.md) for architecture and CLI reference.
+
+### Unity MCP (required for Unity agent work)
+
+```bash
+brew install uv
+chmod +x scripts/unity-mcp.sh
+```
+
+Open Unity → **Window → MCP for Unity** → **Auto-Setup** (HTTP). Enable **`unityMCP`** and **`bob-rag`** in MCP settings. Agents must consult Unity MCP before scene/agent/Assets edits. See [docs/unity-mcp.md](unity-mcp.md).
 
 ## Format on Save
 
