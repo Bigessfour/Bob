@@ -31,7 +31,7 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 ### Week 1 — Setup + Basic Agent
 
 - [x] Unity project at repo root
-- [x] ML-Agents package installed (`com.unity.ml-agents` 3.0.0)
+- [x] ML-Agents package installed (`com.unity.ml-agents` 4.0.3 — required for Unity 6)
 - [ ] Python venv and `mlagents` verified (Docker on Apple Silicon)
 - [x] CI green (Python 3.10.12 + Terraform validate)
 - [x] Baseline pytest suite (`python/tests/`)
