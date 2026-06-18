@@ -7,6 +7,11 @@ cd "${REPO_ROOT}"
 
 mkdir -p logs
 
+echo "Ensuring HDRP pipeline..."
+./scripts/unity.sh -batchmode -quit -nographics \
+  -logFile logs/unity-hdrp-setup.log \
+  -executeMethod ArcAcademyHdrpSetup.EnsureHdrpFromCli
+
 echo "Rebuilding training scene..."
 ./scripts/unity.sh -batchmode -quit -nographics \
   -logFile logs/unity-scene-build.log \

@@ -3,6 +3,8 @@ using Unity.MLAgents.Policies;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public static class BobSceneValidator
 {
@@ -11,6 +13,13 @@ public static class BobSceneValidator
     public static void VerifyFromCli()
     {
         EditorSceneManager.OpenScene(ScenePath);
+
+        if (GraphicsSettings.defaultRenderPipeline == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HDRP render pipeline is not assigned");
+            EditorApplication.Exit(1);
+            return;
+        }
 
         if (GameObject.Find(ArcAcademyLayout.ArenaName) == null)
         {
@@ -22,6 +31,20 @@ public static class BobSceneValidator
         if (Object.FindAnyObjectByType<ArcAcademyManager>() == null)
         {
             Debug.LogError("VALIDATE_FAIL: ArcAcademyManager missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.HdrpVolumeName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HdrpVolume missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.AdaptiveProbeVolumeName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: AdaptiveProbeVolume missing from training scene");
             EditorApplication.Exit(1);
             return;
         }
@@ -47,16 +70,24 @@ public static class BobSceneValidator
             return;
         }
 
-        if (GameObject.Find(ArcAcademyLayout.TrainingBaysName) == null)
+        var bays = GameObject.Find(ArcAcademyLayout.TrainingBaysName);
+        if (bays == null)
         {
             Debug.LogError("VALIDATE_FAIL: TrainingBays missing from training scene");
             EditorApplication.Exit(1);
             return;
         }
 
-        if (GameObject.Find(ArcAcademyLayout.TrainingBaysBackName) == null)
+        if (bays.transform.childCount < ArcAcademyLayout.TrainingBayCount)
         {
-            Debug.LogError("VALIDATE_FAIL: TrainingBaysBack missing from training scene");
+            Debug.LogError($"VALIDATE_FAIL: TrainingBays must contain at least {ArcAcademyLayout.TrainingBayCount} bays");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindObjectsByType<RoboticLauncherVisual>().Length < ArcAcademyLayout.TrainingBayCount)
+        {
+            Debug.LogError("VALIDATE_FAIL: Expected robotic launcher visuals on each training bay");
             EditorApplication.Exit(1);
             return;
         }
@@ -79,6 +110,22 @@ public static class BobSceneValidator
         if (decorative.transform.childCount < 2)
         {
             Debug.LogError("VALIDATE_FAIL: DecorativeHoops must contain at least 2 display hoops");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var decorativeMarkers = Object.FindObjectsByType<DecorativeHoopMarker>();
+        if (decorativeMarkers.Length < ArcAcademyLayout.DecorativeHoopRootPositions.Length + ArcAcademyLayout.TrainingBayCount)
+        {
+            Debug.LogError("VALIDATE_FAIL: DecorativeHoopMarker missing on bay/display hoops");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var movableHoops = Object.FindObjectsByType<MovableHoop>();
+        if (movableHoops.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one MovableHoop (active scoring hoop) is required");
             EditorApplication.Exit(1);
             return;
         }
@@ -123,6 +170,13 @@ public static class BobSceneValidator
         if (hoop.GetComponent<MovableHoop>() == null)
         {
             Debug.LogError("VALIDATE_FAIL: MovableHoop component missing on Hoop");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (hoop.GetComponent<DecorativeHoopMarker>() != null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Active Hoop must not have DecorativeHoopMarker");
             EditorApplication.Exit(1);
             return;
         }

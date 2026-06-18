@@ -2,8 +2,8 @@
 
 > **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) — canonical milestone + workflow diagrams. Read before planning or merging; every change must align with the current week and permanent quality bars.
 
-**Status:** Week 1 — Basic Agent (training loop pending)  
-**Branch:** `main` — PR #2 merged (`9a22819`)  
+**Status:** Week 1 — Basic Agent (HDRP Arc Academy rebuild in progress)  
+**Branch:** `feature/hdrp-arc-academy-visual`  
 **Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio  
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + Terraform + GitHub Actions
 
@@ -13,17 +13,18 @@
 
 **Week 1 — Setup + Basic Agent**
 
-Foundations are in place on **`main`**: Unity 6, ML-Agents 4.0.3, CI green, RAG + Unity MCP, and **Arc Academy visual build** matching [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) — fixed regulation hoop, static bays, decorative hoops, trajectory arcs, mountain window. Behavior Name **`Bob`**, **8** obs, **3** actions unchanged.
+Foundations on **`main`** plus **HDRP Arc Academy photoreal pass** on feature branch: warehouse interior, 8 training bays with robotic launcher placeholders, single active scoring hoop, Volume/APV lighting. Visual target: [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg). Behavior Name **`Bob`**, **8** obs, **3** actions unchanged.
 
-**Week 1 exit criterion:** first end-to-end training run (`results/bob-v0/` still empty).
+**Week 1 exit criterion:** first end-to-end training run (handshake proven locally; extend run for TensorBoard).
 
 ## Build Status (2026-06-18)
 
 | Area                | Status                                                                          |
 | ------------------- | ------------------------------------------------------------------------------- |
-| Unity scene         | `BobTraining.unity` — full Arc Academy visual build (Example.jpg target)          |
-| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                               |
-| Offline regression  | `pytest tests/test_unity_alignment.py` — **16/16**                              |
+| Unity scene         | `BobTraining.unity` — HDRP Arc Academy rebuild (Example.jpg target)               |
+| Render pipeline     | HDRP 17 + Volume (Bloom/SSR) + APV — WebGL deferred                           |
+| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS** (after rebuild)              |
+| Offline regression  | `pytest tests/test_unity_alignment.py` — **18+** guards                         |
 | Design reference    | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) |
 | Arc Academy runtime | Fixed main hoop + bays, decorative hoops, trajectory arcs, mountain window      |
 | First training run  | **Not done** — trainer needs Unity Play after "Listening on port 5004"          |

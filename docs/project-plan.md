@@ -55,8 +55,8 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 ### Week 3 — Polish + Deployment + Documentation
 
-- [ ] Visual polish (materials, camera, simple UI)
-- [ ] WebGL build
+- [ ] Visual polish (materials, camera, simple UI) — **HDRP Editor target on `feature/hdrp-arc-academy-visual`**
+- [ ] WebGL build — **deferred:** HDRP unsupported; requires URP fork or Editor-only portfolio captures
 - [ ] Terraform bootstrap applied (`terraform/bootstrap`)
 - [ ] Terraform dev stack applied (`terraform/environments/dev`)
 - [ ] WebGL build synced to S3 + CloudFront invalidation

@@ -58,12 +58,7 @@ public class ArcTrajectoryVisual : MonoBehaviour
 
     private Material CreateArcMaterial(Color color)
     {
-        var mat = new Material(Shader.Find("Standard"));
-        mat.EnableKeyword("_EMISSION");
-        mat.color = color;
-        mat.SetColor("_EmissionColor", color * emissiveIntensity);
-        mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
-        return mat;
+        return ArcAcademyShaderUtility.CreateEmissiveLineMaterial(color, emissiveIntensity);
     }
 
     private void ClearChildren()

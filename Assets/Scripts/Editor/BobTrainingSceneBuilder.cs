@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public static class BobTrainingSceneBuilder
 {
@@ -26,9 +27,16 @@ public static class BobTrainingSceneBuilder
     private static readonly Color AcademyPurple = new(0.55f, 0.2f, 0.95f);
     private static readonly Color BayTrim = new(0.08f, 0.08f, 0.1f);
     private static readonly Color BayWallWhite = new(0.92f, 0.93f, 0.95f);
+    private static readonly Color BeamMetal = new(0.28f, 0.29f, 0.32f);
 
     [MenuItem("Bob/Create Training Scene")]
     public static void CreateTrainingSceneMenu()
+    {
+        CreateTrainingScene();
+    }
+
+    [MenuItem("Bob/Rebuild Arc Academy (HDRP)")]
+    public static void RebuildArcAcademyHdrpMenu()
     {
         CreateTrainingScene();
     }
@@ -41,6 +49,8 @@ public static class BobTrainingSceneBuilder
 
     private static void CreateTrainingScene()
     {
+        ArcAcademyHdrpSetup.EnsureHdrpPipeline();
+
         Directory.CreateDirectory("Assets/Scenes");
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -48,11 +58,13 @@ public static class BobTrainingSceneBuilder
         var arena = new GameObject(ArcAcademyLayout.ArenaName);
         var manager = arena.AddComponent<ArcAcademyManager>();
 
+        CreateHdrpVolume(arena.transform);
+        CreateAdaptiveProbeVolume(arena.transform);
+        CreateHdrpSkyAndSun(arena.transform);
         CreateCamera();
         CreateWarehouseShell(arena.transform);
         CreateCourt(arena.transform);
         CreateTrainingBays(arena.transform);
-        CreateTrainingBaysBack(arena.transform);
         Transform spawnPad = CreateSpawnPad(arena.transform);
         CreateDecorativeHoops(arena.transform);
         (Transform rim, MovableHoop movableHoop) = CreateHoop(arena.transform);
@@ -68,14 +80,53 @@ public static class BobTrainingSceneBuilder
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddSceneToBuildSettings(ScenePath);
 
-        Debug.Log($"Arc Academy training scene created at {ScenePath}");
+        Debug.Log($"Arc Academy HDRP training scene created at {ScenePath}");
+    }
+
+    private static void CreateHdrpVolume(Transform parent)
+    {
+        var volumeGo = new GameObject(ArcAcademyLayout.HdrpVolumeName);
+        volumeGo.transform.SetParent(parent);
+        var volume = volumeGo.AddComponent<Volume>();
+        volume.isGlobal = true;
+        volume.priority = 1f;
+        volume.profile = ArcAcademyHdrpSetup.LoadVolumeProfile();
+    }
+
+    private static void CreateAdaptiveProbeVolume(Transform parent)
+    {
+        var apvGo = new GameObject(ArcAcademyLayout.AdaptiveProbeVolumeName);
+        apvGo.transform.SetParent(parent);
+        float midZ = (ArcAcademyLayout.ShellNearZ + ArcAcademyLayout.ShellFarZ) * 0.5f;
+        apvGo.transform.position = new Vector3(0f, 4f, midZ);
+
+        var apv = apvGo.AddComponent<ProbeVolume>();
+        apv.mode = ProbeVolume.Mode.Local;
+        apv.size = new Vector3(24f, 12f, 32f);
+    }
+
+    private static void CreateHdrpSkyAndSun(Transform parent)
+    {
+        var rig = new GameObject(ArcAcademyLayout.HdrpSkyRigName);
+        rig.transform.SetParent(parent);
+
+        var sunGo = new GameObject("Sun");
+        sunGo.transform.SetParent(rig.transform);
+        var sun = sunGo.AddComponent<Light>();
+        sun.type = LightType.Directional;
+        sun.intensity = 120000f;
+        sun.color = new Color(1f, 0.96f, 0.9f);
+        sun.shadows = LightShadows.Soft;
+        sunGo.transform.rotation = Quaternion.Euler(42f, -125f, 0f);
+        sunGo.AddComponent<HDAdditionalLightData>();
     }
 
     private static void CreateCamera()
     {
         var cameraGo = new GameObject("Main Camera");
         cameraGo.tag = "MainCamera";
-        cameraGo.AddComponent<Camera>();
+        var camera = cameraGo.AddComponent<Camera>();
+        cameraGo.AddComponent<HDAdditionalCameraData>();
         cameraGo.transform.position = ArcAcademyLayout.CameraPosition;
         cameraGo.transform.rotation = Quaternion.LookRotation(
             ArcAcademyLayout.CameraLookAt - ArcAcademyLayout.CameraPosition,
@@ -118,6 +169,7 @@ public static class BobTrainingSceneBuilder
 
         AddCorrugatedRibs(wallLeft, shellLength, true);
         AddCorrugatedRibs(wallFar, ArcAcademyLayout.ShellHalfWidth * 2f, false);
+        CreateCeilingTrusses(shell.transform, shellCenterZ, shellLength);
 
         var ceiling = GameObject.CreatePrimitive(PrimitiveType.Plane);
         ceiling.name = "Ceiling";
@@ -128,10 +180,27 @@ public static class BobTrainingSceneBuilder
             1f,
             shellLength / 10f);
         ceiling.transform.rotation = Quaternion.Euler(180f, 0f, 0f);
-        ArcAcademyMaterialFactory.ApplyMaterial(ceiling, ArcAcademyMaterialFactory.CreateStandard(WarehouseWall));
+        ArcAcademyMaterialFactory.ApplyMaterial(ceiling, ArcAcademyMaterialFactory.CreateHdrpLit(WarehouseWall, 0.25f, 0.1f));
         Object.DestroyImmediate(ceiling.GetComponent<MeshCollider>());
 
         CreateMountainWindow(shell.transform, shellCenterZ);
+    }
+
+    private static void CreateCeilingTrusses(Transform shell, float shellCenterZ, float shellLength)
+    {
+        var trussRoot = new GameObject("CeilingTrusses");
+        trussRoot.transform.SetParent(shell);
+
+        for (int i = -2; i <= 2; i++)
+        {
+            var beam = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            beam.name = $"TrussBeam_{i}";
+            beam.transform.SetParent(trussRoot.transform);
+            beam.transform.position = new Vector3(i * 3.5f, ArcAcademyLayout.CeilingHeight - 0.35f, shellCenterZ);
+            beam.transform.localScale = new Vector3(0.25f, 0.35f, shellLength * 0.95f);
+            ArcAcademyMaterialFactory.ApplyMaterial(beam, ArcAcademyMaterialFactory.CreateHdrpLit(BeamMetal, 0.35f, 0.55f));
+            Object.DestroyImmediate(beam.GetComponent<BoxCollider>());
+        }
     }
 
     private static GameObject CreateShellWall(Transform parent, string name, Vector3 pos, Vector3 scale)
@@ -141,7 +210,7 @@ public static class BobTrainingSceneBuilder
         wall.transform.SetParent(parent);
         wall.transform.position = pos;
         wall.transform.localScale = scale;
-        ArcAcademyMaterialFactory.ApplyMaterial(wall, ArcAcademyMaterialFactory.CreateStandard(WarehouseWall));
+        ArcAcademyMaterialFactory.ApplyMaterial(wall, ArcAcademyMaterialFactory.CreateHdrpLit(WarehouseWall, 0.2f, 0.05f));
         Object.DestroyImmediate(wall.GetComponent<BoxCollider>());
         return wall;
     }
@@ -171,7 +240,7 @@ public static class BobTrainingSceneBuilder
 
             ArcAcademyMaterialFactory.ApplyMaterial(
                 rib,
-                ArcAcademyMaterialFactory.CreateStandard(new Color(0.48f, 0.49f, 0.52f)));
+                ArcAcademyMaterialFactory.CreateHdrpLit(new Color(0.48f, 0.49f, 0.52f), 0.25f, 0.15f));
             Object.DestroyImmediate(rib.GetComponent<BoxCollider>());
         }
     }
@@ -182,18 +251,26 @@ public static class BobTrainingSceneBuilder
         windowRoot.transform.SetParent(shell);
         windowRoot.transform.position = new Vector3(
             -ArcAcademyLayout.ShellHalfWidth + 0.05f,
-            3.5f,
+            3.8f,
             shellCenterZ);
 
         var window = GameObject.CreatePrimitive(PrimitiveType.Quad);
         window.name = "WindowPane";
         window.transform.SetParent(windowRoot.transform, false);
         window.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-        window.transform.localScale = new Vector3(14f, 4.5f, 1f);
+        window.transform.localScale = new Vector3(16f, 5.5f, 1f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             window,
             ArcAcademyMaterialFactory.CreateMountainWindowMaterial());
         Object.DestroyImmediate(window.GetComponent<Collider>());
+
+        var frameTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        frameTop.name = "WindowFrameTop";
+        frameTop.transform.SetParent(windowRoot.transform, false);
+        frameTop.transform.localPosition = new Vector3(0f, 2.85f, 0f);
+        frameTop.transform.localScale = new Vector3(0.12f, 16.2f, 0.15f);
+        ArcAcademyMaterialFactory.ApplyMaterial(frameTop, ArcAcademyMaterialFactory.CreateHdrpLit(BeamMetal, 0.3f, 0.4f));
+        Object.DestroyImmediate(frameTop.GetComponent<BoxCollider>());
     }
 
     private static void CreateCourt(Transform parent)
@@ -209,7 +286,7 @@ public static class BobTrainingSceneBuilder
             ArcAcademyLayout.CourtHalfWidth / 5f,
             1f,
             courtLength / 10f);
-        ArcAcademyMaterialFactory.ApplyMaterial(floor, ArcAcademyMaterialFactory.CreateStandard(CourtOrange));
+        ArcAcademyMaterialFactory.ApplyMaterial(floor, ArcAcademyMaterialFactory.CreateHdrpLit(CourtOrange, 0.35f, 0f));
 
         var markings = new GameObject(ArcAcademyLayout.CourtMarkingsName);
         markings.transform.SetParent(parent);
@@ -238,7 +315,7 @@ public static class BobTrainingSceneBuilder
             ArcAcademyLayout.KeyHalfWidth * 2f,
             0.03f,
             ArcAcademyLayout.KeyDepthFromBaseline);
-        ArcAcademyMaterialFactory.ApplyMaterial(keyFill, ArcAcademyMaterialFactory.CreateStandard(KeyPaint));
+        ArcAcademyMaterialFactory.ApplyMaterial(keyFill, ArcAcademyMaterialFactory.CreateHdrpLit(KeyPaint, 0.3f, 0f));
         Object.DestroyImmediate(keyFill.GetComponent<BoxCollider>());
 
         CreateThreePointArc(markings.transform, baselineZ);
@@ -262,12 +339,11 @@ public static class BobTrainingSceneBuilder
         arcRoot.transform.SetParent(parent);
         int segments = 36;
         float radius = ArcAcademyLayout.ThreePointArcRadius;
-        var hoopX = 0f;
 
         for (int i = 0; i <= segments; i++)
         {
             float angle = Mathf.Lerp(200f, 340f, i / (float)segments) * Mathf.Deg2Rad;
-            float x = hoopX + Mathf.Cos(angle) * radius;
+            float x = Mathf.Cos(angle) * radius;
             float z = baselineZ + Mathf.Sin(angle) * radius;
             CreateLineMark(arcRoot.transform, $"ThreePt_{i}",
                 new Vector3(x, 0.032f, z),
@@ -300,32 +376,49 @@ public static class BobTrainingSceneBuilder
         pad.transform.SetParent(parent);
         pad.transform.position = ArcAcademyLayout.SpawnPadPosition;
         pad.transform.localScale = ArcAcademyLayout.SpawnPadScale;
-        ArcAcademyMaterialFactory.ApplyMaterial(pad, ArcAcademyMaterialFactory.CreateStandard(SpawnPadDark));
+        ArcAcademyMaterialFactory.ApplyMaterial(pad, ArcAcademyMaterialFactory.CreateHdrpLit(SpawnPadDark, 0.55f, 0.2f));
         Object.DestroyImmediate(pad.GetComponent<BoxCollider>());
 
-        var glowTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        var glowTop = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         glowTop.name = "SpawnPadGlow";
         glowTop.transform.SetParent(pad.transform);
-        glowTop.transform.localPosition = new Vector3(0f, 0.52f, 0f);
-        glowTop.transform.localScale = new Vector3(0.92f, 0.08f, 0.88f);
+        glowTop.transform.localPosition = new Vector3(0f, 0.55f, 0f);
+        glowTop.transform.localScale = new Vector3(0.95f, 0.02f, 0.9f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             glowTop,
             ArcAcademyMaterialFactory.CreateEmissive(AcademyPurple, ArcAcademyLayout.PlatformEmissiveIntensity));
-        Object.DestroyImmediate(glowTop.GetComponent<BoxCollider>());
+        Object.DestroyImmediate(glowTop.GetComponent<Collider>());
 
         CreateTextLabel(pad.transform, "Label_Bob", "Bob",
-            new Vector3(0f, 1.35f, 0f), ArcAcademyLayout.LabelBobSize, Color.white);
+            new Vector3(0f, 1.45f, 0f), ArcAcademyLayout.LabelBobSize, Color.white);
         CreateTextLabel(pad.transform, "Label_ArcAcademy", "Arc Academy",
             new Vector3(0f, 0.15f, 0.52f), ArcAcademyLayout.LabelAcademySize, AcademyPurple);
 
         var rimLight = new GameObject("SpawnPadLight");
         rimLight.transform.SetParent(pad.transform);
-        rimLight.transform.localPosition = new Vector3(0f, 0.8f, 0f);
+        rimLight.transform.localPosition = new Vector3(0f, 0.9f, 0f);
         var light = rimLight.AddComponent<Light>();
         light.type = LightType.Point;
         light.color = AcademyPurple;
-        light.intensity = 0.8f;
-        light.range = 4f;
+        light.intensity = 8000f;
+        light.range = 5f;
+        rimLight.AddComponent<HDAdditionalLightData>();
+
+        var particles = new GameObject("SpawnPadParticles");
+        particles.transform.SetParent(pad.transform);
+        particles.transform.localPosition = new Vector3(0f, 0.58f, 0f);
+        var ps = particles.AddComponent<ParticleSystem>();
+        var main = ps.main;
+        main.startColor = new ParticleSystem.MinMaxGradient(AcademyPurple);
+        main.startSize = 0.08f;
+        main.startLifetime = 1.2f;
+        main.maxParticles = 40;
+        main.loop = true;
+        var emission = ps.emission;
+        emission.rateOverTime = 12f;
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Circle;
+        shape.radius = 0.85f;
 
         return pad.transform;
     }
@@ -360,30 +453,11 @@ public static class BobTrainingSceneBuilder
 
         for (int i = 0; i < ArcAcademyLayout.TrainingBayCount; i++)
         {
-            float bayZ = ArcAcademyLayout.TrainingBayStartZ + i * ArcAcademyLayout.TrainingBaySpacing;
             CreateTrainingBayShell(
                 baysRoot.transform,
                 $"Bay_{i + 1}",
-                new Vector3(ArcAcademyLayout.TrainingBayX, 0f, bayZ));
-        }
-    }
-
-    private static void CreateTrainingBaysBack(Transform parent)
-    {
-        var baysRoot = new GameObject(ArcAcademyLayout.TrainingBaysBackName);
-        baysRoot.transform.SetParent(parent);
-
-        float totalWidth = (ArcAcademyLayout.TrainingBayBackCount - 1) * ArcAcademyLayout.TrainingBayBackSpacing;
-        float startX = -totalWidth * 0.5f;
-
-        for (int i = 0; i < ArcAcademyLayout.TrainingBayBackCount; i++)
-        {
-            float bayX = startX + i * ArcAcademyLayout.TrainingBayBackSpacing;
-            CreateTrainingBayShell(
-                baysRoot.transform,
-                $"BackBay_{i + 1}",
-                new Vector3(bayX, 0f, ArcAcademyLayout.TrainingBayBackZ),
-                faceNegativeZ: true);
+                ArcAcademyLayout.TrainingBayPositions[i],
+                ArcAcademyLayout.TrainingBayFaceNegativeZ[i]);
         }
     }
 
@@ -391,7 +465,7 @@ public static class BobTrainingSceneBuilder
         Transform parent,
         string name,
         Vector3 center,
-        bool faceNegativeZ = false)
+        bool faceNegativeZ)
     {
         var bay = new GameObject(name);
         bay.transform.SetParent(parent);
@@ -407,7 +481,7 @@ public static class BobTrainingSceneBuilder
         floor.transform.SetParent(bay.transform);
         floor.transform.localPosition = new Vector3(0f, 0.02f, depth * 0.5f);
         floor.transform.localScale = new Vector3(ArcAcademyLayout.TrainingBayWidth, 0.04f, depth);
-        ArcAcademyMaterialFactory.ApplyMaterial(floor, ArcAcademyMaterialFactory.CreateStandard(CourtOrange));
+        ArcAcademyMaterialFactory.ApplyMaterial(floor, ArcAcademyMaterialFactory.CreateHdrpLit(CourtOrange, 0.35f, 0f));
         Object.DestroyImmediate(floor.GetComponent<BoxCollider>());
 
         CreateBayWall(bay.transform, "BayWall_Back",
@@ -421,22 +495,34 @@ public static class BobTrainingSceneBuilder
             new Vector3(0.12f, height, depth));
 
         float rimZ = faceNegativeZ ? 0.25f : depth - 0.25f;
+        var hoopRoot = new GameObject("BayHoop");
+        hoopRoot.transform.SetParent(bay.transform);
+        hoopRoot.transform.localPosition = new Vector3(0f, 0f, rimZ);
+        hoopRoot.AddComponent<DecorativeHoopMarker>();
+
         var backboard = GameObject.CreatePrimitive(PrimitiveType.Cube);
         backboard.name = "BayBackboard";
-        backboard.transform.SetParent(bay.transform);
-        backboard.transform.localPosition = new Vector3(0f, 2.6f, rimZ + (faceNegativeZ ? 0.15f : -0.08f));
+        backboard.transform.SetParent(hoopRoot.transform);
+        backboard.transform.localPosition = new Vector3(0f, 2.6f, faceNegativeZ ? 0.15f : -0.08f);
         backboard.transform.localScale = new Vector3(1.2f, 0.8f, 0.05f);
-        ArcAcademyMaterialFactory.ApplyMaterial(backboard, ArcAcademyMaterialFactory.CreateStandard(BackboardWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(
+            backboard,
+            ArcAcademyMaterialFactory.CreateGlassBackboard(BackboardWhite));
         Object.DestroyImmediate(backboard.GetComponent<BoxCollider>());
 
         var rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         rim.name = "BayRim";
-        rim.transform.SetParent(bay.transform);
-        rim.transform.localPosition = new Vector3(0f, 2.15f, rimZ);
+        rim.transform.SetParent(hoopRoot.transform);
+        rim.transform.localPosition = new Vector3(0f, 2.15f, 0f);
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.55f, 0.03f, 0.55f);
-        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.CreateStandard(RimOrange));
+        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.CreateHdrpLit(RimOrange, 0.5f, 0.6f));
         Object.DestroyImmediate(rim.GetComponent<Collider>());
+
+        CreateRoboticLauncherArm(
+            bay.transform,
+            new Vector3(0.65f, 0f, depth * 0.35f),
+            faceNegativeZ ? 160f : -20f);
     }
 
     private static void CreateBayWall(Transform parent, string name, Vector3 localPos, Vector3 scale)
@@ -446,16 +532,61 @@ public static class BobTrainingSceneBuilder
         wall.transform.SetParent(parent);
         wall.transform.localPosition = localPos;
         wall.transform.localScale = scale;
-        ArcAcademyMaterialFactory.ApplyMaterial(wall, ArcAcademyMaterialFactory.CreateStandard(BayWallWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(wall, ArcAcademyMaterialFactory.CreateHdrpLit(BayWallWhite, 0.25f, 0f));
 
         var trim = GameObject.CreatePrimitive(PrimitiveType.Cube);
         trim.name = $"{name}_Trim";
         trim.transform.SetParent(wall.transform);
         trim.transform.localPosition = new Vector3(0f, -0.45f, 0f);
         trim.transform.localScale = new Vector3(1.02f, 0.08f, 1.02f);
-        ArcAcademyMaterialFactory.ApplyMaterial(trim, ArcAcademyMaterialFactory.CreateStandard(BayTrim));
+        ArcAcademyMaterialFactory.ApplyMaterial(trim, ArcAcademyMaterialFactory.CreateHdrpLit(BayTrim, 0.4f, 0.1f));
         Object.DestroyImmediate(trim.GetComponent<BoxCollider>());
         Object.DestroyImmediate(wall.GetComponent<BoxCollider>());
+    }
+
+    private static Transform CreateRoboticLauncherArm(Transform parent, Vector3 localPosition, float yawDegrees)
+    {
+        var root = new GameObject(ArcAcademyLayout.RoboticLauncherPrefix);
+        root.transform.SetParent(parent);
+        root.transform.localPosition = localPosition;
+        root.transform.localRotation = Quaternion.Euler(0f, yawDegrees, 0f);
+        root.AddComponent<RoboticLauncherVisual>();
+
+        var basePlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        basePlate.name = "LauncherBase";
+        basePlate.transform.SetParent(root.transform);
+        basePlate.transform.localPosition = new Vector3(0f, 0.12f, 0f);
+        basePlate.transform.localScale = new Vector3(0.55f, 0.18f, 0.45f);
+        ArcAcademyMaterialFactory.ApplyMaterial(basePlate, ArcAcademyMaterialFactory.CreateHdrpLit(JointWhite, 0.45f, 0.15f));
+        Object.DestroyImmediate(basePlate.GetComponent<Collider>());
+
+        var column = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        column.name = "LauncherColumn";
+        column.transform.SetParent(root.transform);
+        column.transform.localPosition = new Vector3(0f, 0.55f, 0f);
+        column.transform.localScale = new Vector3(0.22f, 0.75f, 0.22f);
+        ArcAcademyMaterialFactory.ApplyMaterial(column, ArcAcademyMaterialFactory.CreateHdrpLit(PoleGray, 0.4f, 0.35f));
+        Object.DestroyImmediate(column.GetComponent<Collider>());
+
+        var arm = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        arm.name = "LauncherArm";
+        arm.transform.SetParent(root.transform);
+        arm.transform.localPosition = new Vector3(0f, 0.95f, 0.12f);
+        arm.transform.localRotation = Quaternion.Euler(-25f, 0f, 0f);
+        arm.transform.localScale = new Vector3(0.18f, 0.12f, 0.55f);
+        ArcAcademyMaterialFactory.ApplyMaterial(arm, ArcAcademyMaterialFactory.CreateHdrpLit(JointWhite, 0.5f, 0.2f));
+        Object.DestroyImmediate(arm.GetComponent<Collider>());
+
+        var barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        barrel.name = "LauncherBarrel";
+        barrel.transform.SetParent(arm.transform);
+        barrel.transform.localPosition = new Vector3(0f, 0f, 0.55f);
+        barrel.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        barrel.transform.localScale = new Vector3(0.14f, 0.08f, 0.14f);
+        ArcAcademyMaterialFactory.ApplyMaterial(barrel, ArcAcademyMaterialFactory.CreateHdrpLit(PoleGray, 0.55f, 0.45f));
+        Object.DestroyImmediate(barrel.GetComponent<Collider>());
+
+        return root.transform;
     }
 
     private static void CreateDecorativeHoops(Transform parent)
@@ -475,13 +606,16 @@ public static class BobTrainingSceneBuilder
         var hoopRoot = new GameObject(name);
         hoopRoot.transform.SetParent(parent);
         hoopRoot.transform.position = position;
+        hoopRoot.AddComponent<DecorativeHoopMarker>();
+
+        CreateRoboticLauncherArm(hoopRoot.transform, new Vector3(-0.55f, 0f, -0.35f), 35f);
 
         var baseJoint = GameObject.CreatePrimitive(PrimitiveType.Cube);
         baseJoint.name = "Base";
         baseJoint.transform.SetParent(hoopRoot.transform);
         baseJoint.transform.localPosition = new Vector3(0f, 0.2f, 0f);
         baseJoint.transform.localScale = new Vector3(0.55f, 0.25f, 0.55f);
-        ArcAcademyMaterialFactory.ApplyMaterial(baseJoint, ArcAcademyMaterialFactory.CreateStandard(JointWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(baseJoint, ArcAcademyMaterialFactory.CreateHdrpLit(JointWhite, 0.45f, 0.15f));
         Object.DestroyImmediate(baseJoint.GetComponent<Collider>());
 
         var pole = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -489,7 +623,7 @@ public static class BobTrainingSceneBuilder
         pole.transform.SetParent(hoopRoot.transform);
         pole.transform.localPosition = new Vector3(0f, 1.2f, 0f);
         pole.transform.localScale = new Vector3(0.16f, 2.4f, 0.16f);
-        ArcAcademyMaterialFactory.ApplyMaterial(pole, ArcAcademyMaterialFactory.CreateStandard(PoleGray));
+        ArcAcademyMaterialFactory.ApplyMaterial(pole, ArcAcademyMaterialFactory.CreateHdrpLit(PoleGray, 0.35f, 0.4f));
         Object.DestroyImmediate(pole.GetComponent<Collider>());
 
         var arm = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -497,7 +631,7 @@ public static class BobTrainingSceneBuilder
         arm.transform.SetParent(hoopRoot.transform);
         arm.transform.localPosition = new Vector3(0f, 2.45f, 0.05f);
         arm.transform.localScale = new Vector3(0.3f, 0.2f, 0.3f);
-        ArcAcademyMaterialFactory.ApplyMaterial(arm, ArcAcademyMaterialFactory.CreateStandard(JointWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(arm, ArcAcademyMaterialFactory.CreateHdrpLit(JointWhite, 0.5f, 0.2f));
         Object.DestroyImmediate(arm.GetComponent<Collider>());
 
         var backboard = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -505,7 +639,9 @@ public static class BobTrainingSceneBuilder
         backboard.transform.SetParent(hoopRoot.transform);
         backboard.transform.localPosition = new Vector3(0f, 2.85f, 0.15f);
         backboard.transform.localScale = new Vector3(1.4f, 0.9f, 0.05f);
-        ArcAcademyMaterialFactory.ApplyMaterial(backboard, ArcAcademyMaterialFactory.CreateStandard(BackboardWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(
+            backboard,
+            ArcAcademyMaterialFactory.CreateGlassBackboard(BackboardWhite));
         Object.DestroyImmediate(backboard.GetComponent<Collider>());
 
         var rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -514,7 +650,7 @@ public static class BobTrainingSceneBuilder
         rim.transform.localPosition = ArcAcademyLayout.RimLocalDefaultPosition;
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.75f, 0.035f, 0.75f);
-        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.CreateStandard(RimOrange));
+        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.CreateHdrpLit(RimOrange, 0.5f, 0.6f));
         Object.DestroyImmediate(rim.GetComponent<Collider>());
     }
 
@@ -526,33 +662,37 @@ public static class BobTrainingSceneBuilder
 
         var movableHoop = hoopRoot.AddComponent<MovableHoop>();
 
+        CreateRoboticLauncherArm(hoopRoot.transform, new Vector3(0.65f, 0f, 0.15f), -15f);
+
         var baseJoint = GameObject.CreatePrimitive(PrimitiveType.Cube);
         baseJoint.name = "BaseJoint";
         baseJoint.transform.SetParent(hoopRoot.transform);
         baseJoint.transform.localPosition = new Vector3(0f, 0.25f, -0.35f);
         baseJoint.transform.localScale = new Vector3(0.5f, 0.35f, 0.5f);
-        ArcAcademyMaterialFactory.ApplyMaterial(baseJoint, ArcAcademyMaterialFactory.CreateStandard(JointWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(baseJoint, ArcAcademyMaterialFactory.CreateHdrpLit(JointWhite, 0.45f, 0.15f));
 
         var pole = GameObject.CreatePrimitive(PrimitiveType.Cube);
         pole.name = "Pole";
         pole.transform.SetParent(hoopRoot.transform);
         pole.transform.localPosition = new Vector3(0f, 1.5f, -0.35f);
         pole.transform.localScale = new Vector3(0.18f, 3f, 0.18f);
-        ArcAcademyMaterialFactory.ApplyMaterial(pole, ArcAcademyMaterialFactory.CreateStandard(PoleGray));
+        ArcAcademyMaterialFactory.ApplyMaterial(pole, ArcAcademyMaterialFactory.CreateHdrpLit(PoleGray, 0.35f, 0.4f));
 
         var armJoint = GameObject.CreatePrimitive(PrimitiveType.Cube);
         armJoint.name = "ArmJoint";
         armJoint.transform.SetParent(hoopRoot.transform);
         armJoint.transform.localPosition = new Vector3(0f, 2.95f, -0.1f);
         armJoint.transform.localScale = new Vector3(0.35f, 0.25f, 0.35f);
-        ArcAcademyMaterialFactory.ApplyMaterial(armJoint, ArcAcademyMaterialFactory.CreateStandard(JointWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(armJoint, ArcAcademyMaterialFactory.CreateHdrpLit(JointWhite, 0.5f, 0.2f));
 
         var backboard = GameObject.CreatePrimitive(PrimitiveType.Cube);
         backboard.name = "Backboard";
         backboard.transform.SetParent(hoopRoot.transform);
         backboard.transform.localPosition = new Vector3(0f, 3.05f, 0.08f);
         backboard.transform.localScale = new Vector3(1.8f, 1.05f, 0.06f);
-        ArcAcademyMaterialFactory.ApplyMaterial(backboard, ArcAcademyMaterialFactory.CreateStandard(BackboardWhite));
+        ArcAcademyMaterialFactory.ApplyMaterial(
+            backboard,
+            ArcAcademyMaterialFactory.CreateGlassBackboard(BackboardWhite));
 
         var rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         rim.name = ArcAcademyLayout.RimName;
@@ -560,7 +700,9 @@ public static class BobTrainingSceneBuilder
         rim.transform.localPosition = ArcAcademyLayout.RimLocalDefaultPosition;
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.9f, 0.04f, 0.9f);
-        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.CreateStandard(RimOrange));
+        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.CreateHdrpLit(RimOrange, 0.55f, 0.65f));
+
+        CreateSimpleNet(rim.transform);
 
         movableHoop.SetRimTransform(rim.transform);
 
@@ -583,6 +725,27 @@ public static class BobTrainingSceneBuilder
         return (rim.transform, movableHoop);
     }
 
+    private static void CreateSimpleNet(Transform rim)
+    {
+        var netRoot = new GameObject("Net");
+        netRoot.transform.SetParent(rim);
+        netRoot.transform.localPosition = new Vector3(0f, -0.08f, 0f);
+
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i / 8f * Mathf.PI * 2f;
+            var strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            strand.name = $"NetStrand_{i}";
+            strand.transform.SetParent(netRoot.transform);
+            strand.transform.localPosition = new Vector3(Mathf.Cos(angle) * 0.28f, -0.18f, Mathf.Sin(angle) * 0.28f);
+            strand.transform.localScale = new Vector3(0.02f, 0.18f, 0.02f);
+            ArcAcademyMaterialFactory.ApplyMaterial(
+                strand,
+                ArcAcademyMaterialFactory.CreateHdrpLit(Color.white, 0.2f, 0f));
+            Object.DestroyImmediate(strand.GetComponent<Collider>());
+        }
+    }
+
     private static void CreateBob(Transform rim)
     {
         var bob = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -590,9 +753,7 @@ public static class BobTrainingSceneBuilder
         bob.transform.position = ArcAcademyLayout.BobSpawnPosition;
         bob.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
 
-        var bobMat = ArcAcademyMaterialFactory.CreateStandard(BobOrange);
-        bobMat.EnableKeyword("_EMISSION");
-        bobMat.SetColor("_EmissionColor", AcademyPurple * ArcAcademyLayout.BobGlowIntensity);
+        var bobMat = ArcAcademyMaterialFactory.CreateEmissive(BobOrange, ArcAcademyLayout.BobGlowIntensity);
         ArcAcademyMaterialFactory.ApplyMaterial(bob, bobMat);
 
         var rb = bob.AddComponent<Rigidbody>();
@@ -621,22 +782,15 @@ public static class BobTrainingSceneBuilder
         var rig = new GameObject(ArcAcademyLayout.LightingRigName);
         rig.transform.SetParent(parent);
 
-        var lightGo = new GameObject("Directional Light");
-        lightGo.transform.SetParent(rig.transform);
-        var light = lightGo.AddComponent<Light>();
-        light.type = LightType.Directional;
-        light.intensity = 1.15f;
-        light.shadows = LightShadows.Soft;
-        lightGo.transform.rotation = Quaternion.Euler(48f, -35f, 0f);
-
         var windowFill = new GameObject("WindowFill");
         windowFill.transform.SetParent(rig.transform);
         windowFill.transform.position = new Vector3(-8f, 5f, -2f);
         var fill = windowFill.AddComponent<Light>();
         fill.type = LightType.Directional;
-        fill.intensity = 0.45f;
+        fill.intensity = 45000f;
         fill.color = new Color(0.75f, 0.85f, 1f);
         windowFill.transform.rotation = Quaternion.Euler(10f, 70f, 0f);
+        windowFill.AddComponent<HDAdditionalLightData>();
 
         float midZ = (ArcAcademyLayout.ShellNearZ + ArcAcademyLayout.ShellFarZ) * 0.5f;
         for (int row = 0; row < 3; row++)
@@ -645,25 +799,36 @@ public static class BobTrainingSceneBuilder
             {
                 float x = col * 3.5f;
                 float z = midZ + (row - 1) * 6f;
-                CreateCeilingStrip(rig.transform, $"CeilingStrip_{row}_{col}",
-                    new Vector3(x, ArcAcademyLayout.CeilingHeight - 0.15f, z));
+                CreateCeilingAreaLight(rig.transform, $"CeilingLight_{row}_{col}",
+                    new Vector3(x, ArcAcademyLayout.CeilingHeight - 0.25f, z));
             }
         }
 
-        CreatePointLight(rig.transform, "WarehouseLight_Center", new Vector3(0f, 7.5f, -4f), 1.6f);
+        CreatePointLight(rig.transform, "WarehouseLight_Center", new Vector3(0f, 7.5f, -4f), 12000f);
     }
 
-    private static void CreateCeilingStrip(Transform parent, string name, Vector3 position)
+    private static void CreateCeilingAreaLight(Transform parent, string name, Vector3 position)
     {
-        var strip = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        strip.name = name;
+        var strip = new GameObject(name);
         strip.transform.SetParent(parent);
         strip.transform.position = position;
-        strip.transform.localScale = new Vector3(2.8f, 0.08f, 0.35f);
+        var light = strip.AddComponent<Light>();
+        light.type = LightType.Rectangle;
+        light.areaSize = new Vector2(2.8f, 0.35f);
+        light.intensity = 8000f;
+        light.color = new Color(1f, 0.98f, 0.95f);
+        strip.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        strip.AddComponent<HDAdditionalLightData>();
+
+        var emissive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        emissive.name = $"{name}_Mesh";
+        emissive.transform.SetParent(strip.transform);
+        emissive.transform.localPosition = Vector3.zero;
+        emissive.transform.localScale = new Vector3(2.8f, 0.08f, 0.35f);
         ArcAcademyMaterialFactory.ApplyMaterial(
-            strip,
-            ArcAcademyMaterialFactory.CreateEmissive(Color.white, 1.5f));
-        Object.DestroyImmediate(strip.GetComponent<BoxCollider>());
+            emissive,
+            ArcAcademyMaterialFactory.CreateEmissive(Color.white, 1.8f));
+        Object.DestroyImmediate(emissive.GetComponent<BoxCollider>());
     }
 
     private static void CreatePointLight(Transform parent, string name, Vector3 position, float intensity)
@@ -674,7 +839,8 @@ public static class BobTrainingSceneBuilder
         var light = go.AddComponent<Light>();
         light.type = LightType.Point;
         light.intensity = intensity;
-        light.range = 20f;
+        light.range = 22f;
+        go.AddComponent<HDAdditionalLightData>();
     }
 
     private static void CreateReflectionProbe(Transform parent)
@@ -686,7 +852,7 @@ public static class BobTrainingSceneBuilder
 
         var probe = probeGo.AddComponent<ReflectionProbe>();
         probe.size = new Vector3(24f, 12f, 32f);
-        probe.resolution = 128;
+        probe.resolution = 256;
         probe.mode = ReflectionProbeMode.Realtime;
         probe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
         probe.timeSlicingMode = ReflectionProbeTimeSlicingMode.NoTimeSlicing;
@@ -732,7 +898,7 @@ public static class BobTrainingSceneBuilder
         line.transform.SetParent(parent);
         line.transform.position = pos;
         line.transform.localScale = scale;
-        ArcAcademyMaterialFactory.ApplyMaterial(line, ArcAcademyMaterialFactory.CreateStandard(color));
+        ArcAcademyMaterialFactory.ApplyMaterial(line, ArcAcademyMaterialFactory.CreateHdrpLit(color, 0.2f, 0f));
         Object.DestroyImmediate(line.GetComponent<BoxCollider>());
     }
 
