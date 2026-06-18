@@ -4,8 +4,6 @@ from pathlib import Path
 
 import pytest
 from rag.chunker import chunk_file, is_indexable_file
-from rag.indexer import index_all, index_paths, iter_indexable_files
-from rag.search import search
 from rag.settings import REPO_ROOT
 
 
@@ -24,7 +22,10 @@ def test_chunk_file_produces_metadata() -> None:
     assert chunks[0].start_line >= 1
 
 
+@pytest.mark.rag
 def test_iter_indexable_files_includes_agent_and_docs() -> None:
+    from rag.indexer import iter_indexable_files
+
     files = {p.relative_to(REPO_ROOT).as_posix() for p in iter_indexable_files()}
     assert "Assets/Scripts/BobAgent.cs" in files
     assert "AGENTS.md" in files
@@ -35,6 +36,9 @@ def test_iter_indexable_files_includes_agent_and_docs() -> None:
 def test_index_and_search_round_trip(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    from rag.indexer import index_all
+    from rag.search import search
+
     monkeypatch.setenv("BOB_RAG_DATA_DIR", str(tmp_path / "rag-data"))
     result = index_all()
     assert result["files"] > 0
@@ -50,6 +54,8 @@ def test_index_and_search_round_trip(
 def test_partial_reindex_updates_single_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    from rag.indexer import index_all, index_paths
+
     monkeypatch.setenv("BOB_RAG_DATA_DIR", str(tmp_path / "rag-data"))
     index_all()
     result = index_paths(["AGENTS.md"])
