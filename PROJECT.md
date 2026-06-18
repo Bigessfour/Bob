@@ -16,8 +16,9 @@ Unity project initialized at repo root with `BobAgent.cs`, ML-Agents 4.0.3 (Unit
 
 ## Next Actions
 
-- [ ] Press Play in `BobTraining` scene — confirm Bob logs to console
-- [ ] Run `./scripts/train.sh` with Unity Play to start first training run
+- [ ] Rebuild scene if needed: `./scripts/validate-scene.sh` (or **Bob → Create Training Scene**)
+- [ ] Press Play in `BobTraining` — Bob spawns at free-throw line with gravity arcs
+- [ ] Run `./scripts/train.sh` with Play after trainer listens on port 5004
 - [ ] Tune reward shaping (Week 2)
 
 ## Links
@@ -47,7 +48,7 @@ Unity project initialized at repo root with `BobAgent.cs`, ML-Agents 4.0.3 (Unit
 | Docker training image              | Built locally (`bob-train:latest`)                                                                |
 | Baseline pytest suite              | `python/tests/` — config + plot_rewards + unity alignment + RAG                                   |
 | Repository RAG (ChromaDB + MCP)    | `python/rag/` — query before code edits; `./scripts/rag-index.sh`                                 |
-| Unity MCP (`bob-unity`)            | CoplayDev MCP for Unity — consult before scene/agent work; [docs/unity-mcp.md](docs/unity-mcp.md) |
+| Unity MCP (`unityMCP`)             | CoplayDev MCP for Unity — consult before scene/agent work; [docs/unity-mcp.md](docs/unity-mcp.md) |
 | Unity project                      | `Assets/`, `ProjectSettings/`, `Packages/` at repo root                                           |
 | ML-Agents                          | `com.unity.ml-agents` 4.0.3 + `com.unity.ai.inference` 2.2.1                                      |
 | WebGL deploy pipeline              | Week 3                                                                                            |

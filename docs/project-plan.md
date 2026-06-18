@@ -38,7 +38,7 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 - [x] CI green (Python 3.10.12 + Terraform validate)
 - [x] Baseline pytest suite (`python/tests/`)
 - [x] Docker build in CI
-- [x] Basic court scene builder (`Bob/Create Training Scene`)
+- [x] Basic court scene builder (`Bob/Create Training Scene`) — free-throw half-court, hoop, score zone
 - [x] Bob agent with `Agent` subclass, observations, actions
 - [ ] First training run completes without errors
 

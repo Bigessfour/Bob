@@ -88,6 +88,7 @@ build/
 # ML-Agents training output
 results/
 summaries/
+Assets/ML-Agents/
 
 # Terraform
 **/.terraform/

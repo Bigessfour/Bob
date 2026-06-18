@@ -62,16 +62,16 @@ Workspace settings (`.vscode/settings.json`) point Unity to `6000.5.0f1` and the
 
 ### AI Agent Assistants for Unity
 
-| Tool                        | Type              | Notes                                                                                                                                      |
-| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Cursor + AGENTS.md**      | IDE agent         | Primary — project rules in `AGENTS.md`, `.cursor/rules/bob.mdc`                                                                            |
-| **Unity MCP (`bob-unity`)** | MCP server        | **Required for agents** — live Editor access via [MCP for Unity](https://github.com/CoplayDev/unity-mcp); see [unity-mcp.md](unity-mcp.md) |
-| **Unity Muse**              | Unity cloud AI    | Paid Unity service; texture/code assist inside Editor                                                                                      |
-| **Unity Sentis**            | Runtime inference | For deployed models, not training loop setup                                                                                               |
+| Tool                       | Type              | Notes                                                                                                                                      |
+| -------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Cursor + AGENTS.md**     | IDE agent         | Primary — project rules in `AGENTS.md`, `.cursor/rules/bob.mdc`                                                                            |
+| **Unity MCP (`unityMCP`)** | MCP server        | **Required for agents** — live Editor access via [MCP for Unity](https://github.com/CoplayDev/unity-mcp); see [unity-mcp.md](unity-mcp.md) |
+| **Unity Muse**             | Unity cloud AI    | Paid Unity service; texture/code assist inside Editor                                                                                      |
+| **Unity Sentis**           | Runtime inference | For deployed models, not training loop setup                                                                                               |
 
-**Recommended for Bob:** Cursor with `AGENTS.md` + Unity Tools extension + **`bob-unity` MCP** (Editor open for scene/agent work). Batchmode CLI handles automation (builds, tests, scene rebuild); Cursor + Unity MCP handles live Editor inspection and parameterized changes.
+**Recommended for Bob:** Cursor with `AGENTS.md` + Unity Tools extension + **`unityMCP` MCP** (Editor open, HTTP bridge connected). Batchmode CLI handles automation (builds, tests, scene rebuild); Cursor + Unity MCP handles live Editor inspection and parameterized changes.
 
-### Unity MCP (`bob-unity`)
+### Unity MCP (`unityMCP`)
 
 Repo-configured via [`.cursor/mcp.json`](../.cursor/mcp.json) and `com.coplaydev.unity-mcp` in [`Packages/manifest.json`](../Packages/manifest.json).
 
@@ -81,8 +81,8 @@ chmod +x scripts/unity-mcp.sh
 ```
 
 1. Open Bob in Unity → **Window → MCP for Unity** → setup wizard → transport **stdio** → Configure Cursor
-2. Restart Cursor; enable **`bob-unity`** in MCP settings
-3. Agents must consult `bob-unity` tools before Unity edits (see [unity-mcp.md](unity-mcp.md))
+2. Restart Cursor; enable **`unityMCP`** and **`bob-rag`** in MCP settings
+3. Agents must consult `unityMCP` tools before Unity edits (see [unity-mcp.md](unity-mcp.md))
 
 Keep Unity Editor open while using MCP tools.
 
@@ -109,6 +109,23 @@ In Unity Package Manager:
 ```
 
 Or in the Editor: **Bob → Create Training Scene**
+
+### Training arena layout
+
+`BobTrainingSceneBuilder` creates a **free-throw half-court** under `TrainingArena`:
+
+| Element                      | Purpose                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `CourtFloor` + markings      | Hardwood floor, baseline, free-throw line, key/paint                           |
+| `Hoop` / `Rim` / `ScoreZone` | Pole, backboard, rim trigger for made baskets                                  |
+| `Bob`                        | Spawns at free-throw line (`BobCourtLayout.BobSpawnPosition`), gravity enabled |
+| `Boundaries`                 | Invisible walls + ceiling keep episodes bounded                                |
+
+Shared dimensions live in `Assets/Scripts/BobCourtLayout.cs`. Rebuild after layout changes:
+
+```bash
+./scripts/validate-scene.sh
+```
 
 ### Behavior Setup Checklist
 

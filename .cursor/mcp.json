@@ -4,9 +4,9 @@
       "command": "./scripts/rag-mcp.sh",
       "args": []
     },
-    "bob-unity": {
-      "command": "./scripts/unity-mcp.sh",
-      "args": []
+    "unityMCP": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "type": "http"
     }
   }
 }

@@ -14,7 +14,13 @@ mkdir -p results summaries
 echo "Building bob-train image if needed..."
 docker compose build train
 
-echo "Starting trainer (Unity Editor must be open with training scene)..."
-echo "Press Play in Unity when prompted."
+echo "Starting trainer (Unity Editor must be open with BobTraining scene)..."
+echo ""
+echo "Training handshake order:"
+echo "  1. Stop Play if already running (inference fallback blocks reconnect)."
+echo "  2. Wait until this trainer prints it is waiting for a connection."
+echo "  3. Press Play in Unity."
+echo "  4. Confirm Editor console shows training steps (not inference fallback)."
+echo ""
 docker compose run --rm train \
 	mlagents-learn "${CONFIG}" --run-id="${RUN_ID}" "${EXTRA_ARGS[@]}"

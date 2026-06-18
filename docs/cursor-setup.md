@@ -76,7 +76,7 @@ Cursor reads these for project context:
 - [`AGENTS.md`](../AGENTS.md) — canonical agent instructions (includes **North Star**, **RAG workflow**)
 - [`.cursor/rules/bob.mdc`](../.cursor/rules/bob.mdc) — always-on rules
 - [`.cursor/project-rules.md`](../.cursor/project-rules.md) — DevOps emphasis
-- [`.cursor/mcp.json`](../.cursor/mcp.json) — **`bob-rag`** + **`bob-unity`** MCP servers
+- [`.cursor/mcp.json`](../.cursor/mcp.json) — **`bob-rag`** + **`unityMCP`** MCP servers
 - [`.cursor/hooks.json`](../.cursor/hooks.json) — RAG + Unity MCP query injection + auto re-index
 
 ### Repository RAG (required for code agents)
@@ -98,7 +98,7 @@ brew install uv
 chmod +x scripts/unity-mcp.sh
 ```
 
-Open Unity → **Window → MCP for Unity** → stdio transport → Configure Cursor. Enable **`bob-unity`** in MCP settings. Agents must consult Unity MCP before scene/agent/Assets edits. See [docs/unity-mcp.md](unity-mcp.md).
+Open Unity → **Window → MCP for Unity** → **Auto-Setup** (HTTP). Enable **`unityMCP`** and **`bob-rag`** in MCP settings. Agents must consult Unity MCP before scene/agent/Assets edits. See [docs/unity-mcp.md](unity-mcp.md).
 
 ## Format on Save
 

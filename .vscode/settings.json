@@ -20,6 +20,8 @@
   "dotnet.preferCSharpExtension": true,
   "unity.editorPath": "/Applications/Unity/Hub/Editor/6000.5.0f1/Unity.app",
   "unity.projectPath": "${workspaceFolder}",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.env.osx": {
     "UNITY_VERSION": "6000.5.0f1",
     "UNITY_PROJECT_PATH": "${workspaceFolder}"

@@ -41,14 +41,14 @@ Help design, implement, and document Bob — a cheerful orange cube that learns 
 
 ## Unity MCP
 
-Bob uses **[MCP for Unity](https://github.com/CoplayDev/unity-mcp)** (CoplayDev) so agents can inspect and modify the live Unity Editor with validated tool parameters. The server is registered in [`.cursor/mcp.json`](.cursor/mcp.json) as **`bob-unity`**.
+Bob uses **[MCP for Unity](https://github.com/CoplayDev/unity-mcp)** (CoplayDev) so agents can inspect and modify the live Unity Editor with validated tool parameters. The server is registered in [`.cursor/mcp.json`](.cursor/mcp.json) as **`unityMCP`** (HTTP — [official Cursor default](https://coplaydev.github.io/unity-mcp/getting-started/install)).
 
 ### Before any Unity development task
 
 Before editing **`Assets/`**, **`ProjectSettings/`**, **`Packages/manifest.json`**, Unity Editor scripts, scenes, prefabs, or running Unity CLI that affects the project:
 
 1. **Open Unity Editor** on this repo and confirm **Window → MCP for Unity** shows a connected bridge (green status).
-2. Call MCP tools on server **`bob-unity`** to inspect current state — do **not** guess parameter shapes; read tool schemas from MCP descriptors:
+2. Call MCP tools on server **`unityMCP`** to inspect current state — do **not** guess parameter shapes; read tool schemas from MCP descriptors:
    - **`manage_scene`** — `action: get_active`, `get_hierarchy` to verify scene context before scene/hierarchy changes
    - **`find_gameobjects`** — locate Bob, hoop, ball, and other targets before modifying GameObjects
    - **`manage_components`** — read/set Behavior Parameters, Rigidbody, colliders; Behavior Name must be **`Bob`** (matches `config/bob_free_throw.yaml`)
@@ -56,7 +56,7 @@ Before editing **`Assets/`**, **`ProjectSettings/`**, **`Packages/manifest.json`
    - **`read_console`** — check for errors after applying changes
 3. Prefer MCP-driven Editor changes for scene/component work; use batchmode CLI (`./scripts/unity.sh -executeMethod ...`) for scripted rebuilds and validation.
 
-Cursor **hooks** (`.cursor/hooks/unity-pre-code.sh`) inject Unity MCP reminders on Unity path edits; do not skip explicit **`bob-unity`** consultation when making non-trivial Unity changes.
+Cursor **hooks** (`.cursor/hooks/unity-pre-code.sh`) inject Unity MCP reminders on Unity path edits; do not skip explicit **`unityMCP`** consultation when making non-trivial Unity changes.
 
 ### Setup (once per machine)
 
@@ -66,8 +66,8 @@ chmod +x scripts/unity-mcp.sh
 ```
 
 1. Open the Bob project in Unity 6 — the **`com.coplaydev.unity-mcp`** package resolves from [`Packages/manifest.json`](Packages/manifest.json).
-2. **Window → MCP for Unity** → complete setup wizard (Python + uv) → set transport to **stdio** → **Configure** for Cursor (or confirm project [`.cursor/mcp.json`](.cursor/mcp.json) already lists `bob-unity`).
-3. Restart Cursor and enable **`bob-unity`** in MCP settings.
+2. **Window → MCP for Unity** → complete setup wizard (Python + uv) → **Auto-Setup** (HTTP transport — matches `.cursor/mcp.json` `unityMCP` url) → **Start Bridge** when needed.
+3. Restart Cursor and enable **`unityMCP`** and **`bob-rag`** in MCP settings.
 
 See [docs/unity-mcp.md](docs/unity-mcp.md) for tool reference, troubleshooting, and the official Unity AI Assistant alternative.
 
