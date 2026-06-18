@@ -1,0 +1,53 @@
+---
+description: Bob RL project context — Unity ML-Agents free-throw demo
+alwaysApply: true
+---
+
+# Bob — Deep RL Free Throw Agent
+
+You are helping build **Bob**, a fun Deep Reinforcement Learning demo where a cheerful orange cube learns to shoot free throws in Unity.
+
+## Project
+
+- **Vision:** Entertaining training progress (AI Warehouse style), portfolio-ready WebGL demo
+- **Agent:** Bob — orange cube with continuous control for shooting mechanics
+- **Environment:** 3D basketball court with hoop and ball
+
+## Tech Stack
+
+- **Unity 6 LTS** — game engine, scene, physics
+- **Unity ML-Agents** — `Agent` subclass in C#, Behavior Name = `Bob`
+- **Python 3.10** — training via `mlagents-learn`
+- **Terraform** — AWS WebGL hosting (Week 3)
+
+## Conventions
+
+| Path | Purpose |
+|------|---------|
+| `Assets/` | Unity scenes, scripts, prefabs |
+| `config/` | ML-Agents YAML trainer configs |
+| `python/` | venv, training scripts |
+| `docs/` | Planning, diagrams, results |
+| `terraform/` | AWS infrastructure |
+
+## Development Priorities
+
+1. **MVP first:** Working training loop before polish or deployment
+2. **Reward shaping:** Start simple (made basket = +1), iterate in Week 2
+3. **Match behavior names:** Unity `Behavior Parameters` must match `behaviors: Bob:` in YAML
+4. **Configs in `config/`:** Do not hardcode hyperparameters in Python
+
+## Avoid
+
+- Web frameworks (Next.js, React, etc.) — this is a Unity project
+- Unrelated scaffolding or over-engineering
+- Committing `results/`, `summaries/`, `.venv/`, or Unity `Library/`
+
+## Key Commands
+
+```bash
+# Train (from python/ with venv active)
+mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
+```
+
+See `docs/setup-checklist.md` for local setup and `docs/project-plan.md` for milestones.
