@@ -6,7 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class HoopScoreZone : MonoBehaviour
 {
-    [Tooltip("Minimum downward speed (m/s) to count as a shot through the hoop, not a fly-by from below.")]
+    [Tooltip("Maximum upward speed (m/s) allowed for a made basket.")]
     public float minDownwardSpeed = 0.5f;
 
     private void Awake()
@@ -29,6 +29,7 @@ public class HoopScoreZone : MonoBehaviour
             return;
         }
 
-        agent.RegisterMadeShot();
+        bool swish = rb != null && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
+        agent.RegisterMadeShot(swish);
     }
 }

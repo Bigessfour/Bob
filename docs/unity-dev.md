@@ -110,18 +110,21 @@ In Unity Package Manager:
 
 Or in the Editor: **Bob → Create Training Scene**
 
-### Training arena layout
+### Training arena layout (Arc Academy MVP)
 
-`BobTrainingSceneBuilder` creates a **free-throw half-court** under `TrainingArena`:
+`BobTrainingSceneBuilder` creates a **warehouse-inspired Arc Academy** under `TrainingArena`:
 
-| Element                      | Purpose                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| `CourtFloor` + markings      | Hardwood floor, baseline, free-throw line, key/paint                           |
-| `Hoop` / `Rim` / `ScoreZone` | Pole, backboard, rim trigger for made baskets                                  |
-| `Bob`                        | Spawns at free-throw line (`BobCourtLayout.BobSpawnPosition`), gravity enabled |
-| `Boundaries`                 | Invisible walls + ceiling keep episodes bounded                                |
+| Element                                      | Purpose                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------- |
+| `WarehouseShell`                             | Concrete floor, walls, ceiling around the court                           |
+| `CourtFloor` + markings                      | Orange court, baseline, free-throw line, key, **3m/6m/9m distance marks** |
+| `SpawnPad`                                   | Raised dark platform at free-throw line                                   |
+| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | Robotic post with per-episode X/Z/height randomization + rim trigger      |
+| `ArcAcademyManager`                          | Wires hoop + spawn pad; called from `BobAgent.OnEpisodeBegin`             |
+| `Bob`                                        | 8 obs, 3 actions, gravity arcs, arc-quality + swish rewards               |
+| `Boundaries`                                 | Invisible walls + ceiling aligned to warehouse shell                      |
 
-Shared dimensions live in `Assets/Scripts/BobCourtLayout.cs`. Rebuild after layout changes:
+Shared dimensions live in [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/ArcAcademyLayout.cs) (`BobCourtLayout` remains a thin alias). Rebuild after layout changes:
 
 ```bash
 ./scripts/validate-scene.sh

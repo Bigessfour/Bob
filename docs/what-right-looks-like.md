@@ -46,8 +46,8 @@ flowchart TD
     style G fill:#eab308,stroke:#fff
 ```
 
-**Week 1** ✅ foundations (Unity project, CI, agent scaffold, DevOps scaffold).  
-**Week 2** — training loop, reward shaping, progress captures.  
+**Week 1** — foundations done (Unity, CI, agent, scene CLI); **first training run still open**.  
+**Week 2** — Arc Academy MVP built locally; prove training loop, then reward shaping + GIFs.  
 **Week 3** — polish, WebGL, Terraform apply, live demo URL.
 
 ---

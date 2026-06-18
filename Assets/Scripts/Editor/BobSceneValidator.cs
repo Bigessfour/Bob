@@ -12,21 +12,42 @@ public static class BobSceneValidator
     {
         EditorSceneManager.OpenScene(ScenePath);
 
-        if (GameObject.Find(BobCourtLayout.ArenaName) == null)
+        if (GameObject.Find(ArcAcademyLayout.ArenaName) == null)
         {
             Debug.LogError("VALIDATE_FAIL: TrainingArena root missing");
             EditorApplication.Exit(1);
             return;
         }
 
-        if (GameObject.Find(BobCourtLayout.CourtFloorName) == null)
+        if (Object.FindAnyObjectByType<ArcAcademyManager>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyManager missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.CourtFloorName) == null)
         {
             Debug.LogError("VALIDATE_FAIL: CourtFloor missing from training scene");
             EditorApplication.Exit(1);
             return;
         }
 
-        var hoop = GameObject.Find(BobCourtLayout.HoopName);
+        if (GameObject.Find(ArcAcademyLayout.SpawnPadName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SpawnPad missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.DistanceMarkingsName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: DistanceMarkings missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var hoop = GameObject.Find(ArcAcademyLayout.HoopName);
         if (hoop == null)
         {
             Debug.LogError("VALIDATE_FAIL: Hoop assembly missing from training scene");
@@ -34,7 +55,14 @@ public static class BobSceneValidator
             return;
         }
 
-        var rim = hoop.transform.Find(BobCourtLayout.RimName);
+        if (hoop.GetComponent<MovableHoop>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: MovableHoop component missing on Hoop");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var rim = hoop.transform.Find(ArcAcademyLayout.RimName);
         if (rim == null)
         {
             Debug.LogError("VALIDATE_FAIL: Rim missing under Hoop");
@@ -42,7 +70,7 @@ public static class BobSceneValidator
             return;
         }
 
-        if (rim.Find(BobCourtLayout.ScoreZoneName)?.GetComponent<HoopScoreZone>() == null)
+        if (rim.Find(ArcAcademyLayout.ScoreZoneName)?.GetComponent<HoopScoreZone>() == null)
         {
             Debug.LogError("VALIDATE_FAIL: ScoreZone trigger missing on Rim");
             EditorApplication.Exit(1);
@@ -93,7 +121,7 @@ public static class BobSceneValidator
             return;
         }
 
-        if (agent.hoop == null || agent.hoop.name != BobCourtLayout.RimName)
+        if (agent.hoop == null || agent.hoop.name != ArcAcademyLayout.RimName)
         {
             Debug.LogError("VALIDATE_FAIL: Hoop reference not wired to Rim on BobAgent");
             EditorApplication.Exit(1);

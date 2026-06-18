@@ -107,20 +107,47 @@ def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
     assert "m_Name: TrainingArena" in content
     assert "m_Name: CourtFloor" in content
     assert "m_EditorClassIdentifier: Bob::HoopScoreZone" in content
+    assert "m_EditorClassIdentifier: Bob::ArcAcademyManager" in content
+    assert "m_EditorClassIdentifier: Bob::MovableHoop" in content
+    assert "m_Name: SpawnPad" in content
+    assert "m_Name: DistanceMarkings" in content
+
+
+def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
+    assert (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").is_file()
+    assert (repo_root / "Assets/Scripts/ArcAcademyManager.cs").is_file()
+    assert (repo_root / "Assets/Scripts/MovableHoop.cs").is_file()
+
+
+def test_arc_academy_builder_wiring(repo_root: Path) -> None:
+    builder = (repo_root / EDITOR_SCRIPTS[1]).read_text()
+    assert "ArcAcademyLayout" in builder
+    assert "ArcAcademyManager" in builder
+    assert "MovableHoop" in builder
+    assert "WireReferences" in builder
+    assert "DistanceMarkings" in builder
+    assert "SpawnPad" in builder
+
+    validator = (repo_root / EDITOR_SCRIPTS[0]).read_text()
+    assert "ArcAcademyManager" in validator
+    assert "MovableHoop" in validator
+    assert "SpawnPad" in validator
+    assert "DistanceMarkings" in validator
 
 
 def test_bob_court_layout_referenced_in_builder(repo_root: Path) -> None:
     builder = (repo_root / EDITOR_SCRIPTS[1]).read_text()
-    assert "BobCourtLayout" in builder
-    assert "TrainingArena" in builder or "BobCourtLayout.ArenaName" in builder
+    assert "ArcAcademyLayout" in builder
+    assert "TrainingArena" in builder or "ArcAcademyLayout.ArenaName" in builder
     assert "HoopScoreZone" in builder
     assert (repo_root / "Assets/Scripts/BobCourtLayout.cs").is_file()
 
 
 def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     agent = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
-    assert "BobCourtLayout" in agent
+    assert "ArcAcademyLayout" in agent
     assert "RegisterMadeShot" in agent
+    assert "CalculateArcQuality" in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
 
 

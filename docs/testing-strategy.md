@@ -42,11 +42,11 @@ pytest tests/ -v --cov=scripts --cov-report=term-missing
 
 Tests in `python/tests/`:
 
-| File                   | Coverage                                                                  |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `test_env.py`              | YAML config parse, Bob behavior schema, `mlagents-learn --help` (CI only) |
-| `test_plot_rewards.py`     | `find_training_log`, `load_rewards`, plot output                          |
-| `test_unity_alignment.py`  | Unity/trainer alignment, scene YAML, asmdef layout, MCP pref keys         |
+| File                      | Coverage                                                                  |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `test_env.py`             | YAML config parse, Bob behavior schema, `mlagents-learn --help` (CI only) |
+| `test_plot_rewards.py`    | `find_training_log`, `load_rewards`, plot output                          |
+| `test_unity_alignment.py` | Unity/trainer alignment, scene YAML, asmdef layout, MCP pref keys         |
 
 ### Infrastructure (CI)
 
@@ -67,15 +67,17 @@ docker compose build train
 
 `test_unity_alignment.py` catches regressions without Unity Test Framework:
 
-| Guard | What breaks if it fails |
-| ----- | ----------------------- |
-| `test_bob_training_scene_yaml_alignment` | `BobTraining.unity` lost Behavior Name `Bob`, BehaviorType `0`, 8 obs, 3 actions, or hoop wiring |
-| `test_scene_builder_constants_match_validator` | `BobTrainingSceneBuilder` / `BobSceneValidator` drift on ML-Agents constants or scene path |
-| `test_editor_scripts_live_under_scripts_editor` | Scene builder/validator moved back to legacy `Assets/Editor/` paths |
-| `test_mcp_asmdef_layout` | `Bob.Mcp.asmdef` missing, wrong references, or not Editor-only |
-| `test_bob_editor_asmdef_exists` | `Bob.Editor.asmdef` references drift |
-| `test_mcp_bootstrap_pref_keys` | `BobMcpBootstrap` MCP EditorPref key strings changed |
-| `test_validate_scene_script_wires_cli_methods` | `./scripts/validate-scene.sh` no longer calls CLI entry points |
+| Guard                                           | What breaks if it fails                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `test_bob_training_scene_yaml_alignment`        | `BobTraining.unity` lost Behavior Name `Bob`, BehaviorType `0`, 8 obs, 3 actions, or hoop wiring |
+| `test_scene_builder_constants_match_validator`  | `BobTrainingSceneBuilder` / `BobSceneValidator` drift on ML-Agents constants or scene path       |
+| `test_editor_scripts_live_under_scripts_editor` | Scene builder/validator moved back to legacy `Assets/Editor/` paths                              |
+| `test_mcp_asmdef_layout`                        | `Bob.Mcp.asmdef` missing, wrong references, or not Editor-only                                   |
+| `test_bob_editor_asmdef_exists`                 | `Bob.Editor.asmdef` references drift                                                             |
+| `test_mcp_bootstrap_pref_keys`                  | `BobMcpBootstrap` MCP EditorPref key strings changed                                             |
+| `test_validate_scene_script_wires_cli_methods`  | `./scripts/validate-scene.sh` no longer calls CLI entry points                                   |
+| `test_arc_academy_layout_and_scripts_exist`     | Arc Academy runtime scripts removed from repo                                                    |
+| `test_arc_academy_builder_wiring`               | Scene builder/validator lost Arc Academy manager, hoop, spawn pad wiring                         |
 
 Manual / batchmode (not in CI yet): `./scripts/validate-scene.sh` rebuilds the scene and runs `BobSceneValidator.VerifyFromCli` in Unity.
 
