@@ -3,7 +3,7 @@
 > **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) — canonical milestone + workflow diagrams. Read before planning or merging; every change must align with the current week and permanent quality bars.
 
 **Status:** Week 1 — Basic Agent (training loop pending)  
-**Branch:** `feature/week1-rag-mcp-north-star` — Arc Academy MVP implemented locally, not yet committed  
+**Branch:** `main` — PR #2 merged (`9a22819`)  
 **Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio  
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + Terraform + GitHub Actions
 
@@ -13,9 +13,9 @@
 
 **Week 1 — Setup + Basic Agent**
 
-Foundations are in place: Unity 6 project, ML-Agents 4.0.3, CI green, RAG + Unity MCP, scene builder/validator CLI, and **Arc Academy MVP** (warehouse court, **fixed regulation hoop**, static training bays, spawn platform). Behavior Name **`Bob`**, **8** vector observations, **3** continuous actions — unchanged for trainer compatibility. Hoop/spawn randomization is **off by default** until curriculum Phase 2.
+Foundations are in place on **`main`**: Unity 6, ML-Agents 4.0.3, CI green, RAG + Unity MCP, and **Arc Academy visual build** matching [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) — fixed regulation hoop, static bays, decorative hoops, trajectory arcs, mountain window. Behavior Name **`Bob`**, **8** obs, **3** actions unchanged.
 
-**Week 1 exit criterion still open:** no successful end-to-end training run yet (`results/` empty; prior smoke timed out waiting for Play).
+**Week 1 exit criterion:** first end-to-end training run (`results/bob-v0/` still empty).
 
 ## Build Status (2026-06-18)
 
@@ -27,13 +27,14 @@ Foundations are in place: Unity 6 project, ML-Agents 4.0.3, CI green, RAG + Unit
 | Design reference    | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) |
 | Arc Academy runtime | Fixed main hoop + bays, decorative hoops, trajectory arcs, mountain window      |
 | First training run  | **Not done** — trainer needs Unity Play after "Listening on port 5004"          |
-| Git                 | Arc Academy changes **uncommitted** on `feature/week1-rag-mcp-north-star`       |
+| Progress gallery    | `docs/progress/005-arc-academy-visual-v2/`                                       |
+| Git                 | **Merged to `main`** via [PR #2](https://github.com/Bigessfour/Bob/pull/2)       |
 
 ## Next Actions
 
-1. **Commit + PR** — Arc Academy MVP on `feature/arc-academy-mvp` (or extend current feature branch) → green CI → merge per [North Star](docs/what-right-looks-like.md)
-2. **First training run (Week 1 gate)** — `./scripts/train.sh --timeout-wait=120 --time-scale=20 --force`, then Press Play when trainer listens; confirm `results/bob-v0/` event files
-3. **Week 2** — tune reward shaping, TensorBoard review, training GIFs (after loop is proven)
+1. **Open Unity** → `Assets/Scenes/BobTraining.unity` — confirm Arc Academy layout vs design reference
+2. **First training run (Week 1 gate)** — `./scripts/train.sh --timeout-wait=120 --time-scale=20 --force`, Press Play after port 5004
+3. **Week 2** — reward tuning, TensorBoard, training GIFs (after loop proven)
 
 ## Links
 
@@ -80,5 +81,4 @@ Foundations are in place: Unity 6 project, ML-Agents 4.0.3, CI green, RAG + Unit
 | 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                           |
 | 2026-06-18 | Unity MCP — `com.coplaydev.unity-mcp`, `bob-unity` MCP, agent consultation rules                       |
 | 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan                   |
-| 2026-06-18 | Arc Academy MVP — warehouse arena, movable hoop, spawn randomization, arc rewards (local, uncommitted) |
-| 2026-06-18 | Scene validator + 14 pytest alignment guards; progress capture `004-arc-academy-mvp`                   |
+| 2026-06-18 | **PR #2 merged to `main`** — RAG, Unity MCP, North Star, Arc Academy visual build |

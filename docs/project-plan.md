@@ -36,20 +36,19 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 - [x] ML-Agents package installed (`com.unity.ml-agents` 4.0.3 — required for Unity 6)
 - [x] Python venv and `mlagents` verified (Docker `bob-train` on Apple Silicon; local venv skips grpcio on arm64)
 - [x] CI green (Python 3.10.12 + Terraform validate)
-- [x] Baseline pytest suite (`python/tests/` — 14 tests incl. Arc Academy guards)
+- [x] Baseline pytest suite (`python/tests/` — 16 tests incl. Arc Academy visual guards)
 - [x] Docker build in CI
 - [x] Training scene builder + validator CLI (`./scripts/validate-scene.sh` → VALIDATE_PASS)
 - [x] Bob agent with `Agent` subclass — Behavior Name `Bob`, 8 obs, 3 actions, gravity shot
-- [ ] **First training run completes without errors** ← **current gate** (no `results/bob-v0/` yet)
-
-**In progress (local, uncommitted on `feature/week1-rag-mcp-north-star`):** Arc Academy MVP arena — see Week 2 bullet below; commit via PR before treating as merged.
+- [x] Arc Academy visual build on `main` ([PR #2](https://github.com/Bigessfour/Bob/pull/2)) — matches `docs/design/arc-academy-reference.jpg`
+- [ ] **First training run completes without errors** ← **current gate**
 
 ### Week 2 — Training & Iteration
 
 - [ ] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; TensorBoard shows steps
 - [ ] Tune reward shaping (arc quality, swish bonus, proximity — iterate after baseline run)
-- [x] Arc Academy MVP arena (warehouse court, movable hoop, spawn pad, arc rewards) — **implemented locally; PR pending**
-- [x] Progress screenshot history in `docs/progress/` (edit-mode; CLI + Editor menu; capture `004-arc-academy-mvp`)
+- [x] Arc Academy arena (warehouse court, fixed hoop, bays, trajectory arcs) — **merged to `main`**
+- [x] Progress screenshot history in `docs/progress/` (captures through `005-arc-academy-visual-v2`)
 - [ ] Record training progress GIFs (play-mode capture + Recorder/ffmpeg)
 - [ ] Iterate on observation space and action space (Phase 2: wind, raycasts — deferred)
 - [ ] Document hyperparameters in `config/`
