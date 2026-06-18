@@ -159,6 +159,49 @@ public static class BobSceneValidator
             return;
         }
 
+        if (GameObject.Find(ArcAcademyLayout.ReflectionProbeWindowName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ReflectionProbe_Window missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindObjectsByType<ReflectionProbe>().Length < 2)
+        {
+            Debug.LogError("VALIDATE_FAIL: At least two reflection probes are required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.SignageArcAcademyName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Signage_ArcAcademy missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.FloorDecalsName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: FloorDecals missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var mountainWindow = GameObject.Find(ArcAcademyLayout.MountainWindowName);
+        if (mountainWindow == null
+            || mountainWindow.transform.Find("MountainBackdrop") == null
+            || mountainWindow.transform.Find("WindowGlass") == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: MountainWindow must include MountainBackdrop and WindowGlass");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!ArcAcademyMaterialFactory.MaterialLibraryLoaded)
+        {
+            Debug.LogWarning("VALIDATE_WARN: Arc Academy material library assets missing; scene uses procedural fallback");
+        }
+
         var hoop = GameObject.Find(ArcAcademyLayout.HoopName);
         if (hoop == null)
         {
@@ -181,7 +224,7 @@ public static class BobSceneValidator
             return;
         }
 
-        var rim = hoop.transform.Find(ArcAcademyLayout.RimName);
+        var rim = FindDeepChild(hoop.transform, ArcAcademyLayout.RimName);
         if (rim == null)
         {
             Debug.LogError("VALIDATE_FAIL: Rim missing under Hoop");
@@ -192,6 +235,51 @@ public static class BobSceneValidator
         if (rim.Find(ArcAcademyLayout.ScoreZoneName)?.GetComponent<HoopScoreZone>() == null)
         {
             Debug.LogError("VALIDATE_FAIL: ScoreZone trigger missing on Rim");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var scoreZones = Object.FindObjectsByType<HoopScoreZone>();
+        if (scoreZones.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one HoopScoreZone (active hoop) is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (rim.GetComponent<HoopRimContact>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopRimContact missing on active Rim");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var spawnPad = GameObject.Find(ArcAcademyLayout.SpawnPadName);
+        if (spawnPad == null || spawnPad.transform.Find(ArcAcademyLayout.BallSpawnPointName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BallSpawnPoint missing under SpawnPad");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (spawnPad.GetComponent<SpawnPadPulse>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SpawnPadPulse missing on SpawnPad");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var activeBackboard = hoop.transform.Find("RoboticSwivelBase/SwivelLink/ArmLink/HoopHead/Backboard");
+        if (activeBackboard == null || activeBackboard.GetComponent<Collider>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Active hoop Backboard collider missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<ArcAcademyScorePopup>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyScorePopup missing from training scene");
             EditorApplication.Exit(1);
             return;
         }
@@ -255,8 +343,41 @@ public static class BobSceneValidator
             return;
         }
 
+        if (agent.GetComponent<BobShootingInput>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobShootingInput missing on Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<HoopNetPhysics>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopNetPhysics missing on active hoop");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         Debug.Log("VALIDATE_PASS: Bob training scene is ready for Play mode and training");
         EditorApplication.Exit(0);
+    }
+
+    private static Transform FindDeepChild(Transform parent, string name)
+    {
+        if (parent.name == name)
+        {
+            return parent;
+        }
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var found = FindDeepChild(parent.GetChild(i), name);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
     }
 }
 #endif

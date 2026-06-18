@@ -13,6 +13,8 @@ public static class ArcAcademyLayout
     public const string DistanceMarkingsName = "DistanceMarkings";
     public const string TrainingBaysName = "TrainingBays";
     public const string SpawnPadName = "SpawnPad";
+    public const string BallSpawnPointName = "BallSpawnPoint";
+    public const string ScorePopupName = "ScorePopup";
     public const string HoopName = "Hoop";
     public const string RimName = "Rim";
     public const string ScoreZoneName = "ScoreZone";
@@ -21,6 +23,9 @@ public static class ArcAcademyLayout
     public const string DecorativeHoopsName = "DecorativeHoops";
     public const string LightingRigName = "LightingRig";
     public const string ReflectionProbeName = "ReflectionProbe";
+    public const string ReflectionProbeWindowName = "ReflectionProbe_Window";
+    public const string SignageArcAcademyName = "Signage_ArcAcademy";
+    public const string FloorDecalsName = "FloorDecals";
     public const string HdrpVolumeName = "HdrpVolume";
     public const string AdaptiveProbeVolumeName = "AdaptiveProbeVolume";
     public const string HdrpSkyRigName = "HdrpSkyRig";
@@ -43,7 +48,7 @@ public static class ArcAcademyLayout
     /// <summary>Distance hash marks measured from baseline toward spawn (meters).</summary>
     public static readonly float[] DistanceMarkOffsetsFromBaseline = { 3f, 6f, 9f };
 
-    public static readonly Vector3 HoopRootDefaultPosition = new(0f, 0f, -9f);
+    public static readonly Vector3 HoopRootDefaultPosition = new(0f, 0f, -5.5f);
     public static readonly Vector3 RimLocalDefaultPosition = new(0f, 3.05f, 0.2f);
 
     public static readonly Vector3 SpawnPadPosition = new(0f, 0.15f, FreeThrowLineZ);
@@ -91,6 +96,8 @@ public static class ArcAcademyLayout
 
     /// <summary>Hero camera angle aligned with portfolio reference.</summary>
     public static readonly Vector3 CameraPosition = new(9f, 6.8f, 11f);
+    public static readonly Vector3 SignagePosition = new(8.2f, 4.2f, 0f);
+    public static readonly Vector3 FloorDecalEntrancePosition = new(0f, 0.04f, 8f);
     public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -3f);
 
     public const float FloorGlossiness = 0.88f;

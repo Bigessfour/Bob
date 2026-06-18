@@ -110,10 +110,17 @@ def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
     assert "m_EditorClassIdentifier: Bob::HoopScoreZone" in content
     assert "m_EditorClassIdentifier: Bob::ArcAcademyManager" in content
     assert "m_EditorClassIdentifier: Bob::MovableHoop" in content
+    assert "m_Name: BallSpawnPoint" in content
+    assert "m_EditorClassIdentifier: Bob::BobShootingInput" in content
+    assert "m_EditorClassIdentifier: Bob::ArcAcademyScorePopup" in content
+    assert "m_EditorClassIdentifier: Bob::HoopNetPhysics" in content
     assert "m_Name: SpawnPad" in content
     assert "m_Name: DistanceMarkings" in content
     assert "m_Name: TrainingBays" in content
     assert "m_Name: MountainWindow" in content
+    assert "m_Name: Signage_ArcAcademy" in content
+    assert "m_Name: ReflectionProbe_Window" in content
+    assert "m_Name: FloorDecals" in content
     assert "m_Name: DecorativeHoops" in content
     assert "m_Name: TrajectoryVisuals" in content
     assert "m_EditorClassIdentifier: Bob::ArcTrajectoryVisual" in content
@@ -133,9 +140,15 @@ def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
     assert "CreateRoboticLauncherArm" in builder
     assert "CreateHdrpVolume" in builder
     assert "CreateAdaptiveProbeVolume" in builder
-    assert "CreateReflectionProbe" in builder
+    assert "CreateReflectionProbes" in builder or "ReflectionProbe_Window" in builder
+    assert "GetGlossyFloor" in builder
+    assert "GetMetal" in builder
+    assert "GetGlass" in builder
+    assert "GetRubber" in builder
+    assert "CreateWallSignage" in builder
+    assert "CreateFloorDecals" in builder
     assert "ArcAcademyMaterialFactory" in builder
-    assert "CreateHdrpLit" in builder or "CreateGlassBackboard" in builder
+    assert "GetMatteWall" in builder or "CreateHdrpLit" in builder
     assert "ArcTrajectoryVisual" in builder
 
     validator = (repo_root / EDITOR_SCRIPTS[0]).read_text()
@@ -152,11 +165,20 @@ def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
 def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     layout = (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
     assert "TrainingBayCount = 8" in layout
+    assert "BallSpawnPointName" in layout
+    assert "HoopRootDefaultPosition = new(0f, 0f, -5.5f)" in layout
     assert (repo_root / "Assets/Scripts/ArcAcademyManager.cs").is_file()
     assert (repo_root / "Assets/Scripts/MovableHoop.cs").is_file()
+    assert (repo_root / "Assets/Scripts/HoopNetPhysics.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobShootingInput.cs").is_file()
+    assert (repo_root / "Assets/Scripts/ArcAcademyScorePopup.cs").is_file()
+    assert (repo_root / "Assets/Scripts/SpawnPadPulse.cs").is_file()
+    assert (repo_root / "Assets/Scripts/CameraFacingBillboard.cs").is_file()
     assert (repo_root / "Assets/Scripts/DecorativeHoopMarker.cs").is_file()
     assert (repo_root / "Assets/Scripts/RoboticLauncherVisual.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/ArcAcademyHdrpSetup.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/ArcAcademyShaderGraphSetup.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/ArcAcademyMaterialPaths.cs").is_file()
 
 
 def test_arc_academy_builder_wiring(repo_root: Path) -> None:
@@ -165,6 +187,13 @@ def test_arc_academy_builder_wiring(repo_root: Path) -> None:
     assert "ArcAcademyManager" in builder
     assert "MovableHoop" in builder
     assert "WireReferences" in builder
+    assert "BallSpawnPoint" in builder
+    assert "HoopNetPhysics" in builder
+    assert "BobShootingInput" in builder
+    assert "ArcAcademyScorePopup" in builder
+    assert "SpawnPadPulse" in builder
+    assert "CameraFacingBillboard" in builder
+    assert "ConfigureRevoluteJoint" in builder
     assert "DistanceMarkings" in builder
     assert "SpawnPad" in builder
     assert "TrainingBays" in builder
@@ -173,6 +202,8 @@ def test_arc_academy_builder_wiring(repo_root: Path) -> None:
     validator = (repo_root / EDITOR_SCRIPTS[0]).read_text()
     assert "ArcAcademyManager" in validator
     assert "MovableHoop" in validator
+    assert "HoopScoreZone" in validator
+    assert "BallSpawnPoint" in validator
     assert "SpawnPad" in validator
     assert "DistanceMarkings" in validator
     assert "TrainingBays" in validator
@@ -193,6 +224,12 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "CalculateArcQuality" in agent
     assert "PrepareEpisode" in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
+
+
+def test_capture_progress_script_wires_hdrp_setup(repo_root: Path) -> None:
+    script = (repo_root / "scripts/capture-progress.sh").read_text()
+    assert "ArcAcademyHdrpSetup.EnsureHdrpFromCli" in script
+    assert "BobProgressCapture.CaptureFromCli" in script
 
 
 def test_scene_builder_constants_match_validator(repo_root: Path) -> None:

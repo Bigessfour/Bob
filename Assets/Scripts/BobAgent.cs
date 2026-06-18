@@ -32,10 +32,14 @@ public class BobAgent : Agent
     public float forwardBias = -6f;
 
     private Rigidbody rb;
+    private Renderer bobRenderer;
     private bool scoredThisEpisode;
     private float shotPeakHeight;
     private float shotStartHeight;
     private bool trackingArc;
+    private float scorePulseTimer;
+    private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
+    private Color baseEmissive = new(1f, 0.38f, 0f);
 
     public override void Initialize()
     {
@@ -45,8 +49,26 @@ public class BobAgent : Agent
             Debug.LogError("BobAgent: Rigidbody missing! Add it via Inspector.");
         }
 
+        bobRenderer = GetComponent<Renderer>();
+        if (bobRenderer != null && bobRenderer.material.HasProperty(EmissiveColorId))
+        {
+            baseEmissive = bobRenderer.material.GetColor(EmissiveColorId);
+        }
+
         Debug.Log("Bob the Free Throw Champion has entered Arc Academy! " +
                   "Ready to learn the perfect arc through PPO trial-and-error.");
+    }
+
+    private void Update()
+    {
+        if (scorePulseTimer <= 0f || bobRenderer == null)
+        {
+            return;
+        }
+
+        scorePulseTimer -= Time.deltaTime;
+        float pulse = 1f + Mathf.Sin(scorePulseTimer * 20f) * 0.35f;
+        bobRenderer.material.SetColor(EmissiveColorId, baseEmissive * pulse * ArcAcademyLayout.BobGlowIntensity);
     }
 
     public override void OnEpisodeBegin()
@@ -84,15 +106,12 @@ public class BobAgent : Agent
         }
 
         scoredThisEpisode = true;
+        scorePulseTimer = 0.5f;
+
         float reward = 2.0f;
         if (swish)
         {
             reward += 0.5f;
-            Debug.Log("Bob swished it! +2.5 reward — perfect net!");
-        }
-        else
-        {
-            Debug.Log("Bob sunk it! +2 reward — great shot!");
         }
 
         AddReward(reward);

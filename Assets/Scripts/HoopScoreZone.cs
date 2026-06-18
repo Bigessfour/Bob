@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Trigger volume at the rim — awards a made basket when Bob enters while moving toward the hoop.
+/// Trigger volume at the rim — awards a made basket when Bob enters while moving downward.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class HoopScoreZone : MonoBehaviour
@@ -9,10 +9,17 @@ public class HoopScoreZone : MonoBehaviour
     [Tooltip("Maximum upward speed (m/s) allowed for a made basket.")]
     public float minDownwardSpeed = 0.5f;
 
+    [SerializeField] private HoopRimContact rimContact;
+
     private void Awake()
     {
         var col = GetComponent<Collider>();
         col.isTrigger = true;
+
+        if (rimContact == null)
+        {
+            rimContact = GetComponentInParent<HoopRimContact>();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -29,7 +36,18 @@ public class HoopScoreZone : MonoBehaviour
             return;
         }
 
-        bool swish = rb != null && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
-        agent.RegisterMadeShot(swish);
+        bool rimHit = rimContact != null && rimContact.HadRecentBobContact;
+        bool swish = !rimHit
+                     && rb != null
+                     && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
+
+        if (ArcAcademyManager.Instance != null)
+        {
+            ArcAcademyManager.Instance.NotifyMadeBasket(agent, swish);
+        }
+        else
+        {
+            agent.RegisterMadeShot(swish);
+        }
     }
 }
