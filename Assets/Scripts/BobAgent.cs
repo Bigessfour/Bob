@@ -58,15 +58,12 @@ public class BobAgent : Agent
 
         if (ArcAcademyManager.Instance != null)
         {
-            ArcAcademyManager.Instance.RandomizeEpisode();
-            transform.position = ArcAcademyManager.Instance.GetRandomSpawnPosition();
+            ArcAcademyManager.Instance.PrepareEpisode();
+            transform.position = ArcAcademyManager.Instance.GetSpawnPosition();
         }
         else
         {
-            float xJitter = Random.Range(
-                -ArcAcademyLayout.SpawnLateralJitter,
-                ArcAcademyLayout.SpawnLateralJitter);
-            transform.position = ArcAcademyLayout.BobSpawnPosition + new Vector3(xJitter, 0f, 0f);
+            transform.position = ArcAcademyLayout.BobSpawnPosition;
         }
 
         shotStartHeight = transform.position.y;

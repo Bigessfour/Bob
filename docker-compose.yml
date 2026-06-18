@@ -5,8 +5,10 @@ services:
       dockerfile: Dockerfile
     image: bob-train:latest
     container_name: bob-train
-    # Required so mlagents-learn can reach Unity Editor on the Mac host.
-    network_mode: host
+    # Publish gRPC port so Unity Editor on the Mac host can reach mlagents-learn.
+    # network_mode: host only works on Linux; Docker Desktop Mac needs explicit ports.
+    ports:
+      - "5004:5004"
     volumes:
       - ./config:/app/config:ro
       - ./python:/app/python:ro

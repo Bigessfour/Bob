@@ -111,6 +111,36 @@ def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
     assert "m_EditorClassIdentifier: Bob::MovableHoop" in content
     assert "m_Name: SpawnPad" in content
     assert "m_Name: DistanceMarkings" in content
+    assert "m_Name: TrainingBays" in content
+    assert "m_Name: TrainingBaysBack" in content
+    assert "m_Name: MountainWindow" in content
+    assert "m_Name: DecorativeHoops" in content
+    assert "m_Name: TrajectoryVisuals" in content
+    assert "m_EditorClassIdentifier: Bob::ArcTrajectoryVisual" in content
+
+
+def test_arc_academy_visual_scripts_exist(repo_root: Path) -> None:
+    assert (repo_root / "Assets/Scripts/ArcTrajectoryVisual.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/ArcAcademyMaterialFactory.cs").is_file()
+    assert (repo_root / "docs/design/arc-academy-reference.jpg").is_file()
+
+
+def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
+    builder = (repo_root / EDITOR_SCRIPTS[1]).read_text()
+    assert "CreateMountainWindow" in builder
+    assert "CreateDecorativeHoops" in builder
+    assert "CreateTrajectoryVisuals" in builder
+    assert "CreateTrainingBaysBack" in builder
+    assert "CreateReflectionProbe" in builder
+    assert "ArcAcademyMaterialFactory" in builder
+    assert "ArcTrajectoryVisual" in builder
+
+    validator = (repo_root / EDITOR_SCRIPTS[0]).read_text()
+    assert "MountainWindow" in validator
+    assert "TrajectoryVisuals" in validator
+    assert "DecorativeHoops" in validator
+    assert "TrainingBaysBack" in validator
+    assert "ArcTrajectoryVisual" in validator
 
 
 def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
@@ -127,12 +157,15 @@ def test_arc_academy_builder_wiring(repo_root: Path) -> None:
     assert "WireReferences" in builder
     assert "DistanceMarkings" in builder
     assert "SpawnPad" in builder
+    assert "TrainingBays" in builder
+    assert "CreateTrainingBays" in builder
 
     validator = (repo_root / EDITOR_SCRIPTS[0]).read_text()
     assert "ArcAcademyManager" in validator
     assert "MovableHoop" in validator
     assert "SpawnPad" in validator
     assert "DistanceMarkings" in validator
+    assert "TrainingBays" in validator
 
 
 def test_bob_court_layout_referenced_in_builder(repo_root: Path) -> None:
@@ -148,6 +181,7 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "ArcAcademyLayout" in agent
     assert "RegisterMadeShot" in agent
     assert "CalculateArcQuality" in agent
+    assert "PrepareEpisode" in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
 
 

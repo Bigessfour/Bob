@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Robotic hoop assembly — randomizes rim pose each episode within Arc Academy ranges.
+/// Robotic hoop assembly. Default pose is fixed regulation height; randomize via ArcAcademyManager when curriculum is enabled.
 /// </summary>
 public class MovableHoop : MonoBehaviour
 {

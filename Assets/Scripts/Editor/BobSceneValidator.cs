@@ -47,6 +47,71 @@ public static class BobSceneValidator
             return;
         }
 
+        if (GameObject.Find(ArcAcademyLayout.TrainingBaysName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: TrainingBays missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.TrainingBaysBackName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: TrainingBaysBack missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.MountainWindowName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: MountainWindow missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.DecorativeHoopsName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: DecorativeHoops missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var decorative = GameObject.Find(ArcAcademyLayout.DecorativeHoopsName);
+        if (decorative.transform.childCount < 2)
+        {
+            Debug.LogError("VALIDATE_FAIL: DecorativeHoops must contain at least 2 display hoops");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var trajectoryRoot = GameObject.Find(ArcAcademyLayout.TrajectoryVisualsName);
+        if (trajectoryRoot == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: TrajectoryVisuals missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (trajectoryRoot.GetComponentsInChildren<LineRenderer>().Length < 3)
+        {
+            Debug.LogError("VALIDATE_FAIL: TrajectoryVisuals must contain at least 3 arc LineRenderers");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<ArcTrajectoryVisual>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcTrajectoryVisual component missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.ReflectionProbeName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ReflectionProbe missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         var hoop = GameObject.Find(ArcAcademyLayout.HoopName);
         if (hoop == null)
         {

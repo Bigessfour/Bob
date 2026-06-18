@@ -78,6 +78,8 @@ docker compose build train
 | `test_validate_scene_script_wires_cli_methods`  | `./scripts/validate-scene.sh` no longer calls CLI entry points                                   |
 | `test_arc_academy_layout_and_scripts_exist`     | Arc Academy runtime scripts removed from repo                                                    |
 | `test_arc_academy_builder_wiring`               | Scene builder/validator lost Arc Academy manager, hoop, spawn pad wiring                         |
+| `test_arc_academy_visual_scripts_exist`         | Arc trajectory visual, material factory, or design reference removed                             |
+| `test_arc_academy_visual_builder_wiring`        | Visual build methods (mountain window, decorative hoops, arcs) removed from builder/validator    |
 
 Manual / batchmode (not in CI yet): `./scripts/validate-scene.sh` rebuilds the scene and runs `BobSceneValidator.VerifyFromCli` in Unity.
 

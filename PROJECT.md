@@ -13,7 +13,7 @@
 
 **Week 1 — Setup + Basic Agent**
 
-Foundations are in place: Unity 6 project, ML-Agents 4.0.3, CI green, RAG + Unity MCP, scene builder/validator CLI, and **Arc Academy MVP** (warehouse court, movable hoop, spawn randomization, arc-quality rewards). Behavior Name **`Bob`**, **8** vector observations, **3** continuous actions — unchanged for trainer compatibility.
+Foundations are in place: Unity 6 project, ML-Agents 4.0.3, CI green, RAG + Unity MCP, scene builder/validator CLI, and **Arc Academy MVP** (warehouse court, **fixed regulation hoop**, static training bays, spawn platform). Behavior Name **`Bob`**, **8** vector observations, **3** continuous actions — unchanged for trainer compatibility. Hoop/spawn randomization is **off by default** until curriculum Phase 2.
 
 **Week 1 exit criterion still open:** no successful end-to-end training run yet (`results/` empty; prior smoke timed out waiting for Play).
 
@@ -21,11 +21,11 @@ Foundations are in place: Unity 6 project, ML-Agents 4.0.3, CI green, RAG + Unit
 
 | Area                | Status                                                                          |
 | ------------------- | ------------------------------------------------------------------------------- |
-| Unity scene         | `BobTraining.unity` — Arc Academy warehouse arena via `BobTrainingSceneBuilder` |
+| Unity scene         | `BobTraining.unity` — full Arc Academy visual build (Example.jpg target)          |
 | Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                               |
-| Offline regression  | `pytest tests/test_unity_alignment.py` — **14/14**                              |
-| Progress gallery    | `docs/progress/004-2026-06-18-arc-academy-mvp/` captured                        |
-| Arc Academy runtime | `ArcAcademyLayout`, `ArcAcademyManager`, `MovableHoop` + agent/score updates    |
+| Offline regression  | `pytest tests/test_unity_alignment.py` — **16/16**                              |
+| Design reference    | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) |
+| Arc Academy runtime | Fixed main hoop + bays, decorative hoops, trajectory arcs, mountain window      |
 | First training run  | **Not done** — trainer needs Unity Play after "Listening on port 5004"          |
 | Git                 | Arc Academy changes **uncommitted** on `feature/week1-rag-mcp-north-star`       |
 

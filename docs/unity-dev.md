@@ -110,21 +110,28 @@ In Unity Package Manager:
 
 Or in the Editor: **Bob → Create Training Scene**
 
-### Training arena layout (Arc Academy MVP)
+### Training arena layout (Arc Academy visual build)
 
-`BobTrainingSceneBuilder` creates a **warehouse-inspired Arc Academy** under `TrainingArena`:
+Visual target: [`docs/design/arc-academy-reference.jpg`](design/arc-academy-reference.jpg) (from Example.jpg).
 
-| Element                                      | Purpose                                                                   |
-| -------------------------------------------- | ------------------------------------------------------------------------- |
-| `WarehouseShell`                             | Concrete floor, walls, ceiling around the court                           |
-| `CourtFloor` + markings                      | Orange court, baseline, free-throw line, key, **3m/6m/9m distance marks** |
-| `SpawnPad`                                   | Raised dark platform at free-throw line                                   |
-| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | Robotic post with per-episode X/Z/height randomization + rim trigger      |
-| `ArcAcademyManager`                          | Wires hoop + spawn pad; called from `BobAgent.OnEpisodeBegin`             |
-| `Bob`                                        | 8 obs, 3 actions, gravity arcs, arc-quality + swish rewards               |
-| `Boundaries`                                 | Invisible walls + ceiling aligned to warehouse shell                      |
+`BobTrainingSceneBuilder` creates a **warehouse Arc Academy** under `TrainingArena`:
 
-Shared dimensions live in [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/ArcAcademyLayout.cs) (`BobCourtLayout` remains a thin alias). Rebuild after layout changes:
+| Element | Purpose |
+| --- | --- |
+| `WarehouseShell` | Glossy dark floor, corrugated walls, ceiling |
+| `MountainWindow` | Left-wall window band with procedural sky/mountains |
+| `CourtFloor` + markings | Orange court, key, 3pt arc, center circle, distance marks |
+| `SpawnPad` | Central platform with purple glow + **Bob** / **Arc Academy** labels |
+| `TrainingBays` / `TrainingBaysBack` | Static side + back-wall cubicles with fixed hoops (decorative) |
+| `DecorativeHoops` | 3 static pedestal hoops on court (no scoring) |
+| `TrajectoryVisuals` | 3 glowing parabolic `LineRenderer` arcs (portfolio visual) |
+| `LightingRig` | Directional + window fill + ceiling LED strips |
+| `ReflectionProbe` | Floor reflections |
+| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | **Single fixed regulation scoring hoop** — randomization off by default |
+| `ArcAcademyManager` | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled |
+| `Bob` | 8 obs, 3 actions, purple emissive glow, gravity arcs |
+
+Shared dimensions: [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/ArcAcademyLayout.cs). Rebuild:
 
 ```bash
 ./scripts/validate-scene.sh
@@ -143,7 +150,7 @@ ML-Agents uses gRPC on port **5004** by default.
 | Environment            | How trainer reaches Unity                                     |
 | ---------------------- | ------------------------------------------------------------- |
 | Local venv (Intel Mac) | `mlagents-learn` on host                                      |
-| Docker (Apple Silicon) | `docker compose run --rm train ...` with `network_mode: host` |
+| Docker (Apple Silicon) | `docker compose run --rm train ...` with `ports: 5004:5004` |
 | Dev Container          | Reopen in Container; forward port 5004                        |
 
 Set Unity external Python (optional for Editor tools):
