@@ -1,5 +1,5 @@
 output "site_bucket_name" {
-  description = "S3 bucket for WebGL build artifacts"
+  description = "S3 bucket for portfolio static site assets"
   value       = aws_s3_bucket.site.bucket
 }
 
@@ -9,7 +9,7 @@ output "cloudfront_distribution_id" {
 }
 
 output "cloudfront_domain_name" {
-  description = "CloudFront URL for the WebGL demo"
+  description = "CloudFront domain for the portfolio site"
   value       = aws_cloudfront_distribution.site.domain_name
 }
 

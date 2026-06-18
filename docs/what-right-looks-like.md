@@ -26,7 +26,7 @@ flowchart TD
     A["Vision<br/>Bob = Fun PPO Free-Throw Champion<br/>Portfolio + DevOps Showcase"]
     --> B["Week 1 - Setup and Foundations"]
     B --> C["Week 2 - Core Agent + Training Loop"]
-    C --> D["Week 3 - Polish + WebGL + AWS Deploy"]
+    C --> D["Week 3 - Polish + Portfolio Site + AWS Deploy"]
 
     subgraph WRLL["What Right Looks Like - Always True"]
         E["Protected main + feature/* branches<br/>Every change via PR + auto-merge on green CI"]
@@ -48,7 +48,7 @@ flowchart TD
 
 **Week 1** — foundations done (Unity, CI, agent, scene CLI); **first training run still open**.  
 **Week 2** — Arc Academy MVP built locally; prove training loop, then reward shaping + GIFs.  
-**Week 3** — polish, WebGL, Terraform apply, live demo URL.
+**Week 3** — polish, portfolio static site (GIFs + write-up), Terraform apply, live CloudFront URL.
 
 ---
 

@@ -46,7 +46,7 @@ Direct invocation:
 | `-quit`                                 | Exit after task completes |
 | `-logFile <path>`                       | Write editor log          |
 | `-executeMethod Namespace.Class.Method` | Run static C# entry point |
-| `-buildTarget WebGL`                    | Set active build target   |
+| `-buildTarget StandaloneOSX`            | Set active build target   |
 
 ## Cursor / VS Code Integration
 
@@ -114,7 +114,7 @@ Or in the Editor: **Bob → Rebuild Arc Academy (HDRP)** or **Bob → Create Tra
 
 Arc Academy targets **HDRP** photoreal quality (Volume bloom/SSR, APV, Physical Sky, glossy floor). `./scripts/validate-scene.sh` runs `ArcAcademyHdrpSetup.EnsureHdrpFromCli` before rebuilding the scene.
 
-**WebGL note:** HDRP does not support WebGL. Week 3 browser demo requires a separate URP/Built-in build fork or portfolio Editor captures only.
+**No WebGL** — HDRP is Editor-only for this project. Week 3 live demo is a **static portfolio site** (gallery, GIFs, write-up) on S3/CloudFront.
 
 ### Training arena layout (Arc Academy HDRP build)
 
@@ -211,15 +211,5 @@ Future CLI entry point: `BobProgressCapture.CapturePlayModeFromCli` with `mode: 
 
 ```bash
 # Progress screenshot (GPU required; no -nographics)
-./scripts/capture-progress.sh milestone-label
-
-# Training via Docker (Apple Silicon)
-./scripts/train.sh
-
-# Local training (Intel Mac or working mlagents venv)
-cd python && source .venv/bin/activate
-mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
-
-# WebGL build (Week 3)
-./scripts/unity.sh -batchmode -quit -buildTarget WebGL -buildPath Build/WebGL
+./scripts/capture-progress.sh arc-academy-hdrp-v1
 ```

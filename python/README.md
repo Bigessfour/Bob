@@ -36,7 +36,7 @@ Monitor training metrics after a run starts writing to `results/`:
 tensorboard --logdir ../results
 ```
 
-Open http://localhost:6006 in your browser.
+Open [http://localhost:6006](http://localhost:6006) in your browser.
 
 ## Reward Plots
 
@@ -53,9 +53,11 @@ Requires a completed training run with `TrainingRewards.csv` in `results/`.
 From the repo root (reproducible Python/trainer deps; Unity Editor still runs on host):
 
 ```bash
-docker build -t bob-train .
-docker run --rm bob-train
-docker run --rm -v "$(pwd)/results:/app/results" bob-train \
+# Recommended: compose publishes gRPC port 5004 to the host
+./scripts/train.sh --timeout-wait=120 --time-scale=20 --force
+
+# Or manually (must pass --service-ports or -p 5004:5004)
+docker compose run --rm --service-ports train \
   mlagents-learn config/bob_free_throw.yaml --run-id=bob-v0
 ```
 

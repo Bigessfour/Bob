@@ -99,7 +99,6 @@ jobs:
       - name: Verify mlagents-learn
         run: docker run --rm bob-train mlagents-learn --help
 
-  # TODO (Week 3): Unity WebGL build + S3 deploy
-  # - uses: game-ci/unity-builder@v4
-  # - aws s3 sync build/WebGL/ s3://$SITE_BUCKET/
+  # TODO (Week 3): Portfolio static site deploy to S3 + CloudFront invalidation
+  # - aws s3 sync docs/portfolio-site/ s3://$SITE_BUCKET/
   # - aws cloudfront create-invalidation ...

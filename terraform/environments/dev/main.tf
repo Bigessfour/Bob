@@ -22,12 +22,12 @@ provider "aws" {
 }
 
 locals {
-  site_bucket_name = "${var.project_name}-webgl-${var.environment}-${data.aws_caller_identity.current.account_id}"
+  site_bucket_name = "${var.project_name}-portfolio-${var.environment}-${data.aws_caller_identity.current.account_id}"
 }
 
 data "aws_caller_identity" "current" {}
 
-# S3 bucket for WebGL build artifacts
+# S3 bucket for portfolio static site (HTML, GIFs, gallery assets)
 resource "aws_s3_bucket" "site" {
   bucket = local.site_bucket_name
 }
@@ -62,7 +62,7 @@ resource "aws_s3_bucket_public_access_block" "site" {
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "site" {
   name                              = "${var.project_name}-${var.environment}-oac"
-  description                       = "OAC for ${var.project_name} WebGL site"
+  description                       = "OAC for ${var.project_name} portfolio site"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -71,7 +71,7 @@ resource "aws_cloudfront_origin_access_control" "site" {
 resource "aws_cloudfront_distribution" "site" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "${var.project_name} WebGL demo (${var.environment})"
+  comment             = "${var.project_name} portfolio site (${var.environment})"
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
 
@@ -100,7 +100,7 @@ resource "aws_cloudfront_distribution" "site" {
     max_ttl     = 86400
   }
 
-  # Unity WebGL uses .wasm, .data, .js — ensure correct MIME types via S3 metadata on upload
+  # SPA-style fallback for static portfolio routes (optional)
   custom_error_response {
     error_code         = 403
     response_code      = 200

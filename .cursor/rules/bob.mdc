@@ -18,7 +18,7 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 
 ## Project
 
-- **Vision:** Entertaining training progress (AI Warehouse style), portfolio-ready WebGL demo
+- **Vision:** Entertaining training progress (AI Warehouse style), portfolio-ready HDRP demo + static site
 - **Agent:** Bob — orange cube with continuous control for shooting mechanics
 - **Environment:** 3D basketball court with hoop and ball
 
@@ -27,7 +27,7 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 - **Unity 6 LTS** — game engine, scene, physics
 - **Unity ML-Agents** — `Agent` subclass in C#, Behavior Name = `Bob`
 - **Python 3.10** — training via `mlagents-learn`
-- **Terraform** — AWS WebGL hosting (Week 3)
+- **Terraform** — AWS portfolio site hosting (Week 3)
 
 ## Conventions
 
