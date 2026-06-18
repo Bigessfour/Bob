@@ -87,6 +87,7 @@ def test_mcp_bootstrap_pref_keys(repo_root: Path) -> None:
 
 def test_validate_scene_script_wires_cli_methods(repo_root: Path) -> None:
     script = (repo_root / VALIDATE_SCENE_SCRIPT).read_text()
+    assert "ArcAcademyHdrpSetup.EnsureHdrpFromCli" in script
     assert "BobTrainingSceneBuilder.CreateTrainingSceneFromCli" in script
     assert "BobSceneValidator.VerifyFromCli" in script
     assert "VALIDATE_PASS" in script
@@ -112,7 +113,6 @@ def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
     assert "m_Name: SpawnPad" in content
     assert "m_Name: DistanceMarkings" in content
     assert "m_Name: TrainingBays" in content
-    assert "m_Name: TrainingBaysBack" in content
     assert "m_Name: MountainWindow" in content
     assert "m_Name: DecorativeHoops" in content
     assert "m_Name: TrajectoryVisuals" in content
@@ -130,23 +130,33 @@ def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
     assert "CreateMountainWindow" in builder
     assert "CreateDecorativeHoops" in builder
     assert "CreateTrajectoryVisuals" in builder
-    assert "CreateTrainingBaysBack" in builder
+    assert "CreateRoboticLauncherArm" in builder
+    assert "CreateHdrpVolume" in builder
+    assert "CreateAdaptiveProbeVolume" in builder
     assert "CreateReflectionProbe" in builder
     assert "ArcAcademyMaterialFactory" in builder
+    assert "CreateHdrpLit" in builder or "CreateGlassBackboard" in builder
     assert "ArcTrajectoryVisual" in builder
 
     validator = (repo_root / EDITOR_SCRIPTS[0]).read_text()
     assert "MountainWindow" in validator
     assert "TrajectoryVisuals" in validator
     assert "DecorativeHoops" in validator
-    assert "TrainingBaysBack" in validator
+    assert "DecorativeHoopMarker" in validator
+    assert "RoboticLauncherVisual" in validator
+    assert "HdrpVolume" in validator
+    assert "AdaptiveProbeVolume" in validator
     assert "ArcTrajectoryVisual" in validator
 
 
 def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
-    assert (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").is_file()
+    layout = (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
+    assert "TrainingBayCount = 8" in layout
     assert (repo_root / "Assets/Scripts/ArcAcademyManager.cs").is_file()
     assert (repo_root / "Assets/Scripts/MovableHoop.cs").is_file()
+    assert (repo_root / "Assets/Scripts/DecorativeHoopMarker.cs").is_file()
+    assert (repo_root / "Assets/Scripts/RoboticLauncherVisual.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/ArcAcademyHdrpSetup.cs").is_file()
 
 
 def test_arc_academy_builder_wiring(repo_root: Path) -> None:

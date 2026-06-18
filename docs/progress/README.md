@@ -17,4 +17,5 @@ See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.
 | 002 | 2026-06-18 | restart-test | edit | ![restart-test](002-2026-06-18-restart-test/capture.png) |
 | 004 | 2026-06-18 | arc-academy-mvp | edit | ![arc-academy-mvp](004-2026-06-18-arc-academy-mvp/capture.png) |
 | 005 | 2026-06-18 | arc-academy-visual-v2 | edit | ![arc-academy-visual-v2](005-2026-06-18-arc-academy-visual-v2/capture.png) |
+| 006 | 2026-06-18 | arc-academy-hdrp-v1 | edit | ![arc-academy-hdrp-v1](006-2026-06-18-arc-academy-hdrp-v1/capture.png) |
 

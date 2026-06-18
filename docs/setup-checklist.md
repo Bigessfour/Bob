@@ -16,14 +16,16 @@ Step-by-step guide to get Bob training locally on Apple Silicon.
 2. Sign in or create a Unity ID (Personal license is free)
 3. **Installs** → **Install Editor** → select **Unity 6 LTS** (6000.x)
 4. Add modules:
-   - **WebGL Build Support** (required for Week 3 deploy)
    - **Mac Build Support** (IL2CPP) — usually included by default
+   - **Linux Build Support (Mono)** — optional, for headless CI later
 5. Wait for download/install to complete
+
+> **No WebGL module** — Bob uses HDRP, which does not support WebGL. Week 3 deploy is a static portfolio site on S3/CloudFront.
 
 ## 2. Create Unity Project at Repo Root
 
 1. Open Unity Hub → **New project**
-2. Template: **3D (URP)** or **3D** (Built-in Render Pipeline)
+2. Template: **3D (HDRP)** or open this repo directly (pipeline configured by `./scripts/validate-scene.sh`)
 3. Project name: `Bob` (or match repo folder name)
 4. Location: **repo root** — e.g. `/Users/you/Bob/Bob` (same folder as `config/`, `python/`, `docs/`)
 5. Click **Create project**

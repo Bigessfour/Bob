@@ -11,7 +11,7 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 - 3D basketball court environment in Unity
 - Bob (orange cube agent) learns free throw mechanics
 - Clear learning curve with training videos/GIFs
-- WebGL demo hosted on AWS (Free Tier)
+- Portfolio static site on AWS (Free Tier) — progress gallery, GIFs, technical write-up (HDRP Editor captures; no in-browser Unity build)
 - Professional GitHub repo + write-up
 
 ## Stretch (Nice-to-Have)
@@ -55,15 +55,13 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 ### Week 3 — Polish + Deployment + Documentation
 
-- [ ] Visual polish (materials, camera, simple UI)
-- [ ] WebGL build
+- [ ] Visual polish (materials, camera, simple UI) — **HDRP Editor target** ([PR #3](https://github.com/Bigessfour/Bob/pull/3))
 - [ ] Terraform bootstrap applied (`terraform/bootstrap`)
 - [ ] Terraform dev stack applied (`terraform/environments/dev`)
-- [ ] WebGL build synced to S3 + CloudFront invalidation
+- [ ] Portfolio site synced to S3 + CloudFront invalidation (`docs/portfolio-site/` static HTML)
 - [ ] README demo link updated with CloudFront URL
 - [ ] Technical write-up in `docs/`
 - [x] GitHub Actions CI smoke test (Python + Terraform validate)
-- [ ] Full Unity WebGL build in CI (game-ci) — stretch
 
 ## Key Design Decisions
 
@@ -74,7 +72,8 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 | Behavior name   | `Bob`               | Matches agent character and config YAML                            |
 | Python version  | 3.10                | ML-Agents compatibility                                            |
 | Terraform state | S3 remote backend   | Production-style DevOps; bootstrap creates state bucket            |
-| Static hosting  | S3 + CloudFront OAC | HTTPS CDN; no public S3 ACL                                        |
+| Render pipeline | HDRP 17 (Editor training + portfolio captures; no browser build)   |
+| Static hosting  | S3 + CloudFront OAC — portfolio site, not Unity WebGL              |
 | CI              | GitHub Actions      | pytest + Terraform validate + tflint + Docker build                |
 
 ## DevOps Milestones
@@ -84,14 +83,13 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 - [ ] Apply `terraform/bootstrap` — state bucket + DynamoDB lock
 - [ ] Configure `backend.tf` from bootstrap outputs
 - [ ] Apply `terraform/environments/dev` — site bucket + CloudFront
-- [ ] Deploy WebGL build via `aws s3 sync`
+- [ ] Deploy portfolio site via `aws s3 sync docs/portfolio-site/`
 - [ ] Update `PROJECT.md` and README with live demo URL
 
 ### CI/CD
 
 - [x] Baseline CI: pytest + Terraform fmt/validate/tflint + Docker build
-- [ ] Unity WebGL build pipeline (game-ci)
-- [ ] Automated S3 deploy + CloudFront invalidation on merge to `main`
+- [ ] Automated S3 deploy + CloudFront invalidation on merge to `main` (portfolio site)
 
 ## Testing
 

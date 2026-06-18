@@ -4,7 +4,7 @@
 
 A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube — learns to shoot perfect free throws in a 3D basketball court. Inspired by AI Warehouse training videos, this project showcases an entertaining learning curve with visual training progress, ideal for a portfolio piece.
 
-**Live demo:** _Coming soon — WebGL build hosted on AWS Free Tier_
+**Live demo:** _Coming soon — portfolio site on AWS CloudFront (static gallery + write-up; HDRP Editor project, not WebGL)_
 
 **Project status:** See [PROJECT.md](PROJECT.md) | **North Star:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agent context:** See [AGENTS.md](AGENTS.md) | **Dev setup:** See [docs/finalized-dev-env.md](docs/finalized-dev-env.md) | **Testing:** See [docs/testing-strategy.md](docs/testing-strategy.md)
 
@@ -12,14 +12,14 @@ A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube 
 
 ## Vision
 
-Bob starts with clumsy throws and gradually masters free-throw mechanics through PPO training in Unity ML-Agents. The goal is a polished, shareable demo: watch Bob improve shot by shot, with training GIFs and a playable WebGL build.
+Bob starts with clumsy throws and gradually masters free-throw mechanics through PPO training in Unity ML-Agents. The goal is a polished, shareable portfolio: training GIFs, progress gallery captures, and a static demo site — rendered in **HDRP** in the Unity Editor (no browser build).
 
 ## MVP Scope
 
 - 3D basketball court environment in Unity 6 LTS
 - Bob (orange cube agent) learns free-throw mechanics via ML-Agents
 - Clear learning curve with training videos/GIFs
-- WebGL demo hosted on AWS (Free Tier)
+- Portfolio static site on AWS (Free Tier)
 - Professional GitHub repo and technical write-up
 
 ## Stretch Goals
@@ -36,7 +36,7 @@ Bob starts with clumsy throws and gradually masters free-throw mechanics through
 | RL Framework        | Unity ML-Agents Toolkit  |
 | Agent / Environment | C#                       |
 | Training            | Python 3.10 + `mlagents` |
-| Hosting             | Terraform + AWS (WebGL)  |
+| Hosting             | Terraform + AWS (portfolio site) |
 | Tooling             | GitHub, Cursor           |
 
 ## Repository Structure
@@ -71,9 +71,9 @@ cd Bob
 
 ### 2. Set up Unity
 
-1. Install [Unity Hub](https://unity.com/download) and **Unity 6 LTS** (6000.x) with **WebGL Build Support**
-2. Create a new **3D (URP or Built-in)** project at the repo root
-3. In Package Manager, add `com.unity.ml-agents` (match version to `python/requirements.txt`)
+1. Install [Unity Hub](https://unity.com/download) and **Unity 6 LTS** (6000.x) with **HDRP** (included with 3D HDRP template or add High Definition RP package)
+2. Open this repo as the Unity project (HDRP pipeline configured via `./scripts/validate-scene.sh`)
+3. In Package Manager, confirm `com.unity.ml-agents` (match version to `python/requirements.txt`)
 
 See [docs/setup-checklist.md](docs/setup-checklist.md) for the full M5 Mac checklist.
 
@@ -98,14 +98,14 @@ Press **Play** in the Unity Editor when prompted.
 
 ## DevOps
 
-### Terraform (AWS WebGL Hosting)
+### Terraform (AWS Portfolio Hosting)
 
 Two-layer IaC with S3 remote state:
 
 1. **Bootstrap** (one-time): `cd terraform/bootstrap && terraform init && terraform apply`
 2. **Dev stack**: Copy `backend.tf.example` → `backend.tf`, then `terraform apply` in `terraform/environments/dev/`
 
-See [terraform/README.md](terraform/README.md) for full apply order and WebGL deploy commands.
+See [terraform/README.md](terraform/README.md) for full apply order and portfolio deploy commands.
 
 ### CI
 
@@ -133,7 +133,7 @@ Workspace settings in [`.vscode/`](.vscode/). See [docs/cursor-setup.md](docs/cu
 | ---- | ----------------------------------------------- |
 | 1    | Setup, basic agent, court scene                 |
 | 2    | Training iteration, reward tuning, capture GIFs |
-| 3    | Polish, WebGL build, AWS deploy, documentation  |
+| 3    | Polish, portfolio site deploy, documentation    |
 
 See [docs/project-plan.md](docs/project-plan.md) for full scope details.
 

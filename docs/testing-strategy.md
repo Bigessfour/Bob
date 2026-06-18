@@ -19,7 +19,7 @@ Lightweight, growable testing foundation for reproducibility and CI regression. 
 | Docker               | `docker build` + `mlagents-learn --help`  | 1 (now)             |
 | Unity C#             | Unity Test Framework (NUnit)              | 2 (after `Assets/`) |
 | Training integration | Short episode runs, reward trends         | 3 (Week 2)          |
-| E2E / Visual         | WebGL smoke, training GIFs                | 3 (Week 3)          |
+| E2E / Visual         | Portfolio site smoke, training GIFs       | 3 (Week 3)          |
 | Metrics              | TensorBoard assertions, `plot_rewards.py` | 3 (optional)        |
 
 ## Apple Silicon Caveat
@@ -95,7 +95,7 @@ Manual / batchmode (not in CI yet): `./scripts/validate-scene.sh` rebuilds the s
 
 - [ ] Short training integration run (check `results/` for checkpoints)
 - [ ] Post-run script: mean reward trend, success rate thresholds
-- [ ] WebGL build smoke test in browser
+- [ ] Portfolio site smoke test (CloudFront URL loads)
 - [ ] Optional: game-ci Unity builder in GitHub Actions
 
 ## CI Jobs

@@ -1,6 +1,6 @@
 {
-  "name": "Bob.Editor",
-  "rootNamespace": "Bob.Editor",
+  "name": "Bob.SceneEditor",
+  "rootNamespace": "",
   "references": [
     "Bob",
     "Unity.ML-Agents",

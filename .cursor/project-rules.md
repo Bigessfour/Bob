@@ -33,4 +33,4 @@ Supplement to [`.cursor/rules/bob.mdc`](rules/bob.mdc) and [`AGENTS.md`](../AGEN
 ## CI/CD Progression
 
 1. **Now:** Python smoke test + Terraform fmt/validate
-2. **Week 3:** Unity WebGL build (game-ci) + S3 sync + CloudFront invalidation
+2. **Week 3:** Portfolio static site deploy (S3 sync + CloudFront invalidation)

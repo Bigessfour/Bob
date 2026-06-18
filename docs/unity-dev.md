@@ -46,7 +46,7 @@ Direct invocation:
 | `-quit`                                 | Exit after task completes |
 | `-logFile <path>`                       | Write editor log          |
 | `-executeMethod Namespace.Class.Method` | Run static C# entry point |
-| `-buildTarget WebGL`                    | Set active build target   |
+| `-buildTarget StandaloneOSX`            | Set active build target   |
 
 ## Cursor / VS Code Integration
 
@@ -108,28 +108,35 @@ In Unity Package Manager:
   -executeMethod BobSceneValidator.VerifyFromCli
 ```
 
-Or in the Editor: **Bob → Create Training Scene**
+Or in the Editor: **Bob → Rebuild Arc Academy (HDRP)** or **Bob → Create Training Scene**
 
-### Training arena layout (Arc Academy visual build)
+### Render pipeline (HDRP)
+
+Arc Academy targets **HDRP** photoreal quality (Volume bloom/SSR, APV, Physical Sky, glossy floor). `./scripts/validate-scene.sh` runs `ArcAcademyHdrpSetup.EnsureHdrpFromCli` before rebuilding the scene.
+
+**No WebGL** — HDRP is Editor-only for this project. Week 3 live demo is a **static portfolio site** (gallery, GIFs, write-up) on S3/CloudFront.
+
+### Training arena layout (Arc Academy HDRP build)
 
 Visual target: [`docs/design/arc-academy-reference.jpg`](design/arc-academy-reference.jpg) (from Example.jpg).
 
 `BobTrainingSceneBuilder` creates a **warehouse Arc Academy** under `TrainingArena`:
 
-| Element | Purpose |
-| --- | --- |
-| `WarehouseShell` | Glossy dark floor, corrugated walls, ceiling |
-| `MountainWindow` | Left-wall window band with procedural sky/mountains |
-| `CourtFloor` + markings | Orange court, key, 3pt arc, center circle, distance marks |
-| `SpawnPad` | Central platform with purple glow + **Bob** / **Arc Academy** labels |
-| `TrainingBays` / `TrainingBaysBack` | Static side + back-wall cubicles with fixed hoops (decorative) |
-| `DecorativeHoops` | 3 static pedestal hoops on court (no scoring) |
-| `TrajectoryVisuals` | 3 glowing parabolic `LineRenderer` arcs (portfolio visual) |
-| `LightingRig` | Directional + window fill + ceiling LED strips |
-| `ReflectionProbe` | Floor reflections |
-| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | **Single fixed regulation scoring hoop** — randomization off by default |
-| `ArcAcademyManager` | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled |
-| `Bob` | 8 obs, 3 actions, purple emissive glow, gravity arcs |
+| Element                                      | Purpose                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------ |
+| `HdrpVolume` / `AdaptiveProbeVolume`         | Post-processing (Bloom, SSR, Exposure) + APV lighting                          |
+| `WarehouseShell`                             | Glossy dark floor, corrugated walls, ceiling trusses                           |
+| `MountainWindow`                             | Panoramic left-wall window with procedural mountains                           |
+| `CourtFloor` + markings                      | Orange court, key, 3pt arc, center circle, distance marks                      |
+| `SpawnPad`                                   | Central platform with purple glow, particles + **Bob** / **Arc Academy** labels |
+| `TrainingBays` (8)                           | Perimeter cubicles with decorative hoops + `RoboticLauncherVisual` placeholders |
+| `DecorativeHoops`                            | 3 static pedestal hoops on court (`DecorativeHoopMarker`, no scoring)          |
+| `TrajectoryVisuals`                          | 3 glowing parabolic `LineRenderer` arcs (portfolio visual)                     |
+| `LightingRig`                                | Window fill + HDRP rectangle ceiling lights                                    |
+| `ReflectionProbe`                            | Floor reflections (with SSR in Volume)                                         |
+| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | **Single active scoring hoop** — glass backboard, net, physics colliders       |
+| `ArcAcademyManager`                          | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled |
+| `Bob`                                        | 8 obs, 3 actions, purple emissive glow, gravity arcs                           |
 
 Shared dimensions: [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/ArcAcademyLayout.cs). Rebuild:
 
@@ -147,11 +154,11 @@ Shared dimensions: [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/A
 
 ML-Agents uses gRPC on port **5004** by default.
 
-| Environment            | How trainer reaches Unity                                     |
-| ---------------------- | ------------------------------------------------------------- |
-| Local venv (Intel Mac) | `mlagents-learn` on host                                      |
-| Docker (Apple Silicon) | `docker compose run --rm train ...` with `ports: 5004:5004` |
-| Dev Container          | Reopen in Container; forward port 5004                        |
+| Environment            | How trainer reaches Unity                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| Local venv (Intel Mac) | `mlagents-learn` on host                                                                            |
+| Docker (Apple Silicon) | `./scripts/train.sh` or `docker compose run --rm --service-ports train ...` (publishes `5004:5004`) |
+| Dev Container          | Reopen in Container; forward port 5004                                                              |
 
 Set Unity external Python (optional for Editor tools):
 
@@ -204,15 +211,5 @@ Future CLI entry point: `BobProgressCapture.CapturePlayModeFromCli` with `mode: 
 
 ```bash
 # Progress screenshot (GPU required; no -nographics)
-./scripts/capture-progress.sh milestone-label
-
-# Training via Docker (Apple Silicon)
-./scripts/train.sh
-
-# Local training (Intel Mac or working mlagents venv)
-cd python && source .venv/bin/activate
-mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
-
-# WebGL build (Week 3)
-./scripts/unity.sh -batchmode -quit -buildTarget WebGL -buildPath Build/WebGL
+./scripts/capture-progress.sh arc-academy-hdrp-v1
 ```

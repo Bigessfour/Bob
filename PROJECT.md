@@ -2,8 +2,8 @@
 
 > **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) — canonical milestone + workflow diagrams. Read before planning or merging; every change must align with the current week and permanent quality bars.
 
-**Status:** Week 1 — Basic Agent (training loop pending)  
-**Branch:** `main` — PR #2 merged (`9a22819`)  
+**Status:** Week 1 — Basic Agent + HDRP Arc Academy ([PR #3](https://github.com/Bigessfour/Bob/pull/3))  
+**Branch:** `feature/hdrp-arc-academy-visual`  
 **Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio  
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + Terraform + GitHub Actions
 
@@ -13,22 +13,23 @@
 
 **Week 1 — Setup + Basic Agent**
 
-Foundations are in place on **`main`**: Unity 6, ML-Agents 4.0.3, CI green, RAG + Unity MCP, and **Arc Academy visual build** matching [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) — fixed regulation hoop, static bays, decorative hoops, trajectory arcs, mountain window. Behavior Name **`Bob`**, **8** obs, **3** actions unchanged.
+Foundations on **`main`** plus **HDRP Arc Academy photoreal pass** on feature branch: warehouse interior, 8 training bays with robotic launcher placeholders, single active scoring hoop, Volume/APV lighting. Visual target: [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg). Behavior Name **`Bob`**, **8** obs, **3** actions unchanged.
 
-**Week 1 exit criterion:** first end-to-end training run (`results/bob-v0/` still empty).
+**Week 1 exit criterion:** first end-to-end training run (handshake proven locally; extend run for TensorBoard).
 
 ## Build Status (2026-06-18)
 
-| Area                | Status                                                                          |
-| ------------------- | ------------------------------------------------------------------------------- |
-| Unity scene         | `BobTraining.unity` — full Arc Academy visual build (Example.jpg target)          |
-| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                               |
-| Offline regression  | `pytest tests/test_unity_alignment.py` — **16/16**                              |
-| Design reference    | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg) |
-| Arc Academy runtime | Fixed main hoop + bays, decorative hoops, trajectory arcs, mountain window      |
-| First training run  | **Not done** — trainer needs Unity Play after "Listening on port 5004"          |
-| Progress gallery    | `docs/progress/005-arc-academy-visual-v2/`                                       |
-| Git                 | **Merged to `main`** via [PR #2](https://github.com/Bigessfour/Bob/pull/2)       |
+| Area                | Status                                                                           |
+| ------------------- | -------------------------------------------------------------------------------- |
+| Unity scene         | `BobTraining.unity` — HDRP Arc Academy rebuild (Example.jpg target)              |
+| Render pipeline     | HDRP 17 + Volume (Bloom/SSR) + APV — **no WebGL** (portfolio static site Week 3) |
+| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                  |
+| Offline regression  | `pytest tests/test_unity_alignment.py` — **16/16**                                   |
+| Design reference    | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)   |
+| Arc Academy runtime | 8 bays, 1 active hoop, robotic launcher visuals, trajectory arcs                     |
+| First training run  | Use `./scripts/train.sh` → Press Play after port 5004 (`--service-ports` required)   |
+| Progress gallery    | [`docs/progress/006-arc-academy-hdrp-v1/`](docs/progress/)                          |
+| Git                 | **PR #3** — HDRP Arc Academy + WebGL removal                                       |
 
 ## Next Actions
 
@@ -40,7 +41,7 @@ Foundations are in place on **`main`**: Unity 6, ML-Agents 4.0.3, CI green, RAG 
 
 | Resource                | Location                                                         |
 | ----------------------- | ---------------------------------------------------------------- |
-| Live demo               | _Coming soon — CloudFront URL after Week 3 deploy_               |
+| Live demo               | _Coming soon — CloudFront portfolio site (static; not WebGL)_        |
 | CI workflow             | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)           |
 | Testing strategy        | [`docs/testing-strategy.md`](docs/testing-strategy.md)           |
 | Unity dev guide         | [`docs/unity-dev.md`](docs/unity-dev.md)                         |
@@ -66,19 +67,19 @@ Foundations are in place on **`main`**: Unity 6, ML-Agents 4.0.3, CI green, RAG 
 | Unity MCP (`unityMCP`)             | CoplayDev MCP for Unity — consult before scene/agent work; [docs/unity-mcp.md](docs/unity-mcp.md) |
 | Unity project                      | `Assets/`, `ProjectSettings/`, `Packages/` at repo root                                           |
 | ML-Agents                          | `com.unity.ml-agents` 4.0.3 + `com.unity.ai.inference` 2.2.1                                      |
-| WebGL deploy pipeline              | Week 3                                                                                            |
+| Portfolio site deploy              | Week 3 — S3 + CloudFront static HTML (GIFs, gallery, write-up)                                  |
 
 ## Update Log
 
-| Date       | Update                                                                                                 |
-| ---------- | ------------------------------------------------------------------------------------------------------ |
-| 2026-06-18 | Initial repo scaffold pushed to `main`                                                                 |
-| 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                                        |
-| 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                                      |
-| 2026-06-18 | Baseline testing strategy + pytest suite added                                                         |
-| 2026-06-18 | Unity project + BobAgent + training scene builder added                                                |
-| 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`                        |
-| 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                           |
-| 2026-06-18 | Unity MCP — `com.coplaydev.unity-mcp`, `bob-unity` MCP, agent consultation rules                       |
-| 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan                   |
-| 2026-06-18 | **PR #2 merged to `main`** — RAG, Unity MCP, North Star, Arc Academy visual build |
+| Date       | Update                                                                               |
+| ---------- | ------------------------------------------------------------------------------------ |
+| 2026-06-18 | Initial repo scaffold pushed to `main`                                               |
+| 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                      |
+| 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                    |
+| 2026-06-18 | Baseline testing strategy + pytest suite added                                       |
+| 2026-06-18 | Unity project + BobAgent + training scene builder added                              |
+| 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`      |
+| 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                         |
+| 2026-06-18 | Unity MCP — `com.coplaydev.unity-mcp`, `bob-unity` MCP, agent consultation rules     |
+| 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan |
+| 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)    |

@@ -12,7 +12,6 @@ public static class ArcAcademyLayout
     public const string CourtMarkingsName = "CourtMarkings";
     public const string DistanceMarkingsName = "DistanceMarkings";
     public const string TrainingBaysName = "TrainingBays";
-    public const string TrainingBaysBackName = "TrainingBaysBack";
     public const string SpawnPadName = "SpawnPad";
     public const string HoopName = "Hoop";
     public const string RimName = "Rim";
@@ -22,6 +21,10 @@ public static class ArcAcademyLayout
     public const string DecorativeHoopsName = "DecorativeHoops";
     public const string LightingRigName = "LightingRig";
     public const string ReflectionProbeName = "ReflectionProbe";
+    public const string HdrpVolumeName = "HdrpVolume";
+    public const string AdaptiveProbeVolumeName = "AdaptiveProbeVolume";
+    public const string HdrpSkyRigName = "HdrpSkyRig";
+    public const string RoboticLauncherPrefix = "RoboticLauncher";
 
     public const float CourtHalfWidth = 7f;
     public const float CourtNearZ = 10f;
@@ -47,17 +50,28 @@ public static class ArcAcademyLayout
     public static readonly Vector3 SpawnPadScale = new(2.8f, 0.4f, 2f);
     public static readonly Vector3 BobSpawnOffset = new(0f, 0.55f, 0f);
 
-    public const int TrainingBayCount = 6;
+    public const int TrainingBayCount = 8;
     public const float TrainingBayWidth = 2.6f;
     public const float TrainingBayDepth = 3.4f;
     public const float TrainingBayWallHeight = 3.2f;
-    public const float TrainingBayStartZ = -12f;
-    public const float TrainingBaySpacing = 3.6f;
-    public const float TrainingBayX = -6.2f;
 
-    public const int TrainingBayBackCount = 8;
-    public const float TrainingBayBackZ = -14.5f;
-    public const float TrainingBayBackSpacing = 2.1f;
+    /// <summary>Eight modular shooting bays around back and right perimeter (Example.jpg).</summary>
+    public static readonly Vector3[] TrainingBayPositions =
+    {
+        new(-7f, 0f, -13f),
+        new(-4.2f, 0f, -14.5f),
+        new(-1.4f, 0f, -14.5f),
+        new(1.4f, 0f, -14.5f),
+        new(4.2f, 0f, -14.5f),
+        new(7f, 0f, -13f),
+        new(7.2f, 0f, -8f),
+        new(7.2f, 0f, -4f),
+    };
+
+    public static readonly bool[] TrainingBayFaceNegativeZ =
+    {
+        true, true, true, true, true, true, false, false,
+    };
 
     public static readonly Vector3[] DecorativeHoopRootPositions =
     {
@@ -79,10 +93,10 @@ public static class ArcAcademyLayout
     public static readonly Vector3 CameraPosition = new(9f, 6.8f, 11f);
     public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -3f);
 
-    public const float FloorGlossiness = 0.75f;
-    public const float PlatformEmissiveIntensity = 1.4f;
-    public const float ArcLineEmissiveIntensity = 1.2f;
-    public const float BobGlowIntensity = 0.85f;
+    public const float FloorGlossiness = 0.88f;
+    public const float PlatformEmissiveIntensity = 2.2f;
+    public const float ArcLineEmissiveIntensity = 1.6f;
+    public const float BobGlowIntensity = 1.1f;
     public const float LabelBobSize = 1.2f;
     public const float LabelAcademySize = 0.45f;
 
