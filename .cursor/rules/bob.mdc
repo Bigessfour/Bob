@@ -43,11 +43,21 @@ You are helping build **Bob**, a fun Deep Reinforcement Learning demo where a ch
 - Unrelated scaffolding or over-engineering
 - Committing `results/`, `summaries/`, `.venv/`, or Unity `Library/`
 
+## DevOps
+
+- **Terraform:** `terraform/bootstrap/` (state bucket) → `terraform/environments/dev/` (S3 + CloudFront)
+- **CI:** `.github/workflows/ci.yml` — Python smoke test + Terraform fmt/validate
+- **Docker:** `Dockerfile` for reproducible training deps (Unity Editor still runs on host)
+- **Agent docs:** See `AGENTS.md`, `PROJECT.md`, and `.cursor/project-rules.md`
+
 ## Key Commands
 
 ```bash
 # Train (from python/ with venv active)
 mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
+
+# TensorBoard
+tensorboard --logdir ../results
 ```
 
-See `docs/setup-checklist.md` for local setup and `docs/project-plan.md` for milestones.
+See `docs/setup-checklist.md` for local setup, `docs/cursor-setup.md` for IDE config, and `docs/project-plan.md` for milestones.

@@ -1,8 +1,12 @@
 # Bob the Free Throw Champion
 
+![CI](https://github.com/Bigessfour/Bob/actions/workflows/ci.yml/badge.svg)
+
 A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube — learns to shoot perfect free throws in a 3D basketball court. Inspired by AI Warehouse training videos, this project showcases an entertaining learning curve with visual training progress, ideal for a portfolio piece.
 
 **Live demo:** _Coming soon — WebGL build hosted on AWS Free Tier_
+
+**Project status:** See [PROJECT.md](PROJECT.md) | **Agent context:** See [AGENTS.md](AGENTS.md)
 
 ---
 
@@ -45,9 +49,12 @@ bob/
 ├── config/                    # ML-Agents YAML trainer configs
 ├── python/                    # Training venv and scripts
 ├── docs/                      # Planning, diagrams, results
-├── terraform/                 # AWS WebGL hosting (Week 3)
-├── .github/workflows/         # CI/CD (added later)
+├── terraform/                 # AWS IaC (bootstrap + dev S3/CloudFront)
+├── .github/workflows/         # CI (Python + Terraform validate)
 ├── .cursor/rules/             # Cursor agent context
+├── AGENTS.md                  # AI agent instructions
+├── PROJECT.md                 # Living status document
+├── Dockerfile                 # Reproducible training image
 ├── README.md
 ├── LICENSE
 └── .gitignore
@@ -88,6 +95,37 @@ mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
 ```
 
 Press **Play** in the Unity Editor when prompted.
+
+## DevOps
+
+### Terraform (AWS WebGL Hosting)
+
+Two-layer IaC with S3 remote state:
+
+1. **Bootstrap** (one-time): `cd terraform/bootstrap && terraform init && terraform apply`
+2. **Dev stack**: Copy `backend.tf.example` → `backend.tf`, then `terraform apply` in `terraform/environments/dev/`
+
+See [terraform/README.md](terraform/README.md) for full apply order and WebGL deploy commands.
+
+### CI
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push to `main`:
+
+- Python 3.10 dependency install + `mlagents-learn --help`
+- Terraform `fmt -check` and `validate` (bootstrap + dev)
+
+### Docker
+
+Reproducible training dependencies (Unity Editor still runs on host):
+
+```bash
+docker build -t bob-train .
+docker run --rm bob-train
+```
+
+### IDE Setup
+
+Workspace settings in [`.vscode/`](.vscode/). See [docs/cursor-setup.md](docs/cursor-setup.md) for extension and interpreter setup.
 
 ## Timeline (Part-Time)
 

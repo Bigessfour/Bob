@@ -1,0 +1,14 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/python/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "editor.formatOnSave": true,
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  },
+  "files.exclude": {
+    "**/.venv": true
+  }
+}

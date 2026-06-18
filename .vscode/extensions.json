@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-dotnettools.csharp",
+    "hashicorp.terraform",
+    "visualstudiotoolsforunity.vstuc",
+    "yzhang.markdown-all-in-one"
+  ]
+}

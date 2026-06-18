@@ -1,0 +1,16 @@
+# Copy this file to backend.tf after running terraform/bootstrap.
+#
+# Replace placeholder values with bootstrap outputs:
+#   terraform -chdir=../../bootstrap output state_bucket_name
+#   terraform -chdir=../../bootstrap output lock_table_name
+#   terraform -chdir=../../bootstrap output aws_region
+
+terraform {
+  backend "s3" {
+    bucket         = "REPLACE_WITH_STATE_BUCKET_NAME"
+    key            = "bob/dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "REPLACE_WITH_LOCK_TABLE_NAME"
+    encrypt        = true
+  }
+}

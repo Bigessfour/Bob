@@ -49,9 +49,13 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 - [ ] Visual polish (materials, camera, simple UI)
 - [ ] WebGL build
-- [ ] Terraform AWS hosting (S3 + CloudFront or Amplify)
-- [ ] README demo link, technical write-up in `docs/`
-- [ ] Optional: GitHub Actions CI smoke test
+- [ ] Terraform bootstrap applied (`terraform/bootstrap`)
+- [ ] Terraform dev stack applied (`terraform/environments/dev`)
+- [ ] WebGL build synced to S3 + CloudFront invalidation
+- [ ] README demo link updated with CloudFront URL
+- [ ] Technical write-up in `docs/`
+- [x] GitHub Actions CI smoke test (Python + Terraform validate)
+- [ ] Full Unity WebGL build in CI (game-ci) — stretch
 
 ## Key Design Decisions
 
@@ -61,6 +65,25 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 | Trainer | PPO | Default ML-Agents algorithm; good for continuous control |
 | Behavior name | `Bob` | Matches agent character and config YAML |
 | Python version | 3.10 | ML-Agents compatibility |
+| Terraform state | S3 remote backend | Production-style DevOps; bootstrap creates state bucket |
+| Static hosting | S3 + CloudFront OAC | HTTPS CDN; no public S3 ACL |
+| CI | GitHub Actions placeholder | Python + Terraform validate now; Unity build Week 3 |
+
+## DevOps Milestones
+
+### Infrastructure (Week 3)
+
+- [ ] Apply `terraform/bootstrap` — state bucket + DynamoDB lock
+- [ ] Configure `backend.tf` from bootstrap outputs
+- [ ] Apply `terraform/environments/dev` — site bucket + CloudFront
+- [ ] Deploy WebGL build via `aws s3 sync`
+- [ ] Update `PROJECT.md` and README with live demo URL
+
+### CI/CD
+
+- [x] Placeholder CI: Python smoke test + Terraform fmt/validate
+- [ ] Unity WebGL build pipeline (game-ci)
+- [ ] Automated S3 deploy + CloudFront invalidation on merge to `main`
 
 ## References
 

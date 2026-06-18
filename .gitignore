@@ -85,7 +85,8 @@ results/
 summaries/
 
 # Terraform
-terraform/.terraform/
+**/.terraform/
+terraform/**/backend.tf
 *.tfstate
 *.tfstate.*
 *.tfvars

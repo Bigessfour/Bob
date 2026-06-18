@@ -1,3 +1,5 @@
 mlagents==1.1.0
 torch
 numpy<2.0
+matplotlib
+tensorboard
