@@ -1,11 +1,15 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Procedural HDRP Lit materials for Arc Academy scene builder (falls back to Standard if HDRP unavailable).
+/// HDRP material library for Arc Academy — loads committed .mat assets with procedural fallback.
 /// </summary>
 public static class ArcAcademyMaterialFactory
 {
+    private static readonly Dictionary<string, Material> MaterialCache = new();
+
     private static Shader HdrpLitShader => Shader.Find("HDRP/Lit") ?? Shader.Find("Standard");
     private static Shader HdrpUnlitShader => Shader.Find("HDRP/Unlit") ?? Shader.Find("Standard");
 
@@ -48,7 +52,66 @@ public static class ArcAcademyMaterialFactory
         return mat;
     }
 
-    public static Texture2D CreateMountainWindowTexture(int width = 512, int height = 256)
+    public static Material GetGlossyFloor(Color tint)
+    {
+        return TintMaterial(
+            LoadMaterial(ArcAcademyMaterialPaths.GlossyFloorMat)
+            ?? CreateGlossyFloor(Color.white, 0.88f),
+            tint);
+    }
+
+    public static Material GetMatteWall(Color tint)
+    {
+        return TintMaterial(
+            LoadMaterial(ArcAcademyMaterialPaths.MatteWallMat)
+            ?? CreateHdrpLit(Color.white, 0.15f, 0f),
+            tint);
+    }
+
+    public static Material GetMetal(Color tint)
+    {
+        return TintMaterial(
+            LoadMaterial(ArcAcademyMaterialPaths.MetalMat)
+            ?? CreateHdrpLit(Color.white, 0.55f, 0.85f),
+            tint);
+    }
+
+    public static Material GetGlass(Color tint)
+    {
+        var baseMat = LoadMaterial(ArcAcademyMaterialPaths.GlassMat);
+        if (baseMat == null)
+        {
+            return CreateGlassBackboard(tint);
+        }
+
+        var inst = new Material(baseMat);
+        SetBaseColor(inst, new Color(tint.r, tint.g, tint.b, 0.35f));
+        return inst;
+    }
+
+    public static Material GetRubber(Color tint)
+    {
+        return TintMaterial(
+            LoadMaterial(ArcAcademyMaterialPaths.RubberMat)
+            ?? CreateHdrpLit(new Color(0.12f, 0.1f, 0.08f), 0.25f, 0f),
+            tint);
+    }
+
+    public static Material GetMountainBackdrop()
+    {
+        var mat = LoadMaterial(ArcAcademyMaterialPaths.MountainBackdropMat);
+        if (mat != null)
+        {
+            return mat;
+        }
+
+        return CreateMountainWindowMaterial();
+    }
+
+    public static bool MaterialLibraryLoaded =>
+        LoadMaterial(ArcAcademyMaterialPaths.GlossyFloorMat) != null;
+
+    public static Texture2D CreateMountainWindowTexture(int width = 1024, int height = 512)
     {
         var tex = new Texture2D(width, height, TextureFormat.RGB24, false);
         for (int y = 0; y < height; y++)
@@ -56,24 +119,35 @@ public static class ArcAcademyMaterialFactory
             float v = y / (float)(height - 1);
             for (int x = 0; x < width; x++)
             {
+                float u = x / (float)(width - 1);
                 Color pixel;
-                if (v > 0.55f)
+                if (v > 0.62f)
                 {
-                    float skyT = (v - 0.55f) / 0.45f;
-                    pixel = Color.Lerp(new Color(0.55f, 0.72f, 0.95f), new Color(0.35f, 0.55f, 0.9f), skyT);
-                }
-                else if (v > 0.25f)
-                {
-                    float mountainT = (v - 0.25f) / 0.3f;
-                    float ridge = Mathf.PerlinNoise(x * 0.08f, v * 6f);
+                    float skyT = (v - 0.62f) / 0.38f;
+                    float haze = Mathf.PerlinNoise(u * 3f, v * 2f) * 0.08f;
                     pixel = Color.Lerp(
-                        new Color(0.25f, 0.45f, 0.3f),
-                        new Color(0.5f, 0.55f, 0.45f),
-                        mountainT * 0.6f + ridge * 0.4f);
+                        new Color(0.58f, 0.76f, 0.98f),
+                        new Color(0.32f, 0.52f, 0.92f),
+                        skyT + haze);
+                }
+                else if (v > 0.22f)
+                {
+                    float mountainT = (v - 0.22f) / 0.4f;
+                    float ridge = Mathf.PerlinNoise(u * 12f + 0.5f, v * 8f);
+                    float ridge2 = Mathf.PerlinNoise(u * 5f, v * 14f) * 0.5f;
+                    float heightMix = mountainT * 0.55f + ridge * 0.3f + ridge2 * 0.15f;
+                    Color baseForest = new(0.18f, 0.32f, 0.16f);
+                    Color midRock = new(0.38f, 0.42f, 0.36f);
+                    Color snow = new(0.92f, 0.94f, 0.98f);
+                    pixel = Color.Lerp(baseForest, midRock, heightMix);
+                    if (heightMix > 0.72f)
+                    {
+                        pixel = Color.Lerp(pixel, snow, (heightMix - 0.72f) / 0.28f);
+                    }
                 }
                 else
                 {
-                    pixel = new Color(0.15f, 0.22f, 0.12f);
+                    pixel = new Color(0.12f, 0.18f, 0.1f);
                 }
 
                 tex.SetPixel(x, y, pixel);
@@ -88,7 +162,8 @@ public static class ArcAcademyMaterialFactory
     public static Material CreateMountainWindowMaterial()
     {
         var mat = CreateHdrpLit(Color.white, 0.15f, 0f);
-        var tex = CreateMountainWindowTexture();
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(ArcAcademyMaterialPaths.MountainBackdropTexture)
+                  ?? CreateMountainWindowTexture();
         if (mat.HasProperty("_BaseColorMap"))
         {
             mat.SetTexture("_BaseColorMap", tex);
@@ -98,6 +173,7 @@ public static class ArcAcademyMaterialFactory
             mat.mainTexture = tex;
         }
 
+        SetEmissive(mat, new Color(0.85f, 0.92f, 1f), 0.35f);
         return mat;
     }
 
@@ -126,6 +202,34 @@ public static class ArcAcademyMaterialFactory
         {
             renderer.sharedMaterial = mat;
         }
+    }
+
+    public static void SetEmissivePublic(Material mat, Color color, float intensity)
+    {
+        SetEmissive(mat, color, intensity);
+    }
+
+    private static Material LoadMaterial(string assetPath)
+    {
+        if (MaterialCache.TryGetValue(assetPath, out var cached))
+        {
+            return cached;
+        }
+
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+        if (mat != null)
+        {
+            MaterialCache[assetPath] = mat;
+        }
+
+        return mat;
+    }
+
+    private static Material TintMaterial(Material source, Color tint)
+    {
+        var inst = new Material(source);
+        SetBaseColor(inst, tint);
+        return inst;
     }
 
     private static void SetBaseColor(Material mat, Color color)

@@ -7,10 +7,17 @@ LABEL="${1:-snapshot}"
 LOG_FILE="${REPO_ROOT}/logs/unity-capture.log"
 
 export BOB_CAPTURE_LABEL="${LABEL}"
-export BOB_CAPTURE_GIT_SHA="$(git -C "${REPO_ROOT}" rev-parse --short HEAD 2>/dev/null || true)"
+BOB_CAPTURE_GIT_SHA="$(git -C "${REPO_ROOT}" rev-parse --short HEAD 2>/dev/null || true)"
+export BOB_CAPTURE_GIT_SHA
 
 mkdir -p "${REPO_ROOT}/logs" "${REPO_ROOT}/docs/progress"
 
+echo "Ensuring HDRP pipeline and material library..."
+"${REPO_ROOT}/scripts/unity.sh" -batchmode -quit -nographics \
+	-logFile "${REPO_ROOT}/logs/unity-capture-hdrp.log" \
+	-executeMethod ArcAcademyHdrpSetup.EnsureHdrpFromCli
+
+echo "Capturing progress screenshot (GPU required)..."
 "${REPO_ROOT}/scripts/unity.sh" -batchmode -quit \
 	-logFile "${LOG_FILE}" \
 	-executeMethod BobProgressCapture.CaptureFromCli

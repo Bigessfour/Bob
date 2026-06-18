@@ -1,22 +1,28 @@
 using UnityEngine;
 
 /// <summary>
-/// Arc Academy environment controller — episode randomization for movable hoop and spawn pad.
+/// Arc Academy environment controller — episode randomization, spawn, and score feedback.
 /// </summary>
 public class ArcAcademyManager : MonoBehaviour
 {
     [SerializeField] private MovableHoop movableHoop;
     [SerializeField] private Transform spawnPad;
+    [SerializeField] private Transform ballSpawnPoint;
+    [SerializeField] private ArcAcademyScorePopup scorePopup;
+    [SerializeField] private SpawnPadPulse spawnPadPulse;
     [SerializeField] private int curriculumStage = 1;
 
     [Tooltip("When false, hoop and spawn stay at regulation defaults every episode (Week 1 training).")]
     [SerializeField] private bool randomizeEpisodeLayout;
 
     private static ArcAcademyManager instance;
+    private int sessionMadeBaskets;
 
     public static ArcAcademyManager Instance => instance;
 
     public int CurriculumStage => curriculumStage;
+
+    public int SessionMadeBaskets => sessionMadeBaskets;
 
     private void Awake()
     {
@@ -41,6 +47,21 @@ public class ArcAcademyManager : MonoBehaviour
                 spawnPad = pad.transform;
             }
         }
+
+        if (ballSpawnPoint == null && spawnPad != null)
+        {
+            ballSpawnPoint = spawnPad.Find(ArcAcademyLayout.BallSpawnPointName);
+        }
+
+        if (scorePopup == null)
+        {
+            scorePopup = GetComponentInChildren<ArcAcademyScorePopup>();
+        }
+
+        if (spawnPadPulse == null && spawnPad != null)
+        {
+            spawnPadPulse = spawnPad.GetComponent<SpawnPadPulse>();
+        }
     }
 
     private void OnDestroy()
@@ -51,10 +72,17 @@ public class ArcAcademyManager : MonoBehaviour
         }
     }
 
-    public void WireReferences(MovableHoop hoop, Transform pad)
+    public void WireReferences(MovableHoop hoop, Transform pad, Transform spawnPoint, ArcAcademyScorePopup popup)
     {
         movableHoop = hoop;
         spawnPad = pad;
+        ballSpawnPoint = spawnPoint;
+        scorePopup = popup;
+
+        if (spawnPad != null && spawnPadPulse == null)
+        {
+            spawnPadPulse = spawnPad.GetComponent<SpawnPadPulse>();
+        }
     }
 
     public bool RandomizeEpisodeLayout => randomizeEpisodeLayout;
@@ -90,10 +118,20 @@ public class ArcAcademyManager : MonoBehaviour
 
     public Vector3 GetSpawnPosition()
     {
+        if (ballSpawnPoint != null)
+        {
+            return ResolveSpawnPosition(ballSpawnPoint.position);
+        }
+
         Vector3 basePos = spawnPad != null
             ? spawnPad.position + ArcAcademyLayout.BobSpawnOffset
             : ArcAcademyLayout.BobSpawnPosition;
 
+        return ResolveSpawnPosition(basePos);
+    }
+
+    private Vector3 ResolveSpawnPosition(Vector3 basePos)
+    {
         if (!randomizeEpisodeLayout)
         {
             return basePos;
@@ -109,5 +147,26 @@ public class ArcAcademyManager : MonoBehaviour
     public void SetCurriculumStage(int stage)
     {
         curriculumStage = Mathf.Max(1, stage);
+    }
+
+    public void NotifyMadeBasket(BobAgent agent, bool swish)
+    {
+        sessionMadeBaskets++;
+        scorePopup?.Show(swish, sessionMadeBaskets);
+        spawnPadPulse?.TriggerScoreBurst();
+
+        Debug.Log(swish
+            ? $"Arc Academy swish #{sessionMadeBaskets} — Bob nets a perfect shot!"
+            : $"Arc Academy score #{sessionMadeBaskets} — Bob sunk it!");
+
+        agent.RegisterMadeShot(swish);
+    }
+
+    public void NotifyBackboardHit(float impactSpeed)
+    {
+        if (impactSpeed > 1.5f)
+        {
+            Debug.Log($"Backboard clank — impact {impactSpeed:F1} m/s");
+        }
     }
 }

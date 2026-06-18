@@ -3,6 +3,7 @@
   "rootNamespace": "Bob.Editor",
   "references": [
     "Bob",
+    "Bob.SceneEditor",
     "Unity.ML-Agents",
     "Unity.RenderPipelines.Core.Runtime",
     "Unity.RenderPipelines.Core.Editor",

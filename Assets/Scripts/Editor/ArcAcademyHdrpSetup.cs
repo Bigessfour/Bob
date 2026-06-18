@@ -23,8 +23,9 @@ public static class ArcAcademyHdrpSetup
     public static void EnsureHdrpFromCli()
     {
         EnsureHdrpPipeline();
+        ArcAcademyShaderGraphSetup.EnsureMaterialLibrary();
         AssetDatabase.SaveAssets();
-        Debug.Log("HDRP_SETUP_OK: pipeline, volume profile, and linear color space configured");
+        Debug.Log("HDRP_SETUP_OK: pipeline, volume profile, materials, and linear color space configured");
         EditorApplication.Exit(0);
     }
 
@@ -35,7 +36,8 @@ public static class ArcAcademyHdrpSetup
 
         EnsureLinearColorSpace();
         var pipeline = EnsurePipelineAsset();
-        EnsureVolumeProfile();
+        var profile = EnsureVolumeProfile();
+        ApplyVolumePolish(profile);
         AssignPipelineToGraphics(pipeline);
     }
 
@@ -71,40 +73,77 @@ public static class ArcAcademyHdrpSetup
         profile = ScriptableObject.CreateInstance<VolumeProfile>();
         AssetDatabase.CreateAsset(profile, VolumeProfilePath);
 
-        var exposure = profile.Add<Exposure>(true);
-        exposure.mode.overrideState = true;
-        exposure.mode.value = ExposureMode.Fixed;
-        exposure.fixedExposure.overrideState = true;
-        exposure.fixedExposure.value = 11f;
-
-        var tonemapping = profile.Add<Tonemapping>(true);
-        tonemapping.mode.overrideState = true;
-        tonemapping.mode.value = TonemappingMode.ACES;
-
-        var bloom = profile.Add<Bloom>(true);
-        bloom.intensity.overrideState = true;
-        bloom.intensity.value = 0.45f;
-        bloom.threshold.overrideState = true;
-        bloom.threshold.value = 0.85f;
-
-        var ssr = profile.Add<ScreenSpaceReflection>(true);
-        ssr.enabled.overrideState = true;
-        ssr.enabled.value = true;
-
-        var env = profile.Add<VisualEnvironment>(true);
-        env.skyType.overrideState = true;
-        env.skyType.value = (int)SkyType.PhysicallyBased;
-
-        var physSky = profile.Add<PhysicallyBasedSky>(true);
-        physSky.horizonZenithShift.overrideState = true;
-        physSky.horizonZenithShift.value = -0.15f;
-
-        var fog = profile.Add<Fog>(true);
-        fog.enabled.overrideState = true;
-        fog.enabled.value = false;
+        profile.Add<Exposure>(true);
+        profile.Add<Tonemapping>(true);
+        profile.Add<Bloom>(true);
+        profile.Add<ScreenSpaceReflection>(true);
+        profile.Add<VisualEnvironment>(true);
+        profile.Add<PhysicallyBasedSky>(true);
+        profile.Add<Fog>(true);
+        profile.Add<ColorAdjustments>(true);
 
         EditorUtility.SetDirty(profile);
         return profile;
+    }
+
+    private static void ApplyVolumePolish(VolumeProfile profile)
+    {
+        if (profile.TryGet(out Exposure exposure))
+        {
+            exposure.mode.overrideState = true;
+            exposure.mode.value = ExposureMode.Fixed;
+            exposure.fixedExposure.overrideState = true;
+            exposure.fixedExposure.value = 13.5f;
+        }
+
+        if (profile.TryGet(out Tonemapping tonemapping))
+        {
+            tonemapping.mode.overrideState = true;
+            tonemapping.mode.value = TonemappingMode.ACES;
+        }
+
+        if (profile.TryGet(out Bloom bloom))
+        {
+            bloom.intensity.overrideState = true;
+            bloom.intensity.value = 0.55f;
+            bloom.threshold.overrideState = true;
+            bloom.threshold.value = 0.75f;
+        }
+
+        if (profile.TryGet(out ScreenSpaceReflection ssr))
+        {
+            ssr.enabled.overrideState = true;
+            ssr.enabled.value = true;
+        }
+
+        if (profile.TryGet(out VisualEnvironment env))
+        {
+            env.skyType.overrideState = true;
+            env.skyType.value = (int)SkyType.PhysicallyBased;
+        }
+
+        if (profile.TryGet(out PhysicallyBasedSky physSky))
+        {
+            physSky.horizonZenithShift.overrideState = true;
+            physSky.horizonZenithShift.value = -0.15f;
+        }
+
+        if (profile.TryGet(out Fog fog))
+        {
+            fog.enabled.overrideState = true;
+            fog.enabled.value = false;
+        }
+
+        if (profile.TryGet(out ColorAdjustments colorAdjustments))
+        {
+            colorAdjustments.active = true;
+            colorAdjustments.contrast.overrideState = true;
+            colorAdjustments.contrast.value = 5f;
+            colorAdjustments.saturation.overrideState = true;
+            colorAdjustments.saturation.value = 8f;
+        }
+
+        EditorUtility.SetDirty(profile);
     }
 
     private static void AssignPipelineToGraphics(HDRenderPipelineAsset pipeline)
@@ -123,8 +162,9 @@ public static class ArcAcademyHdrpSetup
 
     public static VolumeProfile LoadVolumeProfile()
     {
-        EnsureVolumeProfile();
-        return AssetDatabase.LoadAssetAtPath<VolumeProfile>(VolumeProfilePath);
+        var profile = EnsureVolumeProfile();
+        ApplyVolumePolish(profile);
+        return profile;
     }
 }
 #endif

@@ -5,9 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public static class BobProgressCapture
 {
@@ -164,6 +167,37 @@ public static class BobProgressCapture
         return string.IsNullOrEmpty(lower) ? "snapshot" : lower;
     }
 
+    private static void PrepareHdrpCapture(Camera camera)
+    {
+        ArcAcademyHdrpSetup.EnsureHdrpPipeline();
+
+        foreach (var probe in UnityEngine.Object.FindObjectsByType<ReflectionProbe>(FindObjectsSortMode.None))
+        {
+            probe.RenderProbe();
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            EditorApplication.QueuePlayerLoopUpdate();
+            Thread.Sleep(100);
+        }
+
+        float? restoredExposure = null;
+        Volume volume = UnityEngine.Object.FindAnyObjectByType<Volume>();
+        if (volume != null && volume.profile != null && volume.profile.TryGet(out Exposure exposure))
+        {
+            restoredExposure = exposure.fixedExposure.value;
+            exposure.fixedExposure.overrideState = true;
+            exposure.fixedExposure.value = 14f;
+        }
+
+        if (restoredExposure.HasValue && volume != null && volume.profile != null
+            && volume.profile.TryGet(out Exposure exposureRestore))
+        {
+            exposureRestore.fixedExposure.value = restoredExposure.Value;
+        }
+    }
+
     private static bool CaptureCameraToPng(Camera camera, int width, int height, string outputPath)
     {
         var previousTarget = camera.targetTexture;
@@ -172,6 +206,7 @@ public static class BobProgressCapture
         var renderTexture = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
         try
         {
+            PrepareHdrpCapture(camera);
             camera.targetTexture = renderTexture;
             camera.Render();
 
