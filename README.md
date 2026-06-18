@@ -6,7 +6,7 @@ A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube 
 
 **Live demo:** _Coming soon — WebGL build hosted on AWS Free Tier_
 
-**Project status:** See [PROJECT.md](PROJECT.md) | **Agent context:** See [AGENTS.md](AGENTS.md)
+**Project status:** See [PROJECT.md](PROJECT.md) | **Agent context:** See [AGENTS.md](AGENTS.md) | **Dev setup:** See [docs/finalized-dev-env.md](docs/finalized-dev-env.md)
 
 ---
 

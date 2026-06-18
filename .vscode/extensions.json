@@ -2,8 +2,15 @@
   "recommendations": [
     "ms-python.python",
     "ms-dotnettools.csharp",
+    "ms-dotnettools.csdevkit",
     "hashicorp.terraform",
     "visualstudiotoolsforunity.vstuc",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "github.vscode-github-actions",
+    "trunk.io",
+    "ms-vscode-remote.remote-containers",
     "yzhang.markdown-all-in-one"
-  ]
+  ],
+  "unwantedRecommendations": []
 }

@@ -24,22 +24,40 @@ Cursor will prompt to install these from [`.vscode/extensions.json`](../.vscode/
 
 ## Python Interpreter
 
-After creating the venv:
+The repo pins **Python 3.10.12** (required by `mlagents==1.1.0`). Homebrew's `python@3.10` (3.10.20) is too new and will be rejected by pip.
+
+### One-command setup
+
+```bash
+./scripts/setup-python.sh
+```
+
+This uses [uv](https://github.com/astral-sh/uv) to install Python 3.10.12 and create `python/.venv`.
+
+### Apple Silicon (M-series)
+
+`grpcio==1.48.2` (required by mlagents) has **no macOS arm64 wheel**. On Apple Silicon:
+
+- **IDE / linting:** local venv (numpy, matplotlib, tensorboard) — valid Cursor interpreter
+- **Training:** use Docker — `./scripts/train.sh`
+
+### Select interpreter in Cursor
 
 1. **Cmd+Shift+P** → `Python: Select Interpreter`
-2. Choose `./python/.venv/bin/python`
+2. Choose `./python/.venv/bin/python` (Python 3.10.12)
 
-Or rely on workspace settings (automatic once venv exists).
+Or reload the window after running `setup-python.sh` — workspace settings point to the venv automatically.
 
 ## Terminal Workflow
 
 ```bash
-cd python
-source .venv/bin/activate
-mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
-```
+# Training via Docker (recommended on Apple Silicon)
+./scripts/train.sh
 
-With `python.terminal.activateEnvironment: true`, opening a terminal from the workspace root auto-activates the venv.
+# TensorBoard (local venv)
+cd python && source .venv/bin/activate
+tensorboard --logdir ../results
+```
 
 ## Unity External Tools
 
@@ -47,6 +65,8 @@ In Unity Editor:
 
 1. **Edit → Preferences → External Tools**
 2. Set **Python** to `python/.venv/bin/python3.10` (full path)
+
+See [docs/unity-dev.md](unity-dev.md) for Unity CLI, batchmode builds, and AI assistant options.
 
 ## Agent Context Files
 

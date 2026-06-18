@@ -1,0 +1,22 @@
+{
+  "name": "Bob RL Agent",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "train",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-dotnettools.csharp",
+        "hashicorp.terraform"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": false
+      }
+    }
+  },
+  "forwardPorts": [5004, 6006],
+  "postCreateCommand": "pip install -r python/requirements.txt && mlagents-learn --help",
+  "remoteUser": "root"
+}

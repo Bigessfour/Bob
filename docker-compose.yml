@@ -1,0 +1,20 @@
+services:
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bob-train:latest
+    container_name: bob-train
+    # Required so mlagents-learn can reach Unity Editor on the Mac host.
+    network_mode: host
+    volumes:
+      - ./config:/app/config:ro
+      - ./python:/app/python:ro
+      - ./results:/app/results
+      - ./summaries:/app/summaries
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    # Override at runtime, e.g.:
+    # docker compose run --rm train mlagents-learn config/bob_free_throw.yaml --run-id=bob-v0
+    command: ["mlagents-learn", "--help"]
