@@ -319,8 +319,8 @@ public static class BobTrainingSceneBuilder
         var windowArea = windowLightGo.AddComponent<Light>();
         windowArea.type = LightType.Rectangle;
         windowArea.areaSize = new Vector2(14f, 4.5f);
-        windowArea.intensity = 28000f;
-        windowArea.color = new Color(0.82f, 0.9f, 1f);
+        windowArea.intensity = 32000f;
+        windowArea.color = new Color(0.88f, 0.93f, 1f);
         windowLightGo.AddComponent<HDAdditionalLightData>();
     }
 
@@ -561,12 +561,14 @@ public static class BobTrainingSceneBuilder
         CreateBayWall(bay.transform, "BayWall_Back",
             new Vector3(0f, height * 0.5f, backZ),
             new Vector3(ArcAcademyLayout.TrainingBayWidth, height, 0.12f));
-        CreateBayWall(bay.transform, "BayWall_Left",
+        var leftWall = CreateBayWall(bay.transform, "BayWall_Left",
             new Vector3(-halfW, height * 0.5f, depth * 0.5f),
             new Vector3(0.12f, height, depth));
-        CreateBayWall(bay.transform, "BayWall_Right",
+        var rightWall = CreateBayWall(bay.transform, "BayWall_Right",
             new Vector3(halfW, height * 0.5f, depth * 0.5f),
             new Vector3(0.12f, height, depth));
+        CreateBayPartitionDecal(leftWall, isLeftWall: true, faceNegativeZ);
+        CreateBayPartitionDecal(rightWall, isLeftWall: false, faceNegativeZ);
 
         float rimZ = faceNegativeZ ? 0.25f : depth - 0.25f;
         var hoopRoot = new GameObject("BayHoop");
@@ -599,7 +601,7 @@ public static class BobTrainingSceneBuilder
             faceNegativeZ ? 160f : -20f);
     }
 
-    private static void CreateBayWall(Transform parent, string name, Vector3 localPos, Vector3 scale)
+    private static Transform CreateBayWall(Transform parent, string name, Vector3 localPos, Vector3 scale)
     {
         var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall.name = name;
@@ -616,6 +618,33 @@ public static class BobTrainingSceneBuilder
         ArcAcademyMaterialFactory.ApplyMaterial(trim, ArcAcademyMaterialFactory.GetMatteWall(BayTrim));
         Object.DestroyImmediate(trim.GetComponent<BoxCollider>());
         Object.DestroyImmediate(wall.GetComponent<BoxCollider>());
+        return wall.transform;
+    }
+
+    private static void CreateBayPartitionDecal(Transform wall, bool isLeftWall, bool faceNegativeZ)
+    {
+        var decal = new GameObject("Decal_ArcAcademy");
+        decal.transform.SetParent(wall, false);
+        float inset = 0.07f;
+        float side = isLeftWall ? 1f : -1f;
+        decal.transform.localPosition = new Vector3(side * inset, 0f, 0f);
+
+        float yaw = isLeftWall ? -90f : 90f;
+        if (!faceNegativeZ)
+        {
+            yaw += 180f;
+        }
+
+        decal.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+
+        var textMesh = decal.AddComponent<TextMesh>();
+        textMesh.text = "ARC ACADEMY";
+        textMesh.characterSize = 0.035f;
+        textMesh.fontSize = 64;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        textMesh.alignment = TextAlignment.Center;
+        textMesh.color = AcademyPurple;
+        textMesh.fontStyle = FontStyle.Bold;
     }
 
     private static Transform CreateRoboticLauncherArm(Transform parent, Vector3 localPosition, float yawDegrees)
@@ -796,7 +825,7 @@ public static class BobTrainingSceneBuilder
         backboard.transform.localScale = new Vector3(1.8f, 1.05f, 0.06f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             backboard,
-            ArcAcademyMaterialFactory.GetGlass(BackboardWhite));
+            ArcAcademyMaterialFactory.GetActiveBackboardGlass(BackboardWhite));
         backboard.GetComponent<BoxCollider>().material = HoopPhysicsMaterials.HoopBounce;
         backboard.AddComponent<HoopBackboardFeedback>();
 
@@ -819,6 +848,7 @@ public static class BobTrainingSceneBuilder
         var netPhysics = netRoot.AddComponent<HoopNetPhysics>();
         var netMaterial = ArcAcademyMaterialFactory.GetMatteWall(Color.white);
         netPhysics.BuildNet(rim.transform, netMaterial, HoopPhysicsMaterials.NetStrand);
+        netRoot.AddComponent<HoopSwishVfx>();
 
         movableHoop.SetRimTransform(rim.transform);
         movableHoop.WireArticulation(swivelLinkGo.transform, armLinkGo.transform, swivelBody, armBody);

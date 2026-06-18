@@ -89,6 +89,22 @@ public static class ArcAcademyMaterialFactory
         return inst;
     }
 
+    public static Material GetActiveBackboardGlass(Color tint)
+    {
+        var mat = CreateHdrpLit(new Color(tint.r, tint.g, tint.b, 0.4f), 0.97f, 0.08f);
+        if (HdrpLitShader.name.Contains("HDRP"))
+        {
+            mat.SetFloat("_SurfaceType", 1f);
+            mat.SetFloat("_BlendMode", 0f);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.EnableKeyword("_BLENDMODE_ALPHA");
+            mat.renderQueue = 3000;
+        }
+
+        return mat;
+    }
+
     public static Material GetRubber(Color tint)
     {
         return TintMaterial(
@@ -102,7 +118,9 @@ public static class ArcAcademyMaterialFactory
         var mat = LoadMaterial(ArcAcademyMaterialPaths.MountainBackdropMat);
         if (mat != null)
         {
-            return mat;
+            var inst = new Material(mat);
+            ApplyMountainBackdropEmissive(inst);
+            return inst;
         }
 
         return CreateMountainWindowMaterial();
@@ -173,8 +191,13 @@ public static class ArcAcademyMaterialFactory
             mat.mainTexture = tex;
         }
 
-        SetEmissive(mat, new Color(0.85f, 0.92f, 1f), 0.35f);
+        SetEmissive(mat, new Color(0.85f, 0.92f, 1f), 0.15f);
         return mat;
+    }
+
+    private static void ApplyMountainBackdropEmissive(Material mat)
+    {
+        SetEmissive(mat, new Color(0.85f, 0.92f, 1f), 0.15f);
     }
 
     public static Material CreateArcLineMaterial(Color color, float intensity)

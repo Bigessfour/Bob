@@ -101,9 +101,9 @@ public static class ArcAcademyLayout
     public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -3f);
 
     public const float FloorGlossiness = 0.88f;
-    public const float PlatformEmissiveIntensity = 2.2f;
+    public const float PlatformEmissiveIntensity = 2.5f;
     public const float ArcLineEmissiveIntensity = 1.6f;
-    public const float BobGlowIntensity = 1.1f;
+    public const float BobGlowIntensity = 1.35f;
     public const float LabelBobSize = 1.2f;
     public const float LabelAcademySize = 0.45f;
 
