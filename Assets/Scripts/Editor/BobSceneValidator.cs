@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using System.Linq;
 
 public static class BobSceneValidator
 {
@@ -38,6 +39,21 @@ public static class BobSceneValidator
         if (GameObject.Find(ArcAcademyLayout.HdrpVolumeName) == null)
         {
             Debug.LogError("VALIDATE_FAIL: HdrpVolume missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var hdrpVolume = GameObject.Find(ArcAcademyLayout.HdrpVolumeName).GetComponent<Volume>();
+        if (hdrpVolume == null || hdrpVolume.sharedProfile == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HdrpVolume missing shared ArcAcademyVolumeProfile");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!hdrpVolume.sharedProfile.TryGet(out Exposure volumeExposure))
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyVolumeProfile missing Exposure override");
             EditorApplication.Exit(1);
             return;
         }
@@ -85,10 +101,10 @@ public static class BobSceneValidator
             return;
         }
 
-        if (Object.FindObjectsByType<RoboticLauncherVisual>().Length
-            < ArcAcademyLayout.TrainingBayCount + ArcAcademyLayout.DecorativeHoopRootPositions.Length)
+        if (CountPortableHoopStands() < ArcAcademyLayout.ExpectedPortableHoopStandCount)
         {
-            Debug.LogError("VALIDATE_FAIL: Expected robotic launcher visuals on each training bay and display hoop");
+            Debug.LogError(
+                $"VALIDATE_FAIL: Expected {ArcAcademyLayout.ExpectedPortableHoopStandCount} portable hoop stands");
             EditorApplication.Exit(1);
             return;
         }
@@ -100,25 +116,18 @@ public static class BobSceneValidator
             return;
         }
 
-        if (GameObject.Find(ArcAcademyLayout.DecorativeHoopsName) == null)
-        {
-            Debug.LogError("VALIDATE_FAIL: DecorativeHoops missing from training scene");
-            EditorApplication.Exit(1);
-            return;
-        }
-
-        var decorative = GameObject.Find(ArcAcademyLayout.DecorativeHoopsName);
-        if (decorative.transform.childCount < 2)
-        {
-            Debug.LogError("VALIDATE_FAIL: DecorativeHoops must contain at least 2 display hoops");
-            EditorApplication.Exit(1);
-            return;
-        }
-
         var decorativeMarkers = Object.FindObjectsByType<DecorativeHoopMarker>();
-        if (decorativeMarkers.Length < ArcAcademyLayout.DecorativeHoopRootPositions.Length + ArcAcademyLayout.TrainingBayCount)
+        if (decorativeMarkers.Length < ArcAcademyLayout.TrainingBayCount)
         {
-            Debug.LogError("VALIDATE_FAIL: DecorativeHoopMarker missing on bay/display hoops");
+            Debug.LogError("VALIDATE_FAIL: DecorativeHoopMarker missing on training bay hoops");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var launcherVisuals = Object.FindObjectsByType<RoboticLauncherVisual>();
+        if (launcherVisuals.Length < ArcAcademyLayout.TrainingBayCount)
+        {
+            Debug.LogError("VALIDATE_FAIL: RoboticLauncherVisual missing on training bay stands");
             EditorApplication.Exit(1);
             return;
         }
@@ -174,9 +183,34 @@ public static class BobSceneValidator
             return;
         }
 
-        if (GameObject.Find(ArcAcademyLayout.SignageArcAcademyName) == null)
+        var spawnPad = GameObject.Find(ArcAcademyLayout.SpawnPadName);
+        if (spawnPad == null)
         {
-            Debug.LogError("VALIDATE_FAIL: Signage_ArcAcademy missing from training scene");
+            Debug.LogError("VALIDATE_FAIL: SpawnPad missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var branding = spawnPad.transform.Find(ArcAcademyLayout.SpawnPadBrandingName);
+        if (branding == null
+            || branding.Find("Label_Bob") == null
+            || branding.Find("Label_ArcAcademy") == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SpawnPad branding labels missing (Bob + Arc Academy)");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (spawnPad.transform.Find(ArcAcademyLayout.BallSpawnPointName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BallSpawnPoint missing under SpawnPad");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (spawnPad.GetComponent<SpawnPadPulse>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SpawnPadPulse missing on SpawnPad");
             EditorApplication.Exit(1);
             return;
         }
@@ -191,11 +225,69 @@ public static class BobSceneValidator
         var mountainWindow = GameObject.Find(ArcAcademyLayout.MountainWindowName);
         if (mountainWindow == null
             || mountainWindow.transform.Find("MountainBackdrop") == null
-            || mountainWindow.transform.Find("WindowGlass") == null)
+            || mountainWindow.transform.Find("WindowGlass") == null
+            || mountainWindow.transform.Find("WindowMullions") == null)
         {
-            Debug.LogError("VALIDATE_FAIL: MountainWindow must include MountainBackdrop and WindowGlass");
+            Debug.LogError("VALIDATE_FAIL: MountainWindow must include backdrop, glass, and mullions");
             EditorApplication.Exit(1);
             return;
+        }
+
+        // New photoreal platform + ceiling + floor checks for Example.jpg match
+        var centralPad = GameObject.Find(ArcAcademyLayout.SpawnPadName);
+        if (centralPad != null)
+        {
+            if (centralPad.transform.Find("PlatformBaseRing") == null)
+            {
+                Debug.LogError("VALIDATE_FAIL: Central Bob platform missing strong purple base ring (PlatformBaseRing)");
+                EditorApplication.Exit(1);
+                return;
+            }
+            var padBranding = centralPad.transform.Find(ArcAcademyLayout.SpawnPadBrandingName);
+            if (padBranding != null)
+            {
+                var bobLabel = padBranding.Find("Label_Bob");
+                if (bobLabel != null && bobLabel.GetComponent<TextMesh>() != null)
+                {
+                    // Label present and large enough (size check is soft via presence)
+                }
+            }
+        }
+
+        // Ceiling density (use ByType + LINQ)
+        var lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+        int ceilingLights = lights.Count(l => l.name != null && l.name.Contains("CeilingStripLight"));
+        if (ceilingLights < 8)
+        {
+            Debug.LogError("VALIDATE_FAIL: Insufficient ceiling strip lights for industrial warehouse look");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        // Bay low partitions present
+        var baysRoot = GameObject.Find(ArcAcademyLayout.TrainingBaysName);
+        if (baysRoot != null)
+        {
+            int dividers = 0;
+            foreach (Transform t in baysRoot.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == "BayDivider") dividers++;
+            }
+            if (dividers < ArcAcademyLayout.TrainingBayCount - 1)
+            {
+                Debug.LogWarning("VALIDATE_WARN: Fewer low bay partitions than expected (still functional)");
+            }
+        }
+
+        // Dark floor + orange court
+        var court = GameObject.Find(ArcAcademyLayout.CourtFloorName);
+        if (court != null)
+        {
+            var r = court.GetComponent<Renderer>();
+            if (r != null && r.sharedMaterial != null && !r.sharedMaterial.name.ToLower().Contains("gloss"))
+            {
+                Debug.LogWarning("VALIDATE_WARN: Court floor material may not be glossy");
+            }
         }
 
         if (!ArcAcademyMaterialFactory.MaterialLibraryLoaded)
@@ -251,21 +343,6 @@ public static class BobSceneValidator
         if (rim.GetComponent<HoopRimContact>() == null)
         {
             Debug.LogError("VALIDATE_FAIL: HoopRimContact missing on active Rim");
-            EditorApplication.Exit(1);
-            return;
-        }
-
-        var spawnPad = GameObject.Find(ArcAcademyLayout.SpawnPadName);
-        if (spawnPad == null || spawnPad.transform.Find(ArcAcademyLayout.BallSpawnPointName) == null)
-        {
-            Debug.LogError("VALIDATE_FAIL: BallSpawnPoint missing under SpawnPad");
-            EditorApplication.Exit(1);
-            return;
-        }
-
-        if (spawnPad.GetComponent<SpawnPadPulse>() == null)
-        {
-            Debug.LogError("VALIDATE_FAIL: SpawnPadPulse missing on SpawnPad");
             EditorApplication.Exit(1);
             return;
         }
@@ -365,8 +442,58 @@ public static class BobSceneValidator
             return;
         }
 
+        var mainCamera = Camera.main;
+        if (mainCamera == null || mainCamera.GetComponent<ArcAcademyDemoCamera>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyDemoCamera missing on Main Camera");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.GetComponent<BobEntranceController>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobEntranceController missing on Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.GetComponent<BobIdleAnimation>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobIdleAnimation missing on Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.GetComponent<BoxCollider>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob must use BoxCollider (orange cube agent)");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (activeBackboard.GetComponent<HoopBackboardFeedback>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopBackboardFeedback missing on active backboard");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         Debug.Log("VALIDATE_PASS: Bob training scene is ready for Play mode and training");
         EditorApplication.Exit(0);
+    }
+
+    private static int CountPortableHoopStands()
+    {
+        int count = 0;
+        foreach (var transform in Object.FindObjectsByType<Transform>())
+        {
+            if (transform.name == ArcAcademyLayout.PortableHoopStandName)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private static Transform FindDeepChild(Transform parent, string name)

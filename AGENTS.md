@@ -102,7 +102,7 @@ When you add or materially change **methods, Editor CLI entry points, agent logi
 
 The **stop hook** re-indexes changed text files automatically, but agents must still call `rag_index_paths` when methods/workflows change significantly so the index reflects intent before the next turn.
 
-### Setup (once per machine)
+### RAG setup (once per machine)
 
 ```bash
 ./scripts/setup-python.sh
@@ -140,8 +140,8 @@ Example end-of-turn prompt:
 ```text
 ## Further development required
 
-- `BobProgressCapture.CapturePlayModeFromCli` is not implemented; play-mode capture needs Unity Test Framework or an inference `.onnx` model.
-- Next: add `com.unity.test-framework`, implement play-mode wait + capture in `Assets/Editor/BobProgressCapture.cs`, then run `./scripts/capture-progress.sh --play mid-shot`.
+- Play-mode capture requires the Unity Editor closed; batchmode cannot open a project already loaded in another instance.
+- Next: close Unity, run `./scripts/capture-progress.sh --play arc-academy-playmode-hero`, verify `docs/progress/.../meta.json` has `"mode": "play"`.
 ```
 
 Do not silently defer work in code comments—surface it in the turn summary so it is tracked and not forgotten.

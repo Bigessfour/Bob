@@ -13,10 +13,16 @@ public class SpawnPadPulse : MonoBehaviour
 
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private float scoreBurstTimer;
+    private float readyBurstTimer;
 
     public void TriggerScoreBurst()
     {
         scoreBurstTimer = 0.6f;
+    }
+
+    public void TriggerReadyPulse()
+    {
+        readyBurstTimer = 0.5f;
     }
 
     private void Awake()
@@ -40,6 +46,12 @@ public class SpawnPadPulse : MonoBehaviour
 
         float pulse = Mathf.Sin(Time.time * pulseSpeed) * pulseAmplitude;
         float burst = scoreBurstTimer > 0f ? 1.2f : 0f;
+        if (readyBurstTimer > 0f)
+        {
+            burst += 0.9f * (readyBurstTimer / 0.5f);
+            readyBurstTimer = Mathf.Max(0f, readyBurstTimer - Time.deltaTime);
+        }
+
         scoreBurstTimer = Mathf.Max(0f, scoreBurstTimer - Time.deltaTime);
 
         float intensity = baseIntensity + pulse + burst;

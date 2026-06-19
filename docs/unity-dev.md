@@ -122,21 +122,21 @@ Visual target: [`docs/design/arc-academy-reference.jpg`](design/arc-academy-refe
 
 `BobTrainingSceneBuilder` creates a **warehouse Arc Academy** under `TrainingArena`:
 
-| Element                                      | Purpose                                                                        |
-| -------------------------------------------- | ------------------------------------------------------------------------------ |
-| `HdrpVolume` / `AdaptiveProbeVolume`         | Post-processing (Bloom, SSR, Exposure) + APV lighting                          |
-| `WarehouseShell`                             | Glossy dark floor, corrugated walls, ceiling trusses                           |
-| `MountainWindow`                             | Panoramic left-wall window with procedural mountains                           |
-| `CourtFloor` + markings                      | Orange court, key, 3pt arc, center circle, distance marks                      |
+| Element                                      | Purpose                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------- |
+| `HdrpVolume` / `AdaptiveProbeVolume`         | Post-processing (Bloom, SSR, Exposure) + APV lighting                           |
+| `WarehouseShell`                             | Glossy dark floor, corrugated walls, ceiling trusses                            |
+| `MountainWindow`                             | Panoramic left-wall window with procedural mountains                            |
+| `CourtFloor` + markings                      | Orange court, key, 3pt arc, center circle, distance marks                       |
 | `SpawnPad`                                   | Central platform with purple glow, particles + **Bob** / **Arc Academy** labels |
 | `TrainingBays` (8)                           | Perimeter cubicles with decorative hoops + `RoboticLauncherVisual` placeholders |
-| `DecorativeHoops`                            | 3 static pedestal hoops on court (`DecorativeHoopMarker`, no scoring)          |
-| `TrajectoryVisuals`                          | 3 glowing parabolic `LineRenderer` arcs (portfolio visual)                     |
-| `LightingRig`                                | Window fill + HDRP rectangle ceiling lights                                    |
-| `ReflectionProbe`                            | Floor reflections (with SSR in Volume)                                         |
-| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | **Single active scoring hoop** — glass backboard, net, physics colliders       |
-| `ArcAcademyManager`                          | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled |
-| `Bob`                                        | 8 obs, 3 actions, purple emissive glow, gravity arcs                           |
+| `DecorativeHoops`                            | 3 static pedestal hoops on court (`DecorativeHoopMarker`, no scoring)           |
+| `TrajectoryVisuals`                          | 3 glowing parabolic `LineRenderer` arcs (portfolio visual)                      |
+| `LightingRig`                                | Window fill + HDRP rectangle ceiling lights                                     |
+| `ReflectionProbe`                            | Floor reflections (with SSR in Volume)                                          |
+| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | **Single active scoring hoop** — glass backboard, net, physics colliders        |
+| `ArcAcademyManager`                          | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled  |
+| `Bob`                                        | 8 obs, 3 actions, purple emissive glow, gravity arcs                            |
 
 Shared dimensions: [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/ArcAcademyLayout.cs). Rebuild:
 
@@ -177,6 +177,17 @@ chmod +x scripts/capture-progress.sh
 ./scripts/capture-progress.sh week1-scene-baseline
 ```
 
+### Capture (play mode)
+
+Waits for Play mode to enter, settles HDRP for `BOB_CAPTURE_PLAY_FRAMES` physics frames (default **120**), then captures `Camera.main` with `mode: "play"` in `meta.json`. **Close the Unity Editor** before running — batchmode cannot share the project with a live Editor instance.
+
+```bash
+./scripts/capture-progress.sh --play arc-academy-playmode-hero
+
+# Optional: wait longer for probes/SSR (e.g. ~4s at 60fps)
+BOB_CAPTURE_PLAY_FRAMES=240 ./scripts/capture-progress.sh --play arc-academy-playmode-hero
+```
+
 Or in the Editor: **Bob → Capture Progress Screenshot**
 
 Each capture writes:
@@ -192,24 +203,23 @@ Optional environment variables:
 | `BOB_CAPTURE_LABEL`                        | Milestone slug (set automatically by `capture-progress.sh`) |
 | `BOB_CAPTURE_GIT_SHA`                      | Short git commit (set automatically by script)              |
 | `BOB_CAPTURE_WIDTH` / `BOB_CAPTURE_HEIGHT` | Override resolution (default 1280×720)                      |
+| `BOB_CAPTURE_PLAY_FRAMES`                  | Play-mode settle frames before capture (default 120)        |
 
 **Important:** Do **not** use `-nographics` for screenshot capture — GPU rendering is required. Scene build and validation CLI commands still use `-nographics`; progress capture uses a separate invocation without it.
 
-### Week 2 — Play-mode captures (planned)
+### Play-mode vs edit-mode
 
-Edit-mode captures show the static scene. Week 2 adds play-mode frames for training progress:
+| Mode | CLI                                            | `meta.json` `mode` |
+| ---- | ---------------------------------------------- | ------------------ |
+| Edit | `./scripts/capture-progress.sh <label>`        | `edit`             |
+| Play | `./scripts/capture-progress.sh --play <label>` | `play`             |
 
-| Approach                         | Use case                                                                                |
-| -------------------------------- | --------------------------------------------------------------------------------------- |
-| **Inference demo** (recommended) | Load `results/**/Bob.onnx`, set Behavior Type to Inference Only, capture mid-shot frame |
-| **Unity Test Framework**         | Deterministic play-mode test that waits N physics frames then captures                  |
-| **Unity Recorder**               | Export frame sequences or GIFs from play mode for portfolio clips                       |
-
-Future CLI entry point: `BobProgressCapture.CapturePlayModeFromCli` with `mode: "play"` in `meta.json`. Optional `scripts/capture-training-frame.sh` to pair with training checkpoints.
+Play-mode captures run HDRP with physics and lighting active (reflection probes, bloom, spawn pad VFX). Use play mode for portfolio hero shots that match in-Editor **Play** view.
 
 ## Quick Commands
 
 ```bash
 # Progress screenshot (GPU required; no -nographics)
 ./scripts/capture-progress.sh arc-academy-hdrp-v1
+./scripts/capture-progress.sh --play arc-academy-playmode-hero
 ```

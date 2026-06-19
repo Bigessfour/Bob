@@ -115,3 +115,13 @@ override.tf.json
 *.swo
 *~
 .env
+
+# AI/agent tools temp (codex, etc)
+.codex/
+.cursor/  # if local overrides
+
+# Captured logs during dev (committed ones are in docs/progress)
+Logs/*.log
+Logs/traces*.jsonl
+Logs/relay.txt
+Logs/trace-config.json

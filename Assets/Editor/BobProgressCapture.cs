@@ -28,7 +28,19 @@ public static class BobProgressCapture
             return;
         }
 
-        if (!TryCapture(label.Trim(), "edit", out var folderPath, out var error))
+        CaptureWithLabel(label.Trim());
+    }
+
+    [MenuItem("Bob/Polish/Capture Wiley Demo")]
+    public static void CaptureWileyDemo()
+    {
+        BobTrainingSceneBuilder.CreateTrainingSceneMenu();
+        CaptureWithLabel("wiley-widget-demo");
+    }
+
+    private static void CaptureWithLabel(string label)
+    {
+        if (!TryCapture(label, "edit", out var folderPath, out var error))
         {
             EditorUtility.DisplayDialog("Capture Failed", error, "OK");
             return;
@@ -39,13 +51,8 @@ public static class BobProgressCapture
 
     public static void CaptureFromCli()
     {
-        var label = Environment.GetEnvironmentVariable("BOB_CAPTURE_LABEL");
-        if (string.IsNullOrWhiteSpace(label))
-        {
-            label = "snapshot";
-        }
-
-        if (!TryCapture(label.Trim(), "edit", out var folderPath, out var error))
+        var label = ResolveCaptureLabel();
+        if (!TryCapture(label, "edit", out var folderPath, out var error))
         {
             Debug.LogError($"CAPTURE_FAIL: {error}");
             EditorApplication.Exit(1);
@@ -56,7 +63,128 @@ public static class BobProgressCapture
         EditorApplication.Exit(0);
     }
 
-    private static bool TryCapture(string label, string mode, out string folderPath, out string error)
+    public static void CapturePlayModeFromCli()
+    {
+        if (PlayCaptureSession.Active)
+        {
+            Debug.LogError("CAPTURE_FAIL: Play-mode capture already in progress");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var label = ResolveCaptureLabel();
+        PlayCaptureSession.Start(label);
+    }
+
+    private static string ResolveCaptureLabel()
+    {
+        var label = Environment.GetEnvironmentVariable("BOB_CAPTURE_LABEL");
+        return string.IsNullOrWhiteSpace(label) ? "snapshot" : label.Trim();
+    }
+
+    private static class PlayCaptureSession
+    {
+        private const string ActiveKey = "BobPlayCapture.Active";
+        private const string LabelKey = "BobPlayCapture.Label";
+        private const string FramesKey = "BobPlayCapture.FramesRemaining";
+
+        public static bool Active => SessionState.GetBool(ActiveKey, false);
+
+        [InitializeOnLoadMethod]
+        private static void Bootstrap()
+        {
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+            if (Active && EditorApplication.isPlaying)
+            {
+                EditorApplication.update -= OnEditorUpdate;
+                EditorApplication.update += OnEditorUpdate;
+            }
+        }
+
+        public static void Start(string label)
+        {
+            SessionState.SetBool(ActiveKey, true);
+            SessionState.SetString(LabelKey, label);
+            SessionState.SetInt(FramesKey, ParseEnvInt("BOB_CAPTURE_PLAY_FRAMES", 120));
+
+            EditorSceneManager.OpenScene(ScenePath);
+            ArcAcademyHdrpSetup.EnsureHdrpPipeline();
+            EditorApplication.EnterPlaymode();
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (!Active)
+            {
+                return;
+            }
+
+            switch (state)
+            {
+                case PlayModeStateChange.EnteredPlayMode:
+                    SessionState.SetInt(FramesKey, ParseEnvInt("BOB_CAPTURE_PLAY_FRAMES", 120));
+                    EditorApplication.update -= OnEditorUpdate;
+                    EditorApplication.update += OnEditorUpdate;
+                    break;
+
+                case PlayModeStateChange.ExitingPlayMode:
+                    EditorApplication.update -= OnEditorUpdate;
+                    break;
+
+                case PlayModeStateChange.EnteredEditMode:
+                    ClearSession();
+                    break;
+            }
+        }
+
+        private static void OnEditorUpdate()
+        {
+            if (!Active || !EditorApplication.isPlaying)
+            {
+                return;
+            }
+
+            var framesRemaining = SessionState.GetInt(FramesKey, 0);
+            if (framesRemaining > 0)
+            {
+                SessionState.SetInt(FramesKey, framesRemaining - 1);
+                return;
+            }
+
+            EditorApplication.update -= OnEditorUpdate;
+
+            var label = SessionState.GetString(LabelKey, "snapshot");
+            if (!TryCapture(label, "play", out var folderPath, out var error, openScene: false))
+            {
+                Debug.LogError($"CAPTURE_FAIL: {error}");
+                ClearSession();
+                EditorApplication.ExitPlaymode();
+                EditorApplication.delayCall += () => EditorApplication.Exit(1);
+                return;
+            }
+
+            Debug.Log($"CAPTURE_OK: {folderPath}");
+            ClearSession();
+            EditorApplication.ExitPlaymode();
+            EditorApplication.delayCall += () => EditorApplication.Exit(0);
+        }
+
+        private static void ClearSession()
+        {
+            SessionState.EraseBool(ActiveKey);
+            SessionState.EraseString(LabelKey);
+            SessionState.EraseInt(FramesKey);
+        }
+    }
+
+    private static bool TryCapture(
+        string label,
+        string mode,
+        out string folderPath,
+        out string error,
+        bool openScene = true)
     {
         folderPath = null;
         error = null;
@@ -73,7 +201,11 @@ public static class BobProgressCapture
             var progressDir = Path.Combine(projectRoot, ProgressRoot);
             Directory.CreateDirectory(progressDir);
 
-            EditorSceneManager.OpenScene(ScenePath);
+            if (openScene)
+            {
+                EditorSceneManager.OpenScene(ScenePath);
+            }
+
             var camera = Camera.main;
             if (camera == null)
             {
@@ -167,7 +299,7 @@ public static class BobProgressCapture
         return string.IsNullOrEmpty(lower) ? "snapshot" : lower;
     }
 
-    private static void PrepareHdrpCapture(Camera camera)
+    private static float? PrepareHdrpCapture(Camera camera)
     {
         ArcAcademyHdrpSetup.EnsureHdrpPipeline();
 
@@ -188,10 +320,21 @@ public static class BobProgressCapture
         {
             restoredExposure = exposure.fixedExposure.value;
             exposure.fixedExposure.overrideState = true;
-            exposure.fixedExposure.value = 14f;
+            exposure.fixedExposure.value = 12.5f;
         }
 
-        if (restoredExposure.HasValue && volume != null && volume.profile != null
+        return restoredExposure;
+    }
+
+    private static void RestoreHdrpExposure(float? restoredExposure)
+    {
+        if (!restoredExposure.HasValue)
+        {
+            return;
+        }
+
+        Volume volume = UnityEngine.Object.FindAnyObjectByType<Volume>();
+        if (volume != null && volume.profile != null
             && volume.profile.TryGet(out Exposure exposureRestore))
         {
             exposureRestore.fixedExposure.value = restoredExposure.Value;
@@ -202,11 +345,12 @@ public static class BobProgressCapture
     {
         var previousTarget = camera.targetTexture;
         var previousActive = RenderTexture.active;
+        float? restoredExposure = null;
 
         var renderTexture = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
         try
         {
-            PrepareHdrpCapture(camera);
+            restoredExposure = PrepareHdrpCapture(camera);
             camera.targetTexture = renderTexture;
             camera.Render();
 
@@ -228,6 +372,7 @@ public static class BobProgressCapture
         }
         finally
         {
+            RestoreHdrpExposure(restoredExposure);
             camera.targetTexture = previousTarget;
             RenderTexture.active = previousActive;
             RenderTexture.ReleaseTemporary(renderTexture);
@@ -264,7 +409,8 @@ public static class BobProgressCapture
         sb.AppendLine("## How to capture");
         sb.AppendLine();
         sb.AppendLine("- **Unity Editor:** Bob → Capture Progress Screenshot");
-        sb.AppendLine("- **CLI:** `./scripts/capture-progress.sh <milestone-label>`");
+        sb.AppendLine("- **CLI (edit):** `./scripts/capture-progress.sh <milestone-label>`");
+        sb.AppendLine("- **CLI (play):** `./scripts/capture-progress.sh --play <milestone-label>`");
         sb.AppendLine();
         sb.AppendLine("See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.");
         sb.AppendLine();

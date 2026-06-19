@@ -17,6 +17,7 @@ public class ArcAcademyManager : MonoBehaviour
 
     private static ArcAcademyManager instance;
     private int sessionMadeBaskets;
+    private bool firstEpisode = true;
 
     public static ArcAcademyManager Instance => instance;
 
@@ -142,6 +143,44 @@ public class ArcAcademyManager : MonoBehaviour
             ArcAcademyLayout.SpawnLateralJitter);
 
         return basePos + new Vector3(xJitter, 0f, 0f);
+    }
+
+    public void NotifyEpisodeBegin(BobAgent agent, System.Action onReady)
+    {
+        PrepareEpisode();
+        Vector3 spawn = GetSpawnPosition();
+        var entrance = agent.GetComponent<BobEntranceController>();
+
+        if (entrance == null)
+        {
+            agent.ApplySpawn(spawn);
+            TriggerSpawnReady();
+            onReady?.Invoke();
+            return;
+        }
+
+        if (firstEpisode)
+        {
+            firstEpisode = false;
+            entrance.PlaySessionIntro(spawn, () =>
+            {
+                agent.ApplySpawn(spawn);
+                onReady?.Invoke();
+            });
+        }
+        else
+        {
+            entrance.PlayEpisodeReset(spawn, () =>
+            {
+                agent.ApplySpawn(spawn);
+                onReady?.Invoke();
+            });
+        }
+    }
+
+    public void TriggerSpawnReady()
+    {
+        spawnPadPulse?.TriggerReadyPulse();
     }
 
     public void SetCurriculumStage(int stage)

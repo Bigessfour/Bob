@@ -24,8 +24,12 @@ public static class ArcAcademyHdrpSetup
     {
         EnsureHdrpPipeline();
         ArcAcademyShaderGraphSetup.EnsureMaterialLibrary();
+        var materialReport = ArcAcademyHdrpMaterialMaintenance.UpgradeProjectMaterials();
         AssetDatabase.SaveAssets();
-        Debug.Log("HDRP_SETUP_OK: pipeline, volume profile, materials, and linear color space configured");
+        Debug.Log(
+            "HDRP_SETUP_OK: pipeline, volume profile, materials, and linear color space configured " +
+            $"(converted={materialReport.ConvertedLegacy} refreshed={materialReport.RefreshedHdrp} " +
+            $"skipped={materialReport.Skipped})");
         EditorApplication.Exit(0);
     }
 
@@ -39,6 +43,7 @@ public static class ArcAcademyHdrpSetup
         var profile = EnsureVolumeProfile();
         ApplyVolumePolish(profile);
         AssignPipelineToGraphics(pipeline);
+        AssetDatabase.SaveAssets();
     }
 
     private static void EnsureLinearColorSpace()
@@ -62,28 +67,112 @@ public static class ArcAcademyHdrpSetup
         return asset;
     }
 
+    private const string DefaultVolumeProfilePath =
+        "Assets/HDRPDefaultResources/DefaultSettingsVolumeProfile.asset";
+
     private static VolumeProfile EnsureVolumeProfile()
     {
         var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(VolumeProfilePath);
-        if (profile != null)
+        if (ProfileIsInvalid(profile))
         {
-            return profile;
+            if (profile != null)
+            {
+                AssetDatabase.DeleteAsset(VolumeProfilePath);
+            }
+
+            if (!AssetDatabase.CopyAsset(DefaultVolumeProfilePath, VolumeProfilePath))
+            {
+                Debug.LogError(
+                    $"HDRP setup failed: could not copy default volume profile from {DefaultVolumeProfilePath}");
+                profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                AssetDatabase.CreateAsset(profile, VolumeProfilePath);
+                EnsureVolumeComponents(profile);
+            }
+            else
+            {
+                profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(VolumeProfilePath);
+            }
+
+            AssetDatabase.SaveAssets();
         }
-
-        profile = ScriptableObject.CreateInstance<VolumeProfile>();
-        AssetDatabase.CreateAsset(profile, VolumeProfilePath);
-
-        profile.Add<Exposure>(true);
-        profile.Add<Tonemapping>(true);
-        profile.Add<Bloom>(true);
-        profile.Add<ScreenSpaceReflection>(true);
-        profile.Add<VisualEnvironment>(true);
-        profile.Add<PhysicallyBasedSky>(true);
-        profile.Add<Fog>(true);
-        profile.Add<ColorAdjustments>(true);
+        else
+        {
+            EnsureVolumeComponents(profile);
+        }
 
         EditorUtility.SetDirty(profile);
         return profile;
+    }
+
+    private static bool ProfileIsInvalid(VolumeProfile profile)
+    {
+        if (profile == null)
+        {
+            return true;
+        }
+
+        if (profile.components == null || profile.components.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (var component in profile.components)
+        {
+            if (component == null)
+            {
+                return true;
+            }
+        }
+
+        return !profile.Has<Exposure>();
+    }
+
+    private static void EnsureVolumeComponents(VolumeProfile profile)
+    {
+        if (!profile.Has<Exposure>())
+        {
+            profile.Add<Exposure>(true);
+        }
+
+        if (!profile.Has<Tonemapping>())
+        {
+            profile.Add<Tonemapping>(true);
+        }
+
+        if (!profile.Has<Bloom>())
+        {
+            profile.Add<Bloom>(true);
+        }
+
+        if (!profile.Has<ScreenSpaceReflection>())
+        {
+            profile.Add<ScreenSpaceReflection>(true);
+        }
+
+        if (!profile.Has<VisualEnvironment>())
+        {
+            profile.Add<VisualEnvironment>(true);
+        }
+
+        if (!profile.Has<PhysicallyBasedSky>())
+        {
+            profile.Add<PhysicallyBasedSky>(true);
+        }
+
+        if (!profile.Has<Fog>())
+        {
+            profile.Add<Fog>(true);
+        }
+
+        if (!profile.Has<ColorAdjustments>())
+        {
+            profile.Add<ColorAdjustments>(true);
+        }
+
+        if (!profile.Has<Vignette>())
+        {
+            profile.Add<Vignette>(true);
+        }
     }
 
     private static void ApplyVolumePolish(VolumeProfile profile)
@@ -93,7 +182,8 @@ public static class ArcAcademyHdrpSetup
             exposure.mode.overrideState = true;
             exposure.mode.value = ExposureMode.Fixed;
             exposure.fixedExposure.overrideState = true;
-            exposure.fixedExposure.value = 13.5f;
+            // Lowered from 13.5 for brighter interior warehouse without crushing darks (tune in editor if needed)
+            exposure.fixedExposure.value = 10.5f;
         }
 
         if (profile.TryGet(out Tonemapping tonemapping))
@@ -105,9 +195,11 @@ public static class ArcAcademyHdrpSetup
         if (profile.TryGet(out Bloom bloom))
         {
             bloom.intensity.overrideState = true;
-            bloom.intensity.value = 0.62f;
+            bloom.intensity.value = 0.88f;
             bloom.threshold.overrideState = true;
-            bloom.threshold.value = 0.68f;
+            bloom.threshold.value = 0.55f;
+            bloom.scatter.overrideState = true;
+            bloom.scatter.value = 0.72f;
         }
 
         if (profile.TryGet(out ScreenSpaceReflection ssr))
@@ -138,9 +230,16 @@ public static class ArcAcademyHdrpSetup
         {
             colorAdjustments.active = true;
             colorAdjustments.contrast.overrideState = true;
-            colorAdjustments.contrast.value = 5f;
+            // Reduced for more natural bright warehouse look (reference has good dynamic range, not crushed shadows)
+            colorAdjustments.contrast.value = 2f;
             colorAdjustments.saturation.overrideState = true;
             colorAdjustments.saturation.value = 8f;
+        }
+
+        if (profile.TryGet(out Vignette vignette))
+        {
+            vignette.intensity.overrideState = true;
+            vignette.intensity.value = 0.15f;
         }
 
         EditorUtility.SetDirty(profile);

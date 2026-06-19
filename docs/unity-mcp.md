@@ -116,9 +116,13 @@ Full tool reference: [MCP for Unity docs](https://coplaydev.github.io/unity-mcp/
 
 ## Official Unity MCP (alternative)
 
-Unity also ships a first-party MCP bridge in **`com.unity.ai.assistant`** (preview). It uses a relay binary at `~/.unity/relay/` and **Edit → Project Settings → AI → Unity MCP** for client approval. Bob standardizes on **CoplayDev MCP for Unity** because it is repo-installable, works with Unity 6 + ML-Agents without the AI Assistant preview package, and documents Cursor stdio setup clearly.
+Unity also ships a first-party MCP bridge in **`com.unity.ai.assistant`** (preview; see [Unity AI Assistant manual](https://docs.unity3d.com/Packages/com.unity.ai.assistant@2.12/manual/index.html)). It uses a relay at `~/.unity/relay/` and **Edit → Project Settings → AI → Unity MCP** for client approval. The package may be listed in [`Packages/manifest.json`](../Packages/manifest.json), but **Bob’s Cursor bridge is CoplayDev MCP for Unity** (`unityMCP` → `http://127.0.0.1:8080/mcp` in [`.cursor/mcp.json`](../.cursor/mcp.json)), not the Assistant relay workflow.
 
 To try official Unity MCP instead, add `com.unity.ai.assistant` in Package Manager and configure Cursor per [Unity docs](https://docs.unity3d.com/Packages/com.unity.ai.assistant@2.0/manual/unity-mcp-get-started.html).
+
+## Unity AI Gateway (Grok BYOM)
+
+For **in-Editor** prompts through **xAI Grok** (bypass Unity credits), see [unity-ai-gateway.md](unity-ai-gateway.md). Bob configures the Codex agent against `https://api.x.ai/v1` via `./scripts/setup-unity-ai-gateway.sh`.
 
 ## Related
 

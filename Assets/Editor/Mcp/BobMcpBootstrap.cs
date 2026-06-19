@@ -44,7 +44,7 @@ public static class BobMcpBootstrap
     public static void VerifyFromMenu()
     {
         var result = MCPServiceLocator.Bridge.VerifyAsync().GetAwaiter().GetResult();
-        if (result.Success)
+        if (IsBridgeVerifySuccess(result))
         {
             Debug.Log($"BOB_MCP_VERIFY_OK: {result.Message}");
             return;
@@ -108,7 +108,7 @@ public static class BobMcpBootstrap
             }
 
             var verify = await MCPServiceLocator.Bridge.VerifyAsync();
-            if (!verify.Success)
+            if (!IsBridgeVerifySuccess(verify))
             {
                 Debug.LogError($"{logPrefix}_FAIL: Bridge verify — {verify.Message}");
                 return;
@@ -121,6 +121,18 @@ public static class BobMcpBootstrap
         {
             Debug.LogError($"{logPrefix}_FAIL: {ex.Message}");
         }
+    }
+
+    private static bool IsBridgeVerifySuccess(BridgeVerificationResult verify)
+    {
+        if (verify.Success)
+        {
+            return true;
+        }
+
+        // HTTP transport may report websocket hub connectivity in Message while Success stays false.
+        return !string.IsNullOrEmpty(verify.Message)
+               && verify.Message.IndexOf("connected", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     private static void ApplyBobMcpEditorPrefs()
