@@ -5,8 +5,8 @@ using UnityEngine;
 /// </summary>
 public class HoopBackboardFeedback : MonoBehaviour
 {
-    [SerializeField] private float flashDurationSeconds = 0.15f;
-    [SerializeField] private float flashIntensity = 0.35f;
+    [SerializeField] private float flashDurationSeconds = 0.25f;
+    [SerializeField] private float flashIntensity = 0.75f;
 
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private Renderer backboardRenderer;

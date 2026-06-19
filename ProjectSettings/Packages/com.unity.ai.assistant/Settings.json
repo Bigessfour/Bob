@@ -1,0 +1,11 @@
+{
+  "CustomInstructionsGUID": "",
+  "CheckpointEnabled": false,
+  "GitInstanceTypeValue": 0,
+  "CustomGitPath": "",
+  "CheckpointRetentionWeeks": 2,
+  "PlanExecutionPromptDismissed": false,
+  "AiGatewayDefaultAgent": "codex",
+  "AiGatewayDefaultModel": "grok-4.3",
+  "AiGatewayProviderBaseUrl": "https://api.x.ai/v1"
+}

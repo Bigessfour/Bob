@@ -7,13 +7,16 @@ public class ArcTrajectoryVisual : MonoBehaviour
 {
     [SerializeField] private int arcSegments = ArcAcademyLayout.TrajectoryArcSegments;
     [SerializeField] private float arcHeight = ArcAcademyLayout.TrajectoryArcHeight;
-    [SerializeField] private float lineWidth = 0.06f;
-    [SerializeField] private Color arcColor = new(0.85f, 0.9f, 1f);
+    [SerializeField] private float lineWidth = 0.035f;
+    [SerializeField] private Color arcColor = Color.white;
     [SerializeField] private float emissiveIntensity = ArcAcademyLayout.ArcLineEmissiveIntensity;
+    [SerializeField] private Color previewColor = new(1f, 1f, 1f, 0.85f);
+
+    private LineRenderer previewLine;
 
     public void ConfigureStaticArcs(Vector3 start, Vector3[] targets)
     {
-        ClearChildren();
+        ClearStaticArcs();
 
         if (targets == null || targets.Length == 0)
         {
@@ -22,11 +25,50 @@ public class ArcTrajectoryVisual : MonoBehaviour
 
         for (int i = 0; i < targets.Length; i++)
         {
-            CreateArcLine($"Arc_{i + 1}", start, targets[i], i);
+            CreateArcLine($"Arc_{i + 1}", start, targets[i]);
         }
     }
 
-    private void CreateArcLine(string name, Vector3 start, Vector3 end, int index)
+    public void PreviewArc(Vector3 start, Vector3 end)
+    {
+        EnsurePreviewLine();
+        previewLine.positionCount = arcSegments + 1;
+        previewLine.enabled = true;
+
+        for (int i = 0; i <= arcSegments; i++)
+        {
+            float t = i / (float)arcSegments;
+            previewLine.SetPosition(i, ParabolicPoint(start, end, t, arcHeight));
+        }
+    }
+
+    public void ClearPreview()
+    {
+        if (previewLine != null)
+        {
+            previewLine.enabled = false;
+        }
+    }
+
+    private void EnsurePreviewLine()
+    {
+        if (previewLine != null)
+        {
+            return;
+        }
+
+        var go = new GameObject("PreviewArc");
+        go.transform.SetParent(transform, false);
+        previewLine = go.AddComponent<LineRenderer>();
+        previewLine.useWorldSpace = true;
+        previewLine.startWidth = lineWidth * 1.1f;
+        previewLine.endWidth = lineWidth * 0.5f;
+        previewLine.numCapVertices = 4;
+        previewLine.enabled = false;
+        previewLine.sharedMaterial = CreateArcMaterial(previewColor);
+    }
+
+    private void CreateArcLine(string name, Vector3 start, Vector3 end)
     {
         var go = new GameObject(name);
         go.transform.SetParent(transform, false);
@@ -37,9 +79,7 @@ public class ArcTrajectoryVisual : MonoBehaviour
         line.startWidth = lineWidth;
         line.endWidth = lineWidth * 0.6f;
         line.numCapVertices = 4;
-
-        var tint = Color.Lerp(arcColor, new Color(0.6f, 0.35f, 1f), index * 0.25f);
-        line.sharedMaterial = CreateArcMaterial(tint);
+        line.sharedMaterial = CreateArcMaterial(arcColor);
 
         for (int i = 0; i <= arcSegments; i++)
         {
@@ -61,11 +101,16 @@ public class ArcTrajectoryVisual : MonoBehaviour
         return ArcAcademyShaderUtility.CreateEmissiveLineMaterial(color, emissiveIntensity);
     }
 
-    private void ClearChildren()
+    private void ClearStaticArcs()
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
             var child = transform.GetChild(i);
+            if (child.name == "PreviewArc")
+            {
+                continue;
+            }
+
             if (Application.isPlaying)
             {
                 Destroy(child.gameObject);

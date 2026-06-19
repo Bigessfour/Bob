@@ -21,6 +21,7 @@ public static class ArcAcademyLayout
     public const string MountainWindowName = "MountainWindow";
     public const string TrajectoryVisualsName = "TrajectoryVisuals";
     public const string DecorativeHoopsName = "DecorativeHoops";
+    public const string SpawnPadBrandingName = "SpawnPadBranding";
     public const string LightingRigName = "LightingRig";
     public const string ReflectionProbeName = "ReflectionProbe";
     public const string ReflectionProbeWindowName = "ReflectionProbe_Window";
@@ -30,6 +31,10 @@ public static class ArcAcademyLayout
     public const string AdaptiveProbeVolumeName = "AdaptiveProbeVolume";
     public const string HdrpSkyRigName = "HdrpSkyRig";
     public const string RoboticLauncherPrefix = "RoboticLauncher";
+    public const string PortableHoopStandName = "PortableHoopStand";
+
+    /// <summary>Bay indices sampled for portfolio trajectory arcs (Example.jpg).</summary>
+    public static readonly int[] TrajectoryBaySampleIndices = { 0, 2, 4, 6 };
 
     public const float CourtHalfWidth = 7f;
     public const float CourtNearZ = 10f;
@@ -51,16 +56,34 @@ public static class ArcAcademyLayout
     public static readonly Vector3 HoopRootDefaultPosition = new(0f, 0f, -5.5f);
     public static readonly Vector3 RimLocalDefaultPosition = new(0f, 3.05f, 0.2f);
 
-    public static readonly Vector3 SpawnPadPosition = new(0f, 0.15f, FreeThrowLineZ);
-    public static readonly Vector3 SpawnPadScale = new(2.8f, 0.4f, 2f);
-    public static readonly Vector3 BobSpawnOffset = new(0f, 0.55f, 0f);
+    /// <summary>
+    /// Central elevated black "Bob" platform (Example.jpg hero element).
+    /// Repositioned toward visual center of orange court for panoramic composition.
+    /// SpawnPad* names kept for full compatibility with manager, pulse, trajectory, agent.
+    /// </summary>
+    public static readonly Vector3 SpawnPadPosition = new(0f, 0.28f, -1.8f);
+    public static readonly Vector3 SpawnPadScale = new(4.0f, 0.55f, 2.8f);
+    public static readonly Vector3 BobSpawnOffset = new(0f, 0.58f, 0f);
 
     public const int TrainingBayCount = 8;
     public const float TrainingBayWidth = 2.6f;
     public const float TrainingBayDepth = 3.4f;
     public const float TrainingBayWallHeight = 3.2f;
 
-    /// <summary>Eight modular shooting bays around back and right perimeter (Example.jpg).</summary>
+    /// <summary>Low white/black partitions between bays (matches Example.jpg style, not full walls).</summary>
+    public const float BayPartitionHeight = 1.9f;
+
+    /// <summary>Large panoramic mountain windows (rear/side) using mountain_backdrop texture.</summary>
+    public const float MountainWindowWidth = 17.5f;
+    public const float MountainWindowHeight = 6.2f;
+    public const float MountainWindowY = 4.2f;
+
+    /// <summary>Ceiling density for industrial grid + lights (Example.jpg warehouse).</summary>
+    public const int CeilingTrussCount = 7;
+    public const int CeilingLightRows = 4;
+    public const int CeilingLightColsPerRow = 5;
+
+    /// <summary>Eight modular shooting bays around back and right perimeter (Example.jpg). Low partitions separate bays.</summary>
     public static readonly Vector3[] TrainingBayPositions =
     {
         new(-7f, 0f, -13f),
@@ -78,12 +101,8 @@ public static class ArcAcademyLayout
         true, true, true, true, true, true, false, false,
     };
 
-    public static readonly Vector3[] DecorativeHoopRootPositions =
-    {
-        new(-4.5f, 0f, -5.5f),
-        new(4.8f, 0f, -6f),
-        new(1.5f, 0f, -4f),
-    };
+    /// <summary>Extra mid-court display stations (bays provide the primary 8 hoops).</summary>
+    public static readonly Vector3[] DecorativeHoopRootPositions = { };
 
     public const int TrajectoryArcCount = 3;
     public const int TrajectoryArcSegments = 32;
@@ -94,15 +113,16 @@ public static class ArcAcademyLayout
     public static Vector3 MainRimWorldPosition =>
         RimWorldPosition(HoopRootDefaultPosition, RimLocalDefaultPosition);
 
-    /// <summary>Hero camera angle aligned with portfolio reference.</summary>
-    public static readonly Vector3 CameraPosition = new(9f, 6.8f, 11f);
-    public static readonly Vector3 SignagePosition = new(8.2f, 4.2f, 0f);
+    /// <summary>Hero camera angle aligned with portfolio reference (Example.jpg composition: central platform + court + mountain vista on back wall).</summary>
+    public static readonly Vector3 CameraPosition = new(8.5f, 6.5f, 11.0f);
     public static readonly Vector3 FloorDecalEntrancePosition = new(0f, 0.04f, 8f);
-    public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -3f);
+    public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -4.5f);
+    public static readonly Vector3 EntranceCameraPosition = new(2.5f, 4.2f, 9.5f);
+    public static readonly Vector3 EntranceCameraLookAt = new(0f, 1.8f, 2f);
 
-    public const float FloorGlossiness = 0.88f;
-    public const float PlatformEmissiveIntensity = 2.5f;
-    public const float ArcLineEmissiveIntensity = 1.6f;
+    public const float FloorGlossiness = 0.94f;
+    public const float PlatformEmissiveIntensity = 3.2f;
+    public const float ArcLineEmissiveIntensity = 2.1f;
     public const float BobGlowIntensity = 1.35f;
     public const float LabelBobSize = 1.2f;
     public const float LabelAcademySize = 0.45f;
@@ -132,8 +152,46 @@ public static class ArcAcademyLayout
         }
 
         var root = DecorativeHoopRootPositions[index];
-        return root + new Vector3(0f, RimLocalDefaultPosition.y, RimLocalDefaultPosition.z);
+        return root + new Vector3(0f, 2.2f, RimLocalDefaultPosition.z);
     }
+
+    public static Vector3 BayRimWorldPosition(int bayIndex)
+    {
+        if (bayIndex < 0 || bayIndex >= TrainingBayCount)
+        {
+            return MainRimWorldPosition;
+        }
+
+        var center = TrainingBayPositions[bayIndex];
+        bool faceNegativeZ = TrainingBayFaceNegativeZ[bayIndex];
+        float depth = TrainingBayDepth;
+        float rimZ = faceNegativeZ ? 0.25f : depth - 0.25f;
+        return center + new Vector3(0f, 2.2f, rimZ);
+    }
+
+    public static Vector3[] BuildTrajectoryArcTargets(Vector3 mainRimWorld)
+    {
+        int decorativeCount = DecorativeHoopRootPositions.Length;
+        int baySampleCount = TrajectoryBaySampleIndices.Length;
+        var targets = new Vector3[1 + decorativeCount + baySampleCount];
+        int index = 0;
+        targets[index++] = mainRimWorld;
+
+        for (int i = 0; i < decorativeCount; i++)
+        {
+            targets[index++] = DecorativeRimWorldPosition(i);
+        }
+
+        for (int i = 0; i < baySampleCount; i++)
+        {
+            targets[index++] = BayRimWorldPosition(TrajectoryBaySampleIndices[i]);
+        }
+
+        return targets;
+    }
+
+    public static int ExpectedPortableHoopStandCount =>
+        TrainingBayCount + DecorativeHoopRootPositions.Length + 1;
 
     public static bool IsOutOfBounds(Vector3 worldPosition)
     {

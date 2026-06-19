@@ -44,5 +44,6 @@ else
 fi
 
 echo ""
-echo "Venv ready: ${VENV}/bin/python ($("${VENV}/bin/python" --version))"
+PYTHON_VERSION="$("${VENV}/bin/python" --version)"
+echo "Venv ready: ${VENV}/bin/python (${PYTHON_VERSION})"
 echo "Select interpreter in Cursor: ${VENV}/bin/python"

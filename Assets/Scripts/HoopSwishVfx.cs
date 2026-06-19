@@ -7,33 +7,45 @@ public class HoopSwishVfx : MonoBehaviour
 {
     private ParticleSystem swishBurst;
     private ParticleSystem rimSpark;
+    private ParticleSystem netRipple;
 
     private void Awake()
     {
         swishBurst = CreateBurstSystem(
             "SwishBurst",
-            new Color(1f, 1f, 1f, 0.85f),
-            28,
-            0.4f,
-            0.06f,
-            0.35f,
+            new Color(1f, 1f, 1f, 0.9f),
+            42,
+            0.45f,
+            0.07f,
+            0.42f,
             ParticleSystemShapeType.Cone,
             new Vector3(-90f, 0f, 0f));
 
         rimSpark = CreateBurstSystem(
             "RimSpark",
             new Color(1f, 0.45f, 0.12f, 0.9f),
-            16,
-            0.25f,
-            0.04f,
-            0.22f,
+            20,
+            0.28f,
+            0.045f,
+            0.24f,
             ParticleSystemShapeType.Hemisphere,
             Vector3.zero);
+
+        netRipple = CreateBurstSystem(
+            "NetRipple",
+            new Color(0.85f, 0.95f, 1f, 0.65f),
+            24,
+            0.55f,
+            0.05f,
+            0.18f,
+            ParticleSystemShapeType.Cone,
+            new Vector3(-90f, 0f, 0f));
     }
 
     public void PlaySwish()
     {
         swishBurst?.Play(true);
+        netRipple?.Play(true);
     }
 
     public void PlayRimContact()

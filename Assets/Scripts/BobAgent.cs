@@ -33,6 +33,7 @@ public class BobAgent : Agent
 
     private Rigidbody rb;
     private Renderer bobRenderer;
+    private BobEntranceController entrance;
     private bool scoredThisEpisode;
     private float shotPeakHeight;
     private float shotStartHeight;
@@ -50,6 +51,7 @@ public class BobAgent : Agent
         }
 
         bobRenderer = GetComponent<Renderer>();
+        entrance = GetComponent<BobEntranceController>();
         if (bobRenderer != null && bobRenderer.material.HasProperty(EmissiveColorId))
         {
             baseEmissive = bobRenderer.material.GetColor(EmissiveColorId);
@@ -74,28 +76,32 @@ public class BobAgent : Agent
     public override void OnEpisodeBegin()
     {
         scoredThisEpisode = false;
-        trackingArc = true;
+        trackingArc = false;
         shotPeakHeight = transform.position.y;
         shotStartHeight = transform.position.y;
 
         if (ArcAcademyManager.Instance != null)
         {
-            ArcAcademyManager.Instance.PrepareEpisode();
-            transform.position = ArcAcademyManager.Instance.GetSpawnPosition();
+            ArcAcademyManager.Instance.NotifyEpisodeBegin(this, CompleteEpisodeBegin);
         }
         else
         {
-            transform.position = ArcAcademyLayout.BobSpawnPosition;
+            ApplySpawn(ArcAcademyLayout.BobSpawnPosition);
+            CompleteEpisodeBegin();
         }
+    }
 
+    public void ApplySpawn(Vector3 position)
+    {
+        transform.position = position;
+        BobPhysicsUtility.ClearVelocitiesIfDynamic(rb);
+    }
+
+    private void CompleteEpisodeBegin()
+    {
+        trackingArc = true;
         shotStartHeight = transform.position.y;
         shotPeakHeight = shotStartHeight;
-
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
     }
 
     public void RegisterMadeShot(bool swish = false)
@@ -108,10 +114,10 @@ public class BobAgent : Agent
         scoredThisEpisode = true;
         scorePulseTimer = 0.5f;
 
-        float reward = 2.0f;
+        float reward = ArcAcademyRewards.MadeBasket;
         if (swish)
         {
-            reward += 0.5f;
+            reward += ArcAcademyRewards.SwishBonus;
         }
 
         AddReward(reward);
@@ -146,6 +152,11 @@ public class BobAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        if (entrance != null && entrance.IsActive)
+        {
+            return;
+        }
+
         if (rb == null || hoop == null)
         {
             return;

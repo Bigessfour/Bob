@@ -89,10 +89,8 @@ def index_files(paths: list[Path], *, mode: str = "partial") -> dict[str, int]:
 def index_all() -> dict[str, int]:
     files = iter_indexable_files()
     client = get_client()
-    try:
+    if any(c.name == COLLECTION_NAME for c in client.list_collections()):
         client.delete_collection(COLLECTION_NAME)
-    except Exception:
-        pass
 
     chunks: list[TextChunk] = []
     for path in files:
@@ -137,7 +135,4 @@ def index_paths(relative_paths: list[str]) -> dict[str, int]:
 
 
 def _delete_path_chunks(collection, rel_path: str) -> None:
-    try:
-        collection.delete(where={"path": rel_path})
-    except Exception:
-        pass
+    collection.delete(where={"path": rel_path})

@@ -52,11 +52,11 @@ public static class ArcAcademyMaterialFactory
         return mat;
     }
 
-    public static Material GetGlossyFloor(Color tint)
+    public static Material GetGlossyFloor(Color tint, float smoothness = 0.88f)
     {
         return TintMaterial(
             LoadMaterial(ArcAcademyMaterialPaths.GlossyFloorMat)
-            ?? CreateGlossyFloor(Color.white, 0.88f),
+            ?? CreateGlossyFloor(Color.white, smoothness),
             tint);
     }
 
@@ -113,6 +113,32 @@ public static class ArcAcademyMaterialFactory
             tint);
     }
 
+    public static Material CreateBasketballMaterial(Color orange, Color seam)
+    {
+        var mat = GetRubber(orange);
+        if (mat.HasProperty("_Smoothness"))
+        {
+            mat.SetFloat("_Smoothness", 0.62f);
+        }
+
+        if (mat.HasProperty("_Metallic"))
+        {
+            mat.SetFloat("_Metallic", 0.05f);
+        }
+
+        if (mat.HasProperty("_EmissiveColor"))
+        {
+            mat.SetColor("_EmissiveColor", orange * 0.08f);
+        }
+
+        if (mat.HasProperty("_BaseColor"))
+        {
+            mat.SetColor("_BaseColor", Color.Lerp(orange, seam, 0.08f));
+        }
+
+        return mat;
+    }
+
     public static Material GetMountainBackdrop()
     {
         var mat = LoadMaterial(ArcAcademyMaterialPaths.MountainBackdropMat);
@@ -124,6 +150,70 @@ public static class ArcAcademyMaterialFactory
         }
 
         return CreateMountainWindowMaterial();
+    }
+
+    /// <summary>
+    /// Bright unlit mountain backdrop for windows so the vista shows fully lit like the Example.jpg reference
+    /// (avoids being darkened by interior scene lighting).
+    /// </summary>
+    public static Material GetUnlitMountainBackdrop()
+    {
+        var unlit = new Material(HdrpUnlitShader);
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(ArcAcademyMaterialPaths.MountainBackdropTexture)
+                  ?? CreateMountainWindowTexture();
+
+        if (unlit.HasProperty("_UnlitColorMap"))
+        {
+            unlit.SetTexture("_UnlitColorMap", tex);
+        }
+        else if (unlit.HasProperty("_BaseColorMap"))
+        {
+            unlit.SetTexture("_BaseColorMap", tex);
+        }
+        else
+        {
+            unlit.mainTexture = tex;
+        }
+
+        // Make it bright and pure
+        if (unlit.HasProperty("_UnlitColor"))
+        {
+            unlit.SetColor("_UnlitColor", Color.white);
+        }
+        unlit.SetFloat("_EmissiveIntensity", 0); // not needed for unlit
+        return unlit;
+    }
+
+    /// <summary>Dark glossy warehouse floor surrounding the bright orange court (Example.jpg).</summary>
+    public static Material GetDarkGlossyFloor(Color tint, float smoothness = 0.92f)
+    {
+        return TintMaterial(
+            LoadMaterial(ArcAcademyMaterialPaths.GlossyFloorMat)
+            ?? CreateGlossyFloor(Color.white, smoothness),
+            tint);
+    }
+
+    /// <summary>Black elevated central Bob platform with purple-capable emissive rim.</summary>
+    public static Material GetCentralPlatform(Color baseColor)
+    {
+        var mat = CreateHdrpLit(baseColor, 0.88f, 0.12f);
+        // Allow strong purple underglow via separate emissive child strips
+        return mat;
+    }
+
+    /// <summary>Solid (non-glass) backboard for decorative robotic bays (closer to Example.jpg look).</summary>
+    public static Material GetSolidBackboard(Color tint)
+    {
+        return CreateHdrpLit(tint, 0.82f, 0.04f);
+    }
+
+    /// <summary>Bay wall/partition panels (low white or black trim).</summary>
+    public static Material GetBayPanel(Color tint)
+    {
+        return TintMaterial(
+            LoadMaterial(ArcAcademyMaterialPaths.MatteWallMat)
+            ?? CreateHdrpLit(Color.white, 0.15f, 0f),
+            tint);
     }
 
     public static bool MaterialLibraryLoaded =>
@@ -197,7 +287,8 @@ public static class ArcAcademyMaterialFactory
 
     private static void ApplyMountainBackdropEmissive(Material mat)
     {
-        SetEmissive(mat, new Color(0.85f, 0.92f, 1f), 0.15f);
+        // Stronger glow so mountains read through the glass in hero shots
+        SetEmissive(mat, new Color(0.90f, 0.95f, 1f), 0.35f);
     }
 
     public static Material CreateArcLineMaterial(Color color, float intensity)

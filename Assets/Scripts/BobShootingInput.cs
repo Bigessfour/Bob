@@ -31,15 +31,18 @@ public class BobShootingInput : MonoBehaviour
 {
     [SerializeField] private Transform hoopTarget;
     [SerializeField] private Transform spawnPoint;
-    [SerializeField] private float minImpulse = 4f;
-    [SerializeField] private float maxImpulse = 14f;
-    [SerializeField] private float maxHoldSeconds = 1.2f;
+    [SerializeField] private float minImpulse = 5.5f;
+    [SerializeField] private float maxImpulse = 16f;
+    [SerializeField] private float maxHoldSeconds = 1f;
     [SerializeField] private float groundedVelocityThreshold = 0.35f;
     [SerializeField] private float spawnProximityRadius = 1.5f;
+    [SerializeField] private float spinTorqueScale = 0.35f;
     [SerializeField] private IShootInputProvider vrInput;
 
     private Rigidbody rb;
     private Camera mainCamera;
+    private BobEntranceController entrance;
+    private ArcTrajectoryVisual trajectoryVisual;
     private bool holdingShot;
     private float holdStartTime;
     private BehaviorParameters behaviorParameters;
@@ -54,7 +57,9 @@ public class BobShootingInput : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         mainCamera = Camera.main;
+        entrance = GetComponent<BobEntranceController>();
         behaviorParameters = GetComponent<BehaviorParameters>();
+        trajectoryVisual = Object.FindAnyObjectByType<ArcTrajectoryVisual>();
         if (vrInput == null)
         {
             vrInput = GetComponent<VrShootInputPlaceholder>();
@@ -66,6 +71,7 @@ public class BobShootingInput : MonoBehaviour
         if (!CanAcceptManualInput())
         {
             holdingShot = false;
+            trajectoryVisual?.ClearPreview();
             return;
         }
 
@@ -77,7 +83,7 @@ public class BobShootingInput : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            FireTowardHoop(maxImpulse * 0.85f);
+            FireTowardHoop(maxImpulse * 0.88f);
             return;
         }
 
@@ -87,17 +93,48 @@ public class BobShootingInput : MonoBehaviour
             holdStartTime = Time.time;
         }
 
+        if (holdingShot && Input.GetMouseButton(0))
+        {
+            UpdateAimPreview(Mathf.Clamp01((Time.time - holdStartTime) / maxHoldSeconds));
+        }
+
         if (holdingShot && Input.GetMouseButtonUp(0))
         {
             float hold = Mathf.Clamp01((Time.time - holdStartTime) / maxHoldSeconds);
             float power = Mathf.Lerp(minImpulse, maxImpulse, hold);
             FireFromMouseRay(power);
             holdingShot = false;
+            trajectoryVisual?.ClearPreview();
         }
+    }
+
+    private void UpdateAimPreview(float hold)
+    {
+        if (trajectoryVisual == null || hoopTarget == null)
+        {
+            return;
+        }
+
+        Vector3 start = transform.position;
+        Vector3 end = hoopTarget.position + Vector3.up * 0.15f;
+        if (mainCamera != null)
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            Vector3 dir = ray.direction;
+            dir.y = Mathf.Max(dir.y, 0.2f);
+            end = start + dir.normalized * Mathf.Lerp(6f, 12f, hold);
+        }
+
+        trajectoryVisual.PreviewArc(start, end);
     }
 
     private bool CanAcceptManualInput()
     {
+        if (entrance != null && entrance.IsActive)
+        {
+            return false;
+        }
+
         if (rb == null)
         {
             return false;
@@ -155,7 +192,13 @@ public class BobShootingInput : MonoBehaviour
 
     private void FireImpulse(Vector3 impulse)
     {
-        rb.linearVelocity = Vector3.zero;
+        BobPhysicsUtility.ClearVelocitiesIfDynamic(rb);
         rb.AddForce(impulse, ForceMode.Impulse);
+
+        Vector3 spinAxis = Vector3.Cross(Vector3.up, impulse.normalized);
+        if (spinAxis.sqrMagnitude > 0.001f)
+        {
+            rb.AddTorque(spinAxis.normalized * impulse.magnitude * spinTorqueScale, ForceMode.Impulse);
+        }
     }
 }

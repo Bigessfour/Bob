@@ -28,7 +28,9 @@ jobs:
 
       - name: Run pytest
         working-directory: python
-        run: pytest tests/ -v --cov=scripts --cov=rag --cov-report=term-missing -m "not rag"
+        run: |
+          PYTHONPATH=scripts:rag pytest tests/ -v --cov=scripts --cov-report=term-missing -m "not rag"
+          PYTHONPATH=scripts pytest tests/test_plot_rewards.py -q --cov=plot_rewards --cov-report=term-missing --cov-fail-under=70
 
   rag:
     name: RAG Index Tests
