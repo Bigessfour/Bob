@@ -255,11 +255,12 @@ public static class BobSceneValidator
         }
 
         // Ceiling density (use ByType + LINQ)
-        var lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
+        var lights = Object.FindObjectsByType<Light>();
         int ceilingLights = lights.Count(l => l.name != null && l.name.Contains("CeilingStripLight"));
-        if (ceilingLights < 8)
+        if (ceilingLights < ArcAcademyLabLighting.MinCeilingStripLights)
         {
-            Debug.LogError("VALIDATE_FAIL: Insufficient ceiling strip lights for industrial warehouse look");
+            Debug.LogError(
+                $"VALIDATE_FAIL: Insufficient ceiling strip lights (need {ArcAcademyLabLighting.MinCeilingStripLights})");
             EditorApplication.Exit(1);
             return;
         }
@@ -362,10 +363,59 @@ public static class BobSceneValidator
             return;
         }
 
+        if (Object.FindAnyObjectByType<BobTrainingStats>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobTrainingStats missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<BobTrainingScoreboard>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobTrainingScoreboard missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<BobTrainingSuccessGraph>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobTrainingSuccessGraph missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<BobTrainingConnectionMonitor>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobTrainingConnectionMonitor missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!BobPhysicsLayers.LayersConfigured)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob training physics layers missing from TagManager");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Physics.GetIgnoreLayerCollision(BobPhysicsLayers.BobLayer, BobPhysicsLayers.DecorationLayer) == false)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob and Decoration layers must not collide");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         var agent = Object.FindAnyObjectByType<BobAgent>();
         if (agent == null)
         {
             Debug.LogError("VALIDATE_FAIL: BobAgent missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.gameObject.layer != BobPhysicsLayers.BobLayer)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob must be on the Bob physics layer");
             EditorApplication.Exit(1);
             return;
         }

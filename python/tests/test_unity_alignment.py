@@ -77,6 +77,14 @@ def test_bob_editor_asmdef_exists(repo_root: Path) -> None:
     assert "Unity.ML-Agents" in asmdef["references"]
 
 
+def test_bob_runtime_asmdef_references_hdrp(repo_root: Path) -> None:
+    asmdef_path = repo_root / "Assets/Scripts/Bob.asmdef"
+    asmdef = json.loads(asmdef_path.read_text())
+    assert asmdef["name"] == "Bob"
+    assert "Unity.RenderPipelines.Core.Runtime" in asmdef["references"]
+    assert "Unity.RenderPipelines.HighDefinition.Runtime" in asmdef["references"]
+
+
 def test_mcp_bootstrap_pref_keys(repo_root: Path) -> None:
     """BobMcpBootstrap mirrors MCPForUnity EditorPrefKeys (offline string guard)."""
     source = (repo_root / MCP_BOOTSTRAP).read_text()
@@ -177,6 +185,9 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/HoopNetPhysics.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobShootingInput.cs").is_file()
     assert (repo_root / "Assets/Scripts/ArcAcademyScorePopup.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobTrainingStats.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobTrainingScoreboard.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobPhysicsLayers.cs").is_file()
     assert (repo_root / "Assets/Scripts/SpawnPadPulse.cs").is_file()
     assert (repo_root / "Assets/Scripts/CameraFacingBillboard.cs").is_file()
     assert (repo_root / "Assets/Scripts/DecorativeHoopMarker.cs").is_file()
@@ -212,6 +223,10 @@ def test_arc_academy_builder_wiring(repo_root: Path) -> None:
         ).read_text()
     )
     assert "ArcAcademyScorePopup" in builder
+    assert "BobTrainingStats" in builder
+    assert "BobTrainingScoreboard" in builder
+    assert "BobPhysicsLayerSetup" in builder
+    assert "ApplyTrainingPhysicsLayers" in builder
     assert "SpawnPadPulse" in builder
     assert "CameraFacingBillboard" in builder
     assert "ConfigureRevoluteJoint" in builder
@@ -263,6 +278,98 @@ def test_progress_capture_play_mode_entry_point(repo_root: Path) -> None:
     assert "PlayCaptureSession" in capture
     assert "BOB_CAPTURE_PLAY_FRAMES" in capture
     assert "SessionState" in capture
+
+
+def test_bob_training_scoreboard_wiring(repo_root: Path) -> None:
+    agent = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    assert "BobTrainingStats.Instance" in agent
+    assert "GiveReward" in agent
+    assert "BeginIteration" in agent
+
+    manager = (repo_root / "Assets/Scripts/ArcAcademyManager.cs").read_text()
+    assert "RecordBasketballPoint" in manager
+
+    tag_manager = (repo_root / "ProjectSettings/TagManager.asset").read_text()
+    assert "Bob" in tag_manager
+    assert "TrainingArena" in tag_manager
+    assert "Decoration" in tag_manager
+
+
+def test_visual_vision_doc_exists(repo_root: Path) -> None:
+    vision = repo_root / "docs/design/visual-vision.md"
+    assert vision.is_file()
+    text = vision.read_text()
+    assert "Arc Academy Lab" in text
+    assert "ai-warehouse-lab-reference.png" in text
+    assert "Phase 1" in text
+    assert (repo_root / "docs/design/ai-warehouse-lab-reference.png").is_file()
+
+
+def test_what_finished_looks_like_doc_exists(repo_root: Path) -> None:
+    product = repo_root / "docs/what-finished-looks-like.md"
+    assert product.is_file()
+    text = product.read_text()
+    assert "BobTrainingStats" in text
+    assert "BobTrainingSuccessGraph" in text
+    assert "TotalIterations" in text
+    assert "BasketballPoints" in text
+    assert "TotalRewards" in text
+    assert "TotalPenalties" in text
+    assert "SessionSuccessRate" in text
+
+
+def test_success_graph_wiring(repo_root: Path) -> None:
+    stats = (repo_root / "Assets/Scripts/BobTrainingStats.cs").read_text()
+    assert "SessionSuccessRate" in stats
+    assert "RollingSuccessRate" in stats
+    assert "BeginIteration" in stats
+
+    graph = (repo_root / "Assets/Scripts/BobTrainingSuccessGraph.cs").read_text()
+    assert "BobTrainingStats" in graph
+
+    builder = (
+        repo_root / "Assets/Scripts/Editor/BobTrainingSceneBuilder.cs"
+    ).read_text()
+    assert "BobTrainingSuccessGraph" in builder
+
+    validator = (repo_root / "Assets/Scripts/Editor/BobSceneValidator.cs").read_text()
+    assert "BobTrainingSuccessGraph" in validator
+
+
+def test_training_connection_monitor_wiring(repo_root: Path) -> None:
+    monitor = (repo_root / "Assets/Scripts/BobTrainingConnectionMonitor.cs").read_text()
+    assert "IsCommunicatorOn" in monitor
+    assert "BOB_TRAINING_WARN" in monitor
+    assert "trainingTimeScale" in monitor
+
+    builder = (
+        repo_root / "Assets/Scripts/Editor/BobTrainingSceneBuilder.cs"
+    ).read_text()
+    assert "BobTrainingConnectionMonitor" in builder
+
+    scoreboard = (repo_root / "Assets/Scripts/BobTrainingScoreboard.cs").read_text()
+    assert "BobTrainingConnectionMonitor.Instance" in scoreboard
+
+
+def test_yaml_training_ops(repo_root: Path) -> None:
+    import yaml
+
+    config = yaml.safe_load((repo_root / "config/bob_free_throw.yaml").read_text())
+    bob = config["behaviors"]["Bob"]
+    assert bob["hyperparameters"]["beta_schedule"] == "linear"
+    assert bob["hyperparameters"]["epsilon_schedule"] == "linear"
+    assert bob["summary_freq"] == 5000
+    assert config["engine_settings"]["time_scale"] == 20
+    assert "train_model" not in config["checkpoint_settings"]
+
+
+def test_hdrp_lab_volume_defaults(repo_root: Path) -> None:
+    setup = (repo_root / "Assets/Scripts/Editor/ArcAcademyHdrpSetup.cs").read_text()
+    preset = (repo_root / "Assets/Scripts/ArcAcademyLabRenderPreset.cs").read_text()
+    assert "ApplyLabVolumePolish" in setup
+    assert "ArcAcademyLabRenderPreset" in setup
+    assert "FixedExposure = 10.0f" in (repo_root / "Assets/Scripts/ArcAcademyLabLightingValues.cs").read_text()
+    assert "bloom.active = false" in preset
 
 
 def test_scene_builder_constants_match_validator(repo_root: Path) -> None:

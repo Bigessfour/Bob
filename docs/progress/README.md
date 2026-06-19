@@ -12,19 +12,18 @@ See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.
 
 ## Gallery
 
-| # | Date | Label | Mode | Preview |
-|---|------|-------|------|---------|
-| 001 | 2026-06-18 | initial-scene | edit | ![initial-scene](001-2026-06-18-initial-scene/capture.png) |
-| 002 | 2026-06-18 | restart-test | edit | ![restart-test](002-2026-06-18-restart-test/capture.png) |
-| 004 | 2026-06-18 | arc-academy-mvp | edit | ![arc-academy-mvp](004-2026-06-18-arc-academy-mvp/capture.png) |
-| 005 | 2026-06-18 | arc-academy-visual-v2 | edit | ![arc-academy-visual-v2](005-2026-06-18-arc-academy-visual-v2/capture.png) |
-| 006 | 2026-06-18 | arc-academy-hdrp-v1 | edit | ![arc-academy-hdrp-v1](006-2026-06-18-arc-academy-hdrp-v1/capture.png) |
-| 007 | 2026-06-18 | post-merge-hdrp-compare | edit | ![post-merge-hdrp-compare](007-2026-06-18-post-merge-hdrp-compare/capture.png) |
-| 008 | 2026-06-18 | arc-academy-polish-v1 | edit | ![arc-academy-polish-v1](008-2026-06-18-arc-academy-polish-v1/capture.png) |
-| 009 | 2026-06-18 | arc-academy-final-polish | edit | ![arc-academy-final-polish](009-2026-06-18-arc-academy-final-polish/capture.png) |
-| 010 | 2026-06-19 | wiley-widget-demo | edit | ![wiley-widget-demo](010-2026-06-19-wiley-widget-demo/capture.png) |
-| 011 | 2026-06-19 | hdrp-materials-fixed | edit | ![hdrp-materials-fixed](011-2026-06-19-hdrp-materials-fixed/capture.png) |
+| #   | Date       | Label                         | Mode | Preview                                                                                    |
+| --- | ---------- | ----------------------------- | ---- | ------------------------------------------------------------------------------------------ |
+| 001 | 2026-06-18 | initial-scene                 | edit | ![initial-scene](001-2026-06-18-initial-scene/capture.png)                                 |
+| 002 | 2026-06-18 | restart-test                  | edit | ![restart-test](002-2026-06-18-restart-test/capture.png)                                   |
+| 004 | 2026-06-18 | arc-academy-mvp               | edit | ![arc-academy-mvp](004-2026-06-18-arc-academy-mvp/capture.png)                             |
+| 005 | 2026-06-18 | arc-academy-visual-v2         | edit | ![arc-academy-visual-v2](005-2026-06-18-arc-academy-visual-v2/capture.png)                 |
+| 006 | 2026-06-18 | arc-academy-hdrp-v1           | edit | ![arc-academy-hdrp-v1](006-2026-06-18-arc-academy-hdrp-v1/capture.png)                     |
+| 007 | 2026-06-18 | post-merge-hdrp-compare       | edit | ![post-merge-hdrp-compare](007-2026-06-18-post-merge-hdrp-compare/capture.png)             |
+| 008 | 2026-06-18 | arc-academy-polish-v1         | edit | ![arc-academy-polish-v1](008-2026-06-18-arc-academy-polish-v1/capture.png)                 |
+| 009 | 2026-06-18 | arc-academy-final-polish      | edit | ![arc-academy-final-polish](009-2026-06-18-arc-academy-final-polish/capture.png)           |
+| 010 | 2026-06-19 | wiley-widget-demo             | edit | ![wiley-widget-demo](010-2026-06-19-wiley-widget-demo/capture.png)                         |
+| 011 | 2026-06-19 | hdrp-materials-fixed          | edit | ![hdrp-materials-fixed](011-2026-06-19-hdrp-materials-fixed/capture.png)                   |
 | 012 | 2026-06-19 | arc-academy-photoreal-rebuild | edit | ![arc-academy-photoreal-rebuild](012-2026-06-19-arc-academy-photoreal-rebuild/capture.png) |
-| 013 | 2026-06-19 | arc-academy-playmode-hero | play | ![arc-academy-playmode-hero](013-2026-06-19-arc-academy-playmode-hero/capture.png) |
-| 014 | 2026-06-19 | arc-academy-hdrp-v1 | edit | ![arc-academy-hdrp-v1](014-2026-06-19-arc-academy-hdrp-v1/capture.png) |
-
+| 013 | 2026-06-19 | arc-academy-playmode-hero     | play | ![arc-academy-playmode-hero](013-2026-06-19-arc-academy-playmode-hero/capture.png)         |
+| 014 | 2026-06-19 | arc-academy-hdrp-v1           | edit | ![arc-academy-hdrp-v1](014-2026-06-19-arc-academy-hdrp-v1/capture.png)                     |

@@ -1,17 +1,17 @@
 # Bob — Project Plan
 
-> **North Star:** [What Right Looks Like](what-right-looks-like.md) — milestone flowchart and repo/workflow compass. Cross-check every planned task against both diagrams before adding scope.
+> **North Star:** [What Right Looks Like](what-right-looks-like.md) (workflow) · [What Finished Looks Like](what-finished-looks-like.md) (product) · [Visual vision](design/visual-vision.md) (look)
 
 ## Vision
 
-A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) learns to shoot perfect free throws. Inspired by AI Warehouse videos — entertaining training progress, great for portfolio.
+Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning through **PPO iterations**. **In-scene scoreboards** show iterations, **score** (made baskets), cumulative **RL rewards** and **penalties**, and a **success-rate graph** tracks improvement over time. Visual style: **AI Warehouse lab** ([visual-vision.md](design/visual-vision.md)).
 
 ## Core Scope (MVP)
 
-- 3D basketball court environment in Unity
-- Bob (orange cube agent) learns free throw mechanics
-- Clear learning curve with training videos/GIFs
-- Portfolio static site on AWS (Free Tier) — progress gallery, GIFs, technical write-up (HDRP Editor captures; no in-browser Unity build)
+- Clean training lab + one active hoop in Unity
+- Bob learns free-throw targeting via ML-Agents (`Behavior Name: Bob`)
+- In-scene scoreboard + success graph (not TensorBoard as audience UI)
+- Training GIFs + portfolio static site (Week 3)
 - Professional GitHub repo + write-up
 
 ## Stretch (Nice-to-Have)
@@ -40,22 +40,25 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 - [x] Docker build in CI
 - [x] Training scene builder + validator CLI (`./scripts/validate-scene.sh` → VALIDATE_PASS)
 - [x] Bob agent with `Agent` subclass — Behavior Name `Bob`, 8 obs, 3 actions, gravity shot
-- [x] Arc Academy visual build on `main` ([PR #2](https://github.com/Bigessfour/Bob/pull/2)) — matches `docs/design/arc-academy-reference.jpg`
+- [x] Arc Academy scene builder + validator (`./scripts/validate-scene.sh` → VALIDATE_PASS)
+- [x] In-scene training scoreboard (`BobTrainingStats`: iterations, score, rewards, penalties)
+- [x] Success-rate graph (`BobTrainingSuccessGraph`)
+- [x] Product north star — [`docs/what-finished-looks-like.md`](what-finished-looks-like.md)
+- [x] Visual vision — [`docs/design/visual-vision.md`](design/visual-vision.md)
 - [ ] **First training run completes without errors** ← **current gate**
 
 ### Week 2 — Training & Iteration
 
-- [ ] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; TensorBoard shows steps
-- [ ] Tune reward shaping (arc quality, swish bonus, proximity — iterate after baseline run)
-- [x] Arc Academy arena (warehouse court, fixed hoop, bays, trajectory arcs) — **merged to `main`**
-- [x] Progress screenshot history in `docs/progress/` (captures through `005-arc-academy-visual-v2`)
+- [ ] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; scoreboards update each episode
+- [ ] **Phase 1.5** — separate basketball projectile (launcher cube + ball)
+- [ ] **Arc Academy Lab visuals** — corner room, wall scoreboards ([visual-vision.md](design/visual-vision.md) Phase 2)
+- [x] Progress screenshot history in `docs/progress/`
 - [ ] Record training progress GIFs (play-mode capture + Recorder/ffmpeg)
-- [ ] Iterate on observation space and action space (Phase 2: wind, raycasts — deferred)
 - [ ] Document hyperparameters in `config/`
 
 ### Week 3 — Polish + Deployment + Documentation
 
-- [ ] Visual polish (materials, camera, simple UI) — **HDRP Editor target** ([PR #3](https://github.com/Bigessfour/Bob/pull/3))
+- [ ] Portfolio polish — lab hero GIF + optional warehouse stretch still
 - [ ] Terraform bootstrap applied (`terraform/bootstrap`)
 - [ ] Terraform dev stack applied (`terraform/environments/dev`)
 - [ ] Portfolio site synced to S3 + CloudFront invalidation (`docs/portfolio-site/` static HTML)
@@ -65,16 +68,16 @@ A fun, visual Deep Reinforcement Learning demo where Bob (cheerful orange cube) 
 
 ## Key Design Decisions
 
-| Decision        | Choice              | Rationale                                                          |
-| --------------- | ------------------- | ------------------------------------------------------------------ |
-| Unity location  | Repo root           | Standard Unity layout; ML-Agents expects `Assets/` at project root |
-| Trainer         | PPO                 | Default ML-Agents algorithm; good for continuous control           |
-| Behavior name   | `Bob`               | Matches agent character and config YAML                            |
-| Python version  | 3.10                | ML-Agents compatibility                                            |
-| Terraform state | S3 remote backend   | Production-style DevOps; bootstrap creates state bucket            |
-| Render pipeline | HDRP 17 (Editor training + portfolio captures; no browser build)   |
-| Static hosting  | S3 + CloudFront OAC — portfolio site, not Unity WebGL              |
-| CI              | GitHub Actions      | pytest + Terraform validate + tflint + Docker build                |
+| Decision        | Choice                                                                    | Rationale                                                          |
+| --------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Unity location  | Repo root                                                                 | Standard Unity layout; ML-Agents expects `Assets/` at project root |
+| Trainer         | PPO                                                                       | Default ML-Agents algorithm; good for continuous control           |
+| Behavior name   | `Bob`                                                                     | Matches agent character and config YAML                            |
+| Python version  | 3.10                                                                      | ML-Agents compatibility                                            |
+| Terraform state | S3 remote backend                                                         | Production-style DevOps; bootstrap creates state bucket            |
+| Render pipeline | HDRP 17 — **Lab mode** flat materials default; warehouse optional stretch |
+| Static hosting  | S3 + CloudFront OAC — portfolio site, not Unity WebGL                     |
+| CI              | GitHub Actions                                                            | pytest + Terraform validate + tflint + Docker build                |
 
 ## DevOps Milestones
 
@@ -97,6 +100,8 @@ See [testing-strategy.md](testing-strategy.md) for the full phased plan.
 
 ## References
 
-- [What Right Looks Like](what-right-looks-like.md) — canonical milestone + workflow diagrams (North Star)
+- [**What finished looks like**](what-finished-looks-like.md) — product definition (agent, hoop, scoreboard, graph)
+- [**Visual vision**](design/visual-vision.md) — Arc Academy Lab look + visual workflow
+- [What Right Looks Like](what-right-looks-like.md) — canonical milestone + workflow diagrams
 - [Unity ML-Agents Documentation](https://docs.unity3d.com/Packages/com.unity.ml-agents@latest)
 - [ML-Agents GitHub](https://github.com/Unity-Technologies/ml-agents)

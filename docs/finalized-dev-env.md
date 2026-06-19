@@ -61,6 +61,8 @@ cp .env.example .env
 | `RUN_ID`             | `bob-v0`                     | ML-Agents training run ID |
 | `CONFIG`             | `config/bob_free_throw.yaml` | Trainer config path       |
 
+`./scripts/train.sh` auto-adds `--resume` when `results/<RUN_ID>` already exists. For a clean slate use `RUN_ID=bob-v1 ./scripts/train.sh` or `./scripts/train.sh --force`.
+
 Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env).
 
 ## Workflows by Task

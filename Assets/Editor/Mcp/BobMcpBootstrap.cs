@@ -61,6 +61,15 @@ public static class BobMcpBootstrap
         }
 
         SessionState.SetBool(SessionConnectKey, true);
+
+        if (!MCPServiceLocator.Server.IsLocalHttpServerReachable())
+        {
+            Debug.Log(
+                "BOB_MCP_AUTO: HTTP server not running — MCP bridge skipped. " +
+                "Start ./scripts/unity-mcp-http.sh when needed, then Bob → MCP → Configure Project Connection.");
+            return;
+        }
+
         _ = ConfigureAsync(openTrainingScene: false, logPrefix: "BOB_MCP_AUTO");
     }
 
@@ -95,10 +104,19 @@ public static class BobMcpBootstrap
 
             await WaitForServerAsync(server, TimeSpan.FromSeconds(30));
 
+            if (!server.IsLocalHttpServerReachable())
+            {
+                Debug.LogWarning(
+                    $"{logPrefix}: MCP HTTP server not running — skipped bridge auto-start. " +
+                    "Run ./scripts/unity-mcp-http.sh or Window → MCP for Unity → Start Local HTTP Server, then Bob → MCP → Configure Project Connection.");
+                return;
+            }
+
             bool bridgeStarted = await MCPServiceLocator.Bridge.StartAsync();
             if (!bridgeStarted)
             {
-                Debug.LogError($"{logPrefix}_FAIL: Unity MCP bridge did not start. Open Window → MCP for Unity and click Start Bridge.");
+                Debug.LogWarning(
+                    $"{logPrefix}: Unity MCP bridge did not start. Open Window → MCP for Unity → Start Bridge, or Bob → MCP → Configure Project Connection.");
                 return;
             }
 
@@ -110,7 +128,7 @@ public static class BobMcpBootstrap
             var verify = await MCPServiceLocator.Bridge.VerifyAsync();
             if (!IsBridgeVerifySuccess(verify))
             {
-                Debug.LogError($"{logPrefix}_FAIL: Bridge verify — {verify.Message}");
+                Debug.LogWarning($"{logPrefix}: Bridge verify incomplete — {verify.Message}");
                 return;
             }
 
@@ -142,7 +160,7 @@ public static class BobMcpBootstrap
         EditorConfigurationCache.Instance.SetUseHttpTransport(true);
         EditorConfigurationCache.Instance.SetHttpTransportScope("local");
         EditorConfigurationCache.Instance.SetHttpBaseUrl("http://127.0.0.1:8080");
-        EditorPrefs.SetBool(PrefAutoStartOnLoad, true);
+        EditorPrefs.SetBool(PrefAutoStartOnLoad, false);
         EditorPrefs.SetBool(PrefLockCursorConfig, true);
         EditorPrefs.SetString(PrefClientProjectDirOverride, repoRoot);
         SetupWindowService.MarkSetupCompleted();

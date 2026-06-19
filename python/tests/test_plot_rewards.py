@@ -6,7 +6,14 @@ from unittest.mock import MagicMock, patch
 
 # Allow importing from python/scripts/
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-from plot_rewards import find_training_log, load_rewards, plot_rewards, main as plot_main  # noqa: E402
+from plot_rewards import (
+    find_training_log,
+    load_rewards,
+)
+from plot_rewards import main as plot_main  # noqa: E402
+from plot_rewards import (
+    plot_rewards,
+)
 
 
 def test_find_training_log_missing_dir(tmp_path: Path) -> None:
@@ -54,7 +61,9 @@ def test_plot_rewards_writes_file(tmp_path: Path) -> None:
 
 
 def test_main_returns_error_on_no_csv(tmp_path: Path, monkeypatch, capsys) -> None:
-    monkeypatch.setattr(sys, "argv", ["plot_rewards.py", "--results-dir", str(tmp_path)])
+    monkeypatch.setattr(
+        sys, "argv", ["plot_rewards.py", "--results-dir", str(tmp_path)]
+    )
     ret = plot_main()
     captured = capsys.readouterr()
     assert ret == 1
@@ -65,7 +74,11 @@ def test_main_prints_no_data(tmp_path: Path, monkeypatch, capsys) -> None:
     run_dir = tmp_path / "bob-v0" / "Bob"
     run_dir.mkdir(parents=True)
     (run_dir / "TrainingRewards.csv").write_text("Step,Value\n")
-    monkeypatch.setattr(sys, "argv", ["plot_rewards.py", "--results-dir", str(tmp_path), "--run-id", "bob-v0"])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["plot_rewards.py", "--results-dir", str(tmp_path), "--run-id", "bob-v0"],
+    )
     ret = plot_main()
     captured = capsys.readouterr()
     assert ret == 1

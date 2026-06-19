@@ -383,7 +383,7 @@ public static class ArcAcademyMaterialFactory
         if (mat.HasProperty("_EmissiveColor"))
         {
             mat.SetColor("_EmissiveColor", color);
-            mat.SetFloat("_EmissiveIntensity", intensity * 1200f);
+            mat.SetFloat("_EmissiveIntensity", intensity * 300f);
             mat.EnableKeyword("_EMISSIVE_COLOR");
             mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
         }

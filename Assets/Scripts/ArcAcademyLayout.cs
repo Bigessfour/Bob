@@ -15,6 +15,7 @@ public static class ArcAcademyLayout
     public const string SpawnPadName = "SpawnPad";
     public const string BallSpawnPointName = "BallSpawnPoint";
     public const string ScorePopupName = "ScorePopup";
+    public const string TrainingScoreboardName = "TrainingScoreboard";
     public const string HoopName = "Hoop";
     public const string RimName = "Rim";
     public const string ScoreZoneName = "ScoreZone";
@@ -78,10 +79,10 @@ public static class ArcAcademyLayout
     public const float MountainWindowHeight = 6.2f;
     public const float MountainWindowY = 4.2f;
 
-    /// <summary>Ceiling density for industrial grid + lights (Example.jpg warehouse).</summary>
-    public const int CeilingTrussCount = 7;
-    public const int CeilingLightRows = 4;
-    public const int CeilingLightColsPerRow = 5;
+    /// <summary>Ceiling density — lab-readable (2×3), not full photoreal warehouse grid.</summary>
+    public const int CeilingTrussCount = 5;
+    public const int CeilingLightRows = 2;
+    public const int CeilingLightColsPerRow = 3;
 
     /// <summary>Eight modular shooting bays around back and right perimeter (Example.jpg). Low partitions separate bays.</summary>
     public static readonly Vector3[] TrainingBayPositions =
@@ -120,10 +121,10 @@ public static class ArcAcademyLayout
     public static readonly Vector3 EntranceCameraPosition = new(2.5f, 4.2f, 9.5f);
     public static readonly Vector3 EntranceCameraLookAt = new(0f, 1.8f, 2f);
 
-    public const float FloorGlossiness = 0.94f;
-    public const float PlatformEmissiveIntensity = 3.2f;
-    public const float ArcLineEmissiveIntensity = 2.1f;
-    public const float BobGlowIntensity = 1.35f;
+    public const float FloorGlossiness = 0.42f;
+    public const float PlatformEmissiveIntensity = 0.65f;
+    public const float ArcLineEmissiveIntensity = 0.45f;
+    public const float BobGlowIntensity = 0.55f;
     public const float LabelBobSize = 1.2f;
     public const float LabelAcademySize = 0.45f;
 
