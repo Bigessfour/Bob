@@ -13,7 +13,7 @@ public static class ArcAcademyShaderUtility
             var mat = new Material(hdrpUnlit);
             mat.SetColor("_UnlitColor", color);
             mat.SetColor("_EmissiveColor", color * intensity);
-            mat.SetFloat("_EmissiveIntensity", intensity * 1200f);
+            mat.SetFloat("_EmissiveIntensity", intensity * 300f);
             mat.EnableKeyword("_EMISSIVE_COLOR");
             return mat;
         }

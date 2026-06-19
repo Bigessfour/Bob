@@ -177,6 +177,19 @@ public static class ArcAcademyHdrpSetup
 
     private static void ApplyVolumePolish(VolumeProfile profile)
     {
+        ApplyLabVolumePolish(profile);
+    }
+
+    /// <summary>Readable AI Warehouse lab lighting — default for training demos.</summary>
+    public static void ApplyLabVolumePolish(VolumeProfile profile)
+    {
+        ArcAcademyLabRenderPreset.ApplyVolume(profile);
+        EditorUtility.SetDirty(profile);
+    }
+
+    /// <summary>Photoreal warehouse stretch preset (optional portfolio stills).</summary>
+    public static void ApplyWarehouseVolumePolish(VolumeProfile profile)
+    {
         if (profile.TryGet(out Exposure exposure))
         {
             exposure.mode.overrideState = true;

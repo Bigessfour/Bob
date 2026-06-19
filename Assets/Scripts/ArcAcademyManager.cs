@@ -27,6 +27,8 @@ public class ArcAcademyManager : MonoBehaviour
 
     private void Awake()
     {
+        ArcAcademyLabRenderPreset.ApplyAll();
+
         if (instance != null && instance != this)
         {
             Debug.LogWarning("ArcAcademyManager: duplicate instance ignored.");
@@ -191,6 +193,7 @@ public class ArcAcademyManager : MonoBehaviour
     public void NotifyMadeBasket(BobAgent agent, bool swish)
     {
         sessionMadeBaskets++;
+        BobTrainingStats.Instance?.RecordBasketballPoint();
         scorePopup?.Show(swish, sessionMadeBaskets);
         spawnPadPulse?.TriggerScoreBurst();
 

@@ -2,11 +2,28 @@
 
 You are **Bob's AI development partner**. Focus on building a fun, portfolio-quality Deep RL demo with production-ready structure and DevOps practices.
 
-> **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) — read both Mermaid diagrams before planning, scoping, or proposing changes. Every commit must advance the current week milestone and permanent quality bars (CI, tests, clean C#, portfolio docs). **Never propose direct commits to `main`** — use `feature/*` branches and PRs with green CI.
+> **North Star (workflow):** [What Right Looks Like](docs/what-right-looks-like.md) — week milestones + PR/CI diagrams. Read before planning or merging.  
+> **North Star (product):** [What Finished Looks Like](docs/what-finished-looks-like.md) — agent, hoop, scoreboard, success graph.  
+> **North Star (visuals):** [Visual vision](docs/design/visual-vision.md) — Arc Academy Lab (AI Warehouse–inspired).  
+> **Training ops:** [AI Warehouse ops](docs/design/ai-warehouse-ops.md) — PPO patterns, log anomalies, handshake.
+> **Never propose direct commits to `main`** — use `feature/*` branches and PRs with green CI.
+
+## What finished looks like (product)
+
+When Bob is **done** (MVP + demo-ready):
+
+1. **Orange cube agent (`Bob`)** at the free-throw line shoots toward **one active hoop** each iteration (ML-Agents PPO, Behavior Name `Bob`).
+2. **Made basket → +1 score** on the in-scene **scoreboard** (basketball points, separate from RL reward).
+3. **Scoreboard tracks:** iterations, score, cumulative RL **rewards**, cumulative **penalties**, net RL, **success rate %**.
+4. **Success-rate graph** shows learning progress over recent iterations (`BobTrainingSuccessGraph`).
+5. **Decorative geometry** does not collide with Bob (`BobPhysicsLayers`).
+6. **Training:** `./scripts/train.sh` + Play; audience sees scene UI — **not** TensorBoard as the primary display.
+
+**Projectile note:** Week 1 uses the **cube as the projectile** (impulse on `Bob`). Phase 1.5 adds a separate **basketball** rigidbody — see [what-finished-looks-like.md](docs/what-finished-looks-like.md).
 
 ## Role
 
-Help design, implement, and document Bob — a cheerful orange cube that learns free throws via Unity ML-Agents PPO training.
+Help design, implement, and document Bob — a cheerful orange cube that learns free throws via Unity ML-Agents PPO training in a **readable AI Warehouse–style lab** ([visual-vision.md](docs/design/visual-vision.md)).
 
 ## Tech Stack
 
@@ -24,16 +41,17 @@ Help design, implement, and document Bob — a cheerful orange cube that learns 
 
 1. **Clean C#** — readable `Agent` subclasses, clear reward logic, match Behavior Name `Bob` to YAML config
 2. **Reproducible training** — configs in `config/`, venv in `python/`, optional Docker image
-3. **Visual portfolio assets** — training GIFs, TensorBoard logs, reward plots
-4. **IaC-first DevOps** — Terraform bootstrap + dev stack; document every major step
-5. **Local-first on Mac** — Apple Silicon compatible Python/torch setup
+3. **In-scene progress UI** — scoreboard + success graph (`BobTrainingStats`); TensorBoard for dev only
+4. **Visual portfolio assets** — training GIFs, progress gallery, reward/success plots
+5. **IaC-first DevOps** — Terraform bootstrap + dev stack; document every major step
+6. **Local-first on Mac** — Apple Silicon compatible Python/torch setup
 
 ## Always
 
 - Use clear commit messages and update documentation alongside code changes
 - Keep secrets out of the repo (use `*.tfvars.example`, GitHub Secrets for CI)
 - Prioritize MVP (working training loop) before polish or deployment
-- **Align with North Star** — [docs/what-right-looks-like.md](docs/what-right-looks-like.md) before planning or scoping; reject scope that does not map to the current week + quality bars
+- **Align with North Star** — [what-finished-looks-like.md](docs/what-finished-looks-like.md) (product), [visual-vision.md](docs/design/visual-vision.md) (look), [what-right-looks-like.md](docs/what-right-looks-like.md) (workflow)
 - Point to [PROJECT.md](PROJECT.md) for current status and [docs/project-plan.md](docs/project-plan.md) for milestones
 - **Ship complete work** — see [Completion standard](#completion-standard) below
 - **Query RAG before code** — see [Repository RAG](#repository-rag) below
@@ -166,7 +184,9 @@ Do not silently defer work in code comments—surface it in the turn summary so 
 
 ## Related Files
 
-- [docs/what-right-looks-like.md](docs/what-right-looks-like.md) — **North Star** milestone + workflow diagrams
+- [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) — **Product north star** (agent, hoop, scoreboard, graph)
+- [docs/design/visual-vision.md](docs/design/visual-vision.md) — **Visual north star** (Arc Academy Lab + workflow)
+- [docs/what-right-looks-like.md](docs/what-right-looks-like.md) — **Workflow north star** (milestones + PR/CI)
 - [PROJECT.md](PROJECT.md) — living status document
 - [.cursor/rules/bob.mdc](.cursor/rules/bob.mdc) — always-on Cursor rules
 - [.cursor/project-rules.md](.cursor/project-rules.md) — DevOps emphasis

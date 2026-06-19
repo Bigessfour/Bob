@@ -110,7 +110,8 @@ See [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
 ## Related Docs
 
-- [what-right-looks-like.md](what-right-looks-like.md) — **North Star** milestone + workflow diagrams
+- [what-right-looks-like.md](what-right-looks-like.md) — **workflow** North Star (milestones + PR/CI)
+- [what-finished-looks-like.md](what-finished-looks-like.md) — **product** North Star (agent, hoop, scoreboard, graph)
 - [finalized-dev-env.md](finalized-dev-env.md) — environment setup
 - [project-plan.md](project-plan.md) — milestones
 - [PROJECT.md](../PROJECT.md) — living status

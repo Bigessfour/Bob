@@ -43,8 +43,8 @@ public class ArcAcademyScorePopup : MonoBehaviour
         textMesh.gameObject.SetActive(true);
         baseWorldPosition = transform.position;
         textMesh.text = swish
-            ? $"SWISH! +{ArcAcademyRewards.MadeWithSwish:0.0}  ({totalMade})"
-            : $"SCORE! +{ArcAcademyRewards.MadeBasket:0.0}  ({totalMade})";
+            ? $"1 PT! SWISH  (+{ArcAcademyRewards.MadeWithSwish:0.0} RL)  [{totalMade}]"
+            : $"1 PT! SCORE  (+{ArcAcademyRewards.MadeBasket:0.0} RL)  [{totalMade}]";
         textMesh.color = swish ? new Color(0.35f, 1f, 0.55f, 1f) : new Color(1f, 0.82f, 0.25f, 1f);
         textMesh.transform.localScale = baseScale * popScale;
         hideTimer = displayDuration;

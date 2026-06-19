@@ -303,7 +303,7 @@ public static class BobProgressCapture
     {
         ArcAcademyHdrpSetup.EnsureHdrpPipeline();
 
-        foreach (var probe in UnityEngine.Object.FindObjectsByType<ReflectionProbe>(FindObjectsSortMode.None))
+        foreach (var probe in UnityEngine.Object.FindObjectsByType<ReflectionProbe>())
         {
             probe.RenderProbe();
         }
@@ -320,7 +320,7 @@ public static class BobProgressCapture
         {
             restoredExposure = exposure.fixedExposure.value;
             exposure.fixedExposure.overrideState = true;
-            exposure.fixedExposure.value = 12.5f;
+            exposure.fixedExposure.value = 9f;
         }
 
         return restoredExposure;

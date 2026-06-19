@@ -75,6 +75,8 @@ public class BobAgent : Agent
 
     public override void OnEpisodeBegin()
     {
+        BobTrainingStats.Instance?.BeginIteration(scoredThisEpisode);
+
         scoredThisEpisode = false;
         trackingArc = false;
         shotPeakHeight = transform.position.y;
@@ -120,8 +122,14 @@ public class BobAgent : Agent
             reward += ArcAcademyRewards.SwishBonus;
         }
 
-        AddReward(reward);
+        GiveReward(reward);
         EndEpisode();
+    }
+
+    private void GiveReward(float amount)
+    {
+        AddReward(amount);
+        BobTrainingStats.Instance?.RecordReward(amount);
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -170,11 +178,11 @@ public class BobAgent : Agent
 
         rb.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
 
-        AddReward(-0.005f);
+        GiveReward(-0.005f);
 
         Vector3 toHoop = hoop.position - transform.position;
         float xzDist = new Vector2(toHoop.x, toHoop.z).magnitude;
-        AddReward(-0.002f * xzDist);
+        GiveReward(-0.002f * xzDist);
 
         if (trackingArc)
         {
@@ -184,7 +192,7 @@ public class BobAgent : Agent
             }
 
             float arcQuality = CalculateArcQuality(xzDist);
-            AddReward(arcQuality * ArcAcademyLayout.ArcQualityRewardScale);
+            GiveReward(arcQuality * ArcAcademyLayout.ArcQualityRewardScale);
 
             if (rb.linearVelocity.y < -0.5f && transform.position.y < shotPeakHeight - 0.3f)
             {
@@ -194,7 +202,7 @@ public class BobAgent : Agent
 
         if (ArcAcademyLayout.IsOutOfBounds(transform.position))
         {
-            AddReward(-0.5f);
+            GiveReward(-0.5f);
             EndEpisode();
         }
     }
