@@ -38,15 +38,23 @@ def test_index_and_search_round_trip(
 ) -> None:
     from rag.indexer import index_all, index_paths
     from rag.search import search
+    from rag.store import COLLECTION_NAME, get_client
 
     monkeypatch.setenv("BOB_RAG_DATA_DIR", str(tmp_path / "rag-data"))
     result = index_all()
     assert result["files"] > 0
     assert result["chunks"] > 0
 
-    # Full-repo search can rank MCP/docs above BobAgent; verify retrieval on
-    # the canonical agent + trainer config with a targeted partial index.
-    index_paths(["Assets/Scripts/BobAgent.cs", "config/bob_free_throw.yaml"])
+    # Partial re-index leaves the full corpus in Chroma; top-k search can still
+    # rank MCP/docs above BobAgent. Rebuild a mini-index for deterministic retrieval.
+    client = get_client()
+    if any(c.name == COLLECTION_NAME for c in client.list_collections()):
+        client.delete_collection(COLLECTION_NAME)
+
+    targeted = index_paths(["Assets/Scripts/BobAgent.cs", "config/bob_free_throw.yaml"])
+    assert targeted["files"] == 2
+    assert targeted["chunks"] > 0
+
     hits = search("BobAgent class Agent behaviors Bob PPO free throw", top_k=5)
     assert hits
     paths = {hit.path for hit in hits}
