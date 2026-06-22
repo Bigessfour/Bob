@@ -87,12 +87,12 @@ In Unity, send a short prompt in **Assistant** with **Codex** selected. Console 
 
 ## Relationship to Cursor MCP
 
-| Tool                             | Role                                                                                         |
-| -------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Cursor + `unityMCP`**          | Primary agent bridge (CoplayDev HTTP on `127.0.0.1:8080`) — see [unity-mcp.md](unity-mcp.md) |
-| **Unity AI Assistant + Gateway** | In-Editor Assistant with BYOM Grok via Codex                                                 |
+| Tool                             | Role                                                                                    |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| **Cursor + `unity-mcp`**         | Primary agent bridge (official Unity relay → Editor) — see [unity-mcp.md](unity-mcp.md) |
+| **Unity AI Assistant + Gateway** | In-Editor Assistant with BYOM Grok via Codex                                            |
 
-Both can coexist. Bob’s Cursor workflow remains `unityMCP`; Unity Assistant is for in-Editor BYOM prompts without Unity credits.
+Both can coexist. Bob’s Cursor workflow uses **`unity-mcp`**; Unity Assistant BYOM is for in-Editor prompts without Unity credits.
 
 ## Security
 
@@ -112,6 +112,6 @@ Both can coexist. Bob’s Cursor workflow remains `unityMCP`; Unity Assistant is
 
 ## Related
 
-- [unity-mcp.md](unity-mcp.md) — CoplayDev MCP for Cursor
+- [unity-mcp.md](unity-mcp.md) — Official Unity MCP for Cursor
 - [unity-dev.md](unity-dev.md) — Unity CLI and packages
 - [AGENTS.md](../AGENTS.md) — agent workflow rules

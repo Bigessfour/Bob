@@ -74,7 +74,10 @@ docker compose build train
 | `test_editor_scripts_live_under_scripts_editor` | Scene builder/validator moved back to legacy `Assets/Editor/` paths                              |
 | `test_mcp_asmdef_layout`                        | `Bob.Mcp.asmdef` missing, wrong references, or not Editor-only                                   |
 | `test_bob_editor_asmdef_exists`                 | `Bob.Editor.asmdef` references drift                                                             |
-| `test_mcp_bootstrap_pref_keys`                  | `BobMcpBootstrap` MCP EditorPref key strings changed                                             |
+| `test_unity_mcp_cursor_config`                  | `.cursor/mcp.json` uses official `unity-mcp` relay script                                        |
+| `test_manifest_uses_official_unity_mcp`         | `com.coplaydev.unity-mcp` removed; `com.unity.ai.assistant` present                              |
+| `test_bob_unity_mcp_tools_registered`           | `BobUnityMcpTools.cs` exposes Bob custom MCP tools                                               |
+| `test_scene_editor_references_unity_mcp`        | `Bob.SceneEditor.asmdef` references `Unity.AI.MCP.Editor`                                        |
 | `test_validate_scene_script_wires_cli_methods`  | `./scripts/validate-scene.sh` no longer calls CLI entry points                                   |
 | `test_arc_academy_layout_and_scripts_exist`     | Arc Academy runtime scripts removed from repo                                                    |
 | `test_arc_academy_builder_wiring`               | Scene builder/validator lost Arc Academy manager, hoop, spawn pad wiring                         |

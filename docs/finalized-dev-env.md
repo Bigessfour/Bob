@@ -87,12 +87,12 @@ Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env
 
 ## AI Assistants
 
-| Tool                                 | Use                                                                           |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| Cursor + [`AGENTS.md`](../AGENTS.md) | Primary code agent                                                            |
-| Unity Tools extension                | Editor debug/attach                                                           |
-| `scripts/unity.sh`                   | CLI automation (builds, tests)                                                |
-| Unity MCP (`unityMCP`)               | Live Editor MCP — [unity-mcp.md](unity-mcp.md); requires Editor open + bridge |
+| Tool                                 | Use                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------- |
+| Cursor + [`AGENTS.md`](../AGENTS.md) | Primary code agent                                                                    |
+| Unity Tools extension                | Editor debug/attach                                                                   |
+| `scripts/unity.sh`                   | CLI automation (builds, tests)                                                        |
+| Unity MCP (`unity-mcp`)              | Live Editor MCP — [unity-mcp.md](unity-mcp.md); requires Editor open + bridge Running |
 
 ## GitHub
 

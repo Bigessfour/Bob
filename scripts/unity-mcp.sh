@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
-# Stdio MCP fallback for CoplayDev MCP for Unity (not the default Cursor path).
-#
-# Default Bob + Cursor setup uses HTTP in .cursor/mcp.json:
-#   "unityMCP": { "url": "http://127.0.0.1:8080/mcp" }
-# Match Unity Editor transport to HTTP (Window → MCP for Unity → Auto-Setup).
-#
-# Use this script only if you intentionally switch both Unity and .cursor/mcp.json to stdio.
+# Official Unity MCP relay for Cursor (stdio → ~/.unity/relay → Unity Editor bridge).
+# Requires Unity Editor open on this project; approve Cursor under Edit → Project Settings → AI → Unity MCP.
 set -euo pipefail
 
-export PATH="/opt/homebrew/bin:/usr/local/bin:${PATH-}"
+RELAY_ROOT="${HOME}/.unity/relay"
+UNAME="$(uname -s)"
+ARCH="$(uname -m)"
 
-UVX="${UVX:-uvx}"
-if ! command -v "${UVX}" >/dev/null 2>&1; then
-	echo "unityMCP stdio fallback: uvx not found." >&2
-	echo "Install uv: brew install uv  (or see https://docs.astral.sh/uv/)" >&2
-	echo "Prefer HTTP: open Unity → Window → MCP for Unity → Auto-Setup." >&2
+if [[ ${UNAME} == "Darwin" ]]; then
+	if [[ ${ARCH} == "arm64" ]]; then
+		EXEC="${RELAY_ROOT}/relay_mac_arm64.app/Contents/MacOS/relay_mac_arm64"
+	else
+		EXEC="${RELAY_ROOT}/relay_mac_x64.app/Contents/MacOS/relay_mac_x64"
+	fi
+elif [[ ${UNAME} == MINGW* || ${UNAME} == MSYS* || ${UNAME} == CYGWIN* ]]; then
+	EXEC="${RELAY_ROOT}/relay_win.exe"
+else
+	EXEC="${RELAY_ROOT}/relay_linux"
+fi
+
+if [[ ! -x ${EXEC} ]]; then
+	echo "unity-mcp: relay not found at ${EXEC}" >&2
+	echo "Open this project in Unity 6 once — the relay installs to ~/.unity/relay on Editor startup." >&2
+	echo "Then Edit → Project Settings → AI → Unity MCP → Start bridge and approve Cursor." >&2
 	exit 1
 fi
 
-exec "${UVX}" --from mcpforunityserver mcp-for-unity --transport stdio
+exec "${EXEC}" --mcp "$@"

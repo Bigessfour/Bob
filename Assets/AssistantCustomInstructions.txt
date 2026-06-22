@@ -11,7 +11,7 @@ VISUAL TARGET (AI Warehouse lab — incremental polish)
 - Reference: docs/design/ai-warehouse-lab-reference.png (white tile walls, dark grid floor, soft light).
 - SimpleArcAcademyArena: white Mat_Wall_Tile_White, grid Mat_Floor_Grid, budget props hidden.
 - Legacy photoreal clutter hidden: TrainingBays, MountainWindow, WarehouseShell, ComplexRenderGroup, extra lights.
-- Lab camera: SimpleArcAcademyArena.LabCameraPosition, FOV 65°, high corner framing (LabHero mode).
+- Lab camera: SimpleArcAcademyArena.LabCameraPosition, FOV 52°, east sideline side view (LabHero mode).
 - Lab lighting: ArcAcademyLabRenderPreset.ApplyLabViewPreset — Sun only, minimal bloom, SSR off.
 - Bob face: Eye_Left/Eye_Right quads; BobSpeechBubble shows "Great job, Bob!" on made basket.
 - Screen HUD (BobTrainingScoreboard) remains; wall-mounted panels are Phase 2 defer.

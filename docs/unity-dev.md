@@ -62,27 +62,26 @@ Workspace settings (`.vscode/settings.json`) point Unity to `6000.5.0f1` and the
 
 ### AI Agent Assistants for Unity
 
-| Tool                       | Type              | Notes                                                                                                                                      |
-| -------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Cursor + AGENTS.md**     | IDE agent         | Primary — project rules in `AGENTS.md`, `.cursor/rules/bob.mdc`                                                                            |
-| **Unity MCP (`unityMCP`)** | MCP server        | **Required for agents** — live Editor access via [MCP for Unity](https://github.com/CoplayDev/unity-mcp); see [unity-mcp.md](unity-mcp.md) |
-| **Unity Muse**             | Unity cloud AI    | Paid Unity service; texture/code assist inside Editor                                                                                      |
-| **Unity Sentis**           | Runtime inference | For deployed models, not training loop setup                                                                                               |
+| Tool                        | Type              | Notes                                                                                                                                                                                       |
+| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cursor + AGENTS.md**      | IDE agent         | Primary — project rules in `AGENTS.md`, `.cursor/rules/bob.mdc`                                                                                                                             |
+| **Unity MCP (`unity-mcp`)** | MCP server        | **Required for agents** — live Editor access via [Unity MCP](https://docs.unity3d.com/Packages/com.unity.ai.assistant@2.0/manual/unity-mcp-overview.html); see [unity-mcp.md](unity-mcp.md) |
+| **Unity Muse**              | Unity cloud AI    | Paid Unity service; texture/code assist inside Editor                                                                                                                                       |
+| **Unity Sentis**            | Runtime inference | For deployed models, not training loop setup                                                                                                                                                |
 
-**Recommended for Bob:** Cursor with `AGENTS.md` + Unity Tools extension + **`unityMCP` MCP** (Editor open, HTTP bridge connected). Batchmode CLI handles automation (builds, tests, scene rebuild); Cursor + Unity MCP handles live Editor inspection and parameterized changes.
+**Recommended for Bob:** Cursor with `AGENTS.md` + Unity Tools extension + **`unity-mcp` MCP** (Editor open, Unity MCP bridge Running). Batchmode CLI handles automation (builds, tests, scene rebuild); Cursor + Unity MCP handles live Editor inspection and parameterized changes.
 
-### Unity MCP (`unityMCP`)
+### Unity MCP (`unity-mcp`)
 
-Repo-configured via [`.cursor/mcp.json`](../.cursor/mcp.json) and `com.coplaydev.unity-mcp` in [`Packages/manifest.json`](../Packages/manifest.json).
+Repo-configured via [`.cursor/mcp.json`](../.cursor/mcp.json) and `com.unity.ai.assistant` in [`Packages/manifest.json`](../Packages/manifest.json).
 
 ```bash
-brew install uv                    # if missing
 chmod +x scripts/unity-mcp.sh
 ```
 
-1. Open Bob in Unity → **Window → MCP for Unity** → setup wizard → transport **stdio** → Configure Cursor
-2. Restart Cursor; enable **`unityMCP`** and **`bob-rag`** in MCP settings
-3. Agents must consult `unityMCP` tools before Unity edits (see [unity-mcp.md](unity-mcp.md))
+1. Open Bob in Unity → **Edit → Project Settings → AI → Unity MCP** → bridge **Running** → approve Cursor
+2. Restart Cursor; enable **`unity-mcp`** and **`bob-rag`** in MCP settings
+3. Agents must consult `unity-mcp` tools before Unity edits (see [unity-mcp.md](unity-mcp.md))
 
 Keep Unity Editor open while using MCP tools.
 

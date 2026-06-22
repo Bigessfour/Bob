@@ -36,10 +36,10 @@ public static class SimpleArcAcademyArena
     /// <summary>Free-throw spawn on simple arena floor (≈ legacy BobSpawnPosition).</summary>
     public static readonly Vector3 BobSpawnLocalPosition = new(0f, 0.02f, -2f);
 
-    /// <summary>High corner camera framing (AI Warehouse lab reference).</summary>
-    public static readonly Vector3 LabCameraPosition = new(8f, 6f, -8f);
-    public static readonly Vector3 LabCameraLookAt = new(0f, 1.5f, 2f);
-    public const float LabCameraFieldOfView = 65f;
+    /// <summary>East sideline camera — level side view across spawn → hoop (AI Warehouse readability).</summary>
+    public static readonly Vector3 LabCameraPosition = new(13f, 3.2f, -3.5f);
+    public static readonly Vector3 LabCameraLookAt = new(0f, 2f, -4.5f);
+    public const float LabCameraFieldOfView = 52f;
 
     public static bool IsLabViewActive => HasArenaFloor();
 

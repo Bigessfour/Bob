@@ -219,9 +219,13 @@ public class ArcAcademyDemoCamera : MonoBehaviour
 
         orbitDistance = Mathf.Clamp(orbitDistance - Input.mouseScrollDelta.y * 0.8f, 4f, 28f);
 
+        Vector3 orbitTarget = SimpleArcAcademyArena.IsLabViewActive
+            ? SimpleArcAcademyArena.LabCameraLookAt
+            : ArcAcademyLayout.CameraLookAt;
+
         Quaternion rot = Quaternion.Euler(orbitPitch, orbitYaw, 0f);
-        transform.position = ArcAcademyLayout.CameraLookAt + rot * (Vector3.back * orbitDistance);
-        transform.rotation = Quaternion.LookRotation(ArcAcademyLayout.CameraLookAt - transform.position, Vector3.up);
+        transform.position = orbitTarget + rot * (Vector3.back * orbitDistance);
+        transform.rotation = Quaternion.LookRotation(orbitTarget - transform.position, Vector3.up);
     }
 
     private void UpdateFreeFly()

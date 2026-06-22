@@ -39,7 +39,7 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 | `python/` | venv, training scripts, **RAG** (`python/rag/`) |
 | `docs/` | Planning, diagrams, results, **North Star** (`what-right-looks-like.md`, `what-finished-looks-like.md`, `design/visual-vision.md`) |
 | `terraform/` | AWS infrastructure |
-| `.cursor/mcp.json` | `bob-rag` (repo context) + `unityMCP` (live Editor, CoplayDev HTTP) |
+| `.cursor/mcp.json` | `bob-rag` (repo context) + `unity-mcp` (official Unity relay → Editor bridge) |
 
 ## Development Priorities
 
@@ -60,7 +60,7 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 - **CI:** `.github/workflows/ci.yml` — Python smoke test + Terraform fmt/validate
 - **Docker:** `Dockerfile` for reproducible training deps (Unity Editor still runs on host)
 - **RAG:** ChromaDB index in `python/.rag/` — MCP server `bob-rag`; query before code edits (see `AGENTS.md`)
-- **Unity MCP:** MCP server `unityMCP` — consult before Unity/scene/agent work with Editor open (see `docs/unity-mcp.md`)
+- **Unity MCP:** MCP server `unity-mcp` — consult before Unity/scene/agent work with Editor open (see `docs/unity-mcp.md`)
 - **Agent docs:** See `AGENTS.md`, `PROJECT.md`, and `.cursor/project-rules.md`
 
 ## Key Commands

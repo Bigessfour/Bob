@@ -61,31 +61,32 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 
 ## DevOps Status
 
-| Component                          | Status                                                                                            |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Terraform bootstrap (state bucket) | Scaffolded — not yet applied                                                                      |
-| Terraform dev (S3 + CloudFront)    | Scaffolded — not yet applied                                                                      |
-| GitHub Actions CI                  | pytest + Terraform validate + tflint + Docker build                                               |
-| Docker training image              | Built locally (`bob-train:latest`)                                                                |
-| Baseline pytest suite              | `python/tests/` — config + plot_rewards + unity alignment + RAG                                   |
-| Repository RAG (ChromaDB + MCP)    | `python/rag/` — query before code edits; `./scripts/rag-index.sh`                                 |
-| Unity MCP (`unityMCP`)             | CoplayDev MCP for Unity — consult before scene/agent work; [docs/unity-mcp.md](docs/unity-mcp.md) |
-| Unity project                      | `Assets/`, `ProjectSettings/`, `Packages/` at repo root                                           |
-| ML-Agents                          | `com.unity.ml-agents` 4.0.3 + `com.unity.ai.inference` 2.2.1                                      |
-| Portfolio site deploy              | Week 3 — S3 + CloudFront static HTML (GIFs, gallery, write-up)                                    |
+| Component                          | Status                                                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Terraform bootstrap (state bucket) | Scaffolded — not yet applied                                                                        |
+| Terraform dev (S3 + CloudFront)    | Scaffolded — not yet applied                                                                        |
+| GitHub Actions CI                  | pytest + Terraform validate + tflint + Docker build                                                 |
+| Docker training image              | Built locally (`bob-train:latest`)                                                                  |
+| Baseline pytest suite              | `python/tests/` — config + plot_rewards + unity alignment + RAG                                     |
+| Repository RAG (ChromaDB + MCP)    | `python/rag/` — query before code edits; `./scripts/rag-index.sh`                                   |
+| Unity MCP (`unity-mcp`)            | Official Unity MCP bridge — consult before scene/agent work; [docs/unity-mcp.md](docs/unity-mcp.md) |
+| Unity project                      | `Assets/`, `ProjectSettings/`, `Packages/` at repo root                                             |
+| ML-Agents                          | `com.unity.ml-agents` 4.0.3 + `com.unity.ai.inference` 2.2.1                                        |
+| Portfolio site deploy              | Week 3 — S3 + CloudFront static HTML (GIFs, gallery, write-up)                                      |
 
 ## Update Log
 
-| Date       | Update                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------- |
-| 2026-06-18 | Initial repo scaffold pushed to `main`                                                      |
-| 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                             |
-| 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                           |
-| 2026-06-18 | Baseline testing strategy + pytest suite added                                              |
-| 2026-06-18 | Unity project + BobAgent + training scene builder added                                     |
-| 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`             |
-| 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                |
-| 2026-06-18 | Unity MCP — `com.coplaydev.unity-mcp`, `bob-unity` MCP, agent consultation rules            |
-| 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan        |
-| 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)           |
-| 2026-06-19 | Product north star — `docs/what-finished-looks-like.md`; success graph + scoreboard metrics |
+| Date       | Update                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
+| 2026-06-18 | Initial repo scaffold pushed to `main`                                                                     |
+| 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                                            |
+| 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                                          |
+| 2026-06-18 | Baseline testing strategy + pytest suite added                                                             |
+| 2026-06-18 | Unity project + BobAgent + training scene builder added                                                    |
+| 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`                            |
+| 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                               |
+| 2026-06-22 | Unity MCP — official `com.unity.ai.assistant` relay (`unity-mcp`), Bob custom MCP tools, removed CoplayDev |
+| 2026-06-18 | Unity MCP — agent consultation rules, bob-rag integration                                                  |
+| 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan                       |
+| 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)                          |
+| 2026-06-19 | Product north star — `docs/what-finished-looks-like.md`; success graph + scoreboard metrics                |

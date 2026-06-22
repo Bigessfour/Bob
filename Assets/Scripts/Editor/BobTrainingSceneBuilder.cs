@@ -1147,7 +1147,7 @@ public static class BobTrainingSceneBuilder
         fill.type = LightType.Directional;
         fill.intensity = ArcAcademyLabLighting.FillDirectionalLux;
         fill.color = new Color(0.92f, 0.94f, 1f);
-        fill.shadows = LightShadows.Soft;
+        fill.shadows = LightShadows.None;
         keyFill.transform.rotation = Quaternion.Euler(38f, -25f, 0f);
         keyFill.AddComponent<HDAdditionalLightData>();
 
