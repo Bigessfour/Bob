@@ -132,7 +132,24 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "EnsureSpawnAndManager" in builder
     assert "WireBobToArena" in builder
     assert "HideLegacyCourtVisuals" in builder
+    assert "TrainingBays" in builder
+    assert "ApplyLabScenePreset" in builder
+    assert "EnsureBobFace" in builder
+    assert "Mat_Wall_Tile_White" in builder
     assert "ApplyFromCli" in builder
+
+    preset = (repo_root / "Assets/Scripts/ArcAcademyLabRenderPreset.cs").read_text()
+    assert "ApplyLabViewPreset" in preset
+
+    camera = (repo_root / "Assets/Scripts/ArcAcademyDemoCamera.cs").read_text()
+    assert "ResetToLabHero" in camera
+    assert "LabHero" in camera
+
+    assert "LabCameraFieldOfView" in arena
+    assert "ShowBudgetFlavorProps" in arena
+
+    assert (repo_root / "Assets/Scripts/BobSpeechBubble.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/SimpleArenaTextureFactory.cs").is_file()
 
     manager = (repo_root / "Assets/Scripts/SimpleArcArenaManager.cs").read_text()
     assert "GetBobSpawnPosition" in manager
@@ -140,6 +157,7 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
 
     arc_mgr = (repo_root / "Assets/Scripts/ArcAcademyManager.cs").read_text()
     assert "SimpleArcArenaManager.Instance" in arc_mgr
+    assert "BobSpeechBubble" in arc_mgr
 
     validator = (repo_root / "Assets/Scripts/Editor/BobSceneValidator.cs").read_text()
     assert "VerifySimpleArcAcademy" in validator

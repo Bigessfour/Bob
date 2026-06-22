@@ -19,7 +19,8 @@ public static class SimpleArcAcademyArenaBuilder
     private const string PrefabsFolder = "Assets/Prefabs";
 
     private const string FloorMatPath = MaterialsFolder + "/Mat_Floor_Grid.mat";
-    private const string WallMatPath = MaterialsFolder + "/Mat_Wall_Blue.mat";
+    private const string WallMatPath = MaterialsFolder + "/Mat_Wall_Tile_White.mat";
+    private const string LegacyWallMatPath = MaterialsFolder + "/Mat_Wall_Blue.mat";
     private const string TargetRedMatPath = MaterialsFolder + "/Mat_Target_Red.mat";
     private const string TargetYellowMatPath = MaterialsFolder + "/Mat_Target_Yellow.mat";
     private const string TargetGreenMatPath = MaterialsFolder + "/Mat_Target_Green.mat";
@@ -109,6 +110,7 @@ public static class SimpleArcAcademyArenaBuilder
         WireBobToArena(arenaRoot);
 
         HideLegacyCourtVisuals();
+        ApplyLabScenePreset();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         AssetDatabase.SaveAssets();
 
@@ -178,6 +180,11 @@ public static class SimpleArcAcademyArenaBuilder
             materials.Wall,
             BobPhysicsLayers.TrainingArenaLayer,
             keepCollider: true);
+
+        if (!SimpleArcAcademyArena.ShowBudgetFlavorProps)
+        {
+            return;
+        }
 
         EnsurePrimitive(
             root,
@@ -309,6 +316,7 @@ public static class SimpleArcAcademyArenaBuilder
             Debug.LogWarning("SIMPLE_ARENA_WARN: Rim not found for BobAgent.hoop.");
         }
 
+        EnsureBobFace(bobGo);
         var bobPrefab = SaveBobPrefab(bobGo);
 
         bobGo.transform.SetParent(arenaRoot.transform, true);
@@ -373,18 +381,12 @@ public static class SimpleArcAcademyArenaBuilder
     /// </summary>
     private static void RepairVrShootInputReference(GameObject bob)
     {
-        if (!bob.TryGetComponent(out VrShootInputPlaceholder existing))
-        {
-            return;
-        }
+        GameObjectUtility.RemoveMonoBehavioursWithMissingScript(bob);
 
-        if (MonoScript.FromMonoBehaviour(existing) != null)
+        if (bob.GetComponent<VrShootInputPlaceholder>() == null)
         {
-            return;
+            bob.AddComponent<VrShootInputPlaceholder>();
         }
-
-        Object.DestroyImmediate(existing);
-        bob.AddComponent<VrShootInputPlaceholder>();
     }
 
     private static Transform FindRimTransform()
@@ -439,10 +441,38 @@ public static class SimpleArcAcademyArenaBuilder
 
     private static void HideLegacyCourtVisuals()
     {
-        SetActiveIfFound($"{ArcAcademyLayout.ArenaName}/{ArcAcademyLayout.CourtFloorName}", false);
-        SetActiveIfFound($"{ArcAcademyLayout.ArenaName}/Boundaries", false);
+        var arena = ArcAcademyLayout.ArenaName;
 
-        var spawnPad = GameObject.Find($"{ArcAcademyLayout.ArenaName}/{ArcAcademyLayout.SpawnPadName}");
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.CourtFloorName}", false);
+        SetActiveIfFound($"{arena}/Boundaries", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.WarehouseShellName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.TrainingBaysName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.MountainWindowName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.DecorativeHoopsName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.DistanceMarkingsName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.FloorDecalsName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.SpawnPadBrandingName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.CourtMarkingsName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.TrajectoryVisualsName}", false);
+        SetActiveIfFound($"{arena}/{ArcAcademyLayout.SignageArcAcademyName}", false);
+        SetActiveIfFound($"{arena}/ComplexRenderGroup", false);
+
+        var lightingRig = GameObject.Find($"{arena}/{ArcAcademyLayout.LightingRigName}");
+        if (lightingRig != null)
+        {
+            for (int i = 0; i < lightingRig.transform.childCount; i++)
+            {
+                var child = lightingRig.transform.GetChild(i);
+                if (child.name != "Sun" && !child.name.StartsWith("Hdrp"))
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        HideSimpleArenaBudgetProps();
+
+        var spawnPad = GameObject.Find($"{arena}/{ArcAcademyLayout.SpawnPadName}");
         if (spawnPad != null)
         {
             if (spawnPad.TryGetComponent(out Renderer renderer))
@@ -456,6 +486,123 @@ public static class SimpleArcAcademyArenaBuilder
             {
                 ballSpawn.gameObject.SetActive(true);
             }
+        }
+    }
+
+    private static void HideSimpleArenaBudgetProps()
+    {
+        var arena = GameObject.Find(SimpleArcAcademyArena.RootName);
+        if (arena == null)
+        {
+            return;
+        }
+
+        SetChildActive(arena.transform, SimpleArcAcademyArena.GoalBudgetSurplusName, false);
+        SetChildActive(arena.transform, SimpleArcAcademyArena.ZoneTaxRevenueName, false);
+
+        for (int i = 0; i < SimpleArcAcademyArena.ObstaclePlacements.Length; i++)
+        {
+            SetChildActive(arena.transform, $"{SimpleArcAcademyArena.ObstaclePrefix}{i + 1}", false);
+        }
+    }
+
+    private static void SetChildActive(Transform parent, string childName, bool active)
+    {
+        var child = parent.Find(childName);
+        if (child != null)
+        {
+            child.gameObject.SetActive(active);
+        }
+    }
+
+    private static void ApplyLabScenePreset()
+    {
+        ArcAcademyLabRenderPreset.ApplyLabViewPreset();
+
+        var camera = Camera.main;
+        if (camera == null)
+        {
+            return;
+        }
+
+        camera.transform.position = SimpleArcAcademyArena.LabCameraPosition;
+        camera.transform.rotation = Quaternion.LookRotation(
+            SimpleArcAcademyArena.LabCameraLookAt - SimpleArcAcademyArena.LabCameraPosition,
+            Vector3.up);
+        camera.fieldOfView = SimpleArcAcademyArena.LabCameraFieldOfView;
+
+        if (camera.TryGetComponent(out ArcAcademyDemoCamera demoCamera))
+        {
+            demoCamera.ResetToLabHero();
+            EditorUtility.SetDirty(demoCamera);
+        }
+
+        EditorUtility.SetDirty(camera);
+    }
+
+    private static void EnsureBobFace(GameObject bob)
+    {
+        EnsureBobEye(bob.transform, "Eye_Left", new Vector3(-0.18f, 0.12f, 0.51f));
+        EnsureBobEye(bob.transform, "Eye_Right", new Vector3(0.18f, 0.12f, 0.51f));
+
+        if (bob.GetComponent<BobSpeechBubble>() == null)
+        {
+            var bubbleRoot = new GameObject("BobSpeechBubble");
+            bubbleRoot.transform.SetParent(bob.transform, false);
+            bubbleRoot.transform.localPosition = new Vector3(0f, 1.1f, 0f);
+
+            var textGo = new GameObject("BubbleText");
+            textGo.transform.SetParent(bubbleRoot.transform, false);
+            textGo.transform.localPosition = Vector3.zero;
+            textGo.transform.localRotation = Quaternion.identity;
+            textGo.transform.localScale = Vector3.one;
+
+            var textMesh = textGo.AddComponent<TextMesh>();
+            textMesh.text = "Great job, Bob!";
+            textMesh.characterSize = 0.08f;
+            textMesh.fontStyle = FontStyle.Bold;
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            textMesh.alignment = TextAlignment.Center;
+            textMesh.color = Color.white;
+
+            var bubble = bubbleRoot.AddComponent<BobSpeechBubble>();
+            var so = new SerializedObject(bubble);
+            so.FindProperty("textMesh").objectReferenceValue = textMesh;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+    }
+
+    private static void EnsureBobEye(Transform bob, string name, Vector3 localPosition)
+    {
+        var existing = bob.Find(name);
+        GameObject eyeGo;
+
+        if (existing != null)
+        {
+            eyeGo = existing.gameObject;
+        }
+        else
+        {
+            eyeGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            eyeGo.name = name;
+            eyeGo.transform.SetParent(bob, false);
+
+            var collider = eyeGo.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Object.DestroyImmediate(collider);
+            }
+        }
+
+        eyeGo.transform.localPosition = localPosition;
+        eyeGo.transform.localRotation = Quaternion.identity;
+        eyeGo.transform.localScale = new Vector3(0.14f, 0.2f, 1f);
+        BobPhysicsLayers.SetLayerRecursively(eyeGo, BobPhysicsLayers.DecorationLayer);
+
+        var renderer = eyeGo.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.sharedMaterial = ArcAcademyMaterialFactory.CreateHdrpLit(new Color(0.08f, 0.08f, 0.1f), 0.1f, 0f);
         }
     }
 
@@ -484,41 +631,71 @@ public static class SimpleArcAcademyArenaBuilder
     {
         Directory.CreateDirectory(MaterialsFolder);
 
-        EnsureLitMaterial(
+        var floorTex = SimpleArenaTextureFactory.EnsureFloorGridTexture();
+        var wallTex = SimpleArenaTextureFactory.EnsureWallTileTexture();
+
+        EnsureLitMaterialWithTexture(
             FloorMatPath,
             "Mat_Floor_Grid",
             SimpleArcAcademyArena.FloorColor,
-            smoothness: 0.35f,
-            metallic: 0f);
+            floorTex,
+            smoothness: 0.25f,
+            metallic: 0f,
+            textureScale: new Vector2(20f, 20f));
 
-        EnsureLitMaterial(
+        EnsureLitMaterialWithTexture(
             WallMatPath,
-            "Mat_Wall_Blue",
+            "Mat_Wall_Tile_White",
             SimpleArcAcademyArena.WallColor,
-            smoothness: 0.2f,
-            metallic: 0f);
+            wallTex,
+            smoothness: 0.15f,
+            metallic: 0f,
+            textureScale: new Vector2(8f, 2f));
 
         EnsureUnlitMaterial(TargetRedMatPath, "Mat_Target_Red", SimpleArcAcademyArena.TargetRed);
         EnsureUnlitMaterial(TargetYellowMatPath, "Mat_Target_Yellow", SimpleArcAcademyArena.TargetYellow);
         EnsureUnlitMaterial(TargetGreenMatPath, "Mat_Target_Green", SimpleArcAcademyArena.TargetGreen);
     }
 
-    private static void EnsureLitMaterial(
+    private static void EnsureLitMaterialWithTexture(
         string assetPath,
         string assetName,
         Color baseColor,
+        Texture2D texture,
         float smoothness,
-        float metallic)
+        float metallic,
+        Vector2 textureScale)
     {
-        var existing = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-        if (existing != null)
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+        if (mat == null)
         {
-            return;
+            mat = ArcAcademyMaterialFactory.CreateHdrpLit(baseColor, smoothness, metallic);
+            mat.name = assetName;
+            AssetDatabase.CreateAsset(mat, assetPath);
         }
 
-        var mat = ArcAcademyMaterialFactory.CreateHdrpLit(baseColor, smoothness, metallic);
-        mat.name = assetName;
-        AssetDatabase.CreateAsset(mat, assetPath);
+        if (mat.HasProperty("_BaseColor"))
+        {
+            mat.SetColor("_BaseColor", baseColor);
+        }
+
+        if (texture != null && mat.HasProperty("_BaseColorMap"))
+        {
+            mat.SetTexture("_BaseColorMap", texture);
+            mat.SetTextureScale("_BaseColorMap", textureScale);
+        }
+
+        if (mat.HasProperty("_Smoothness"))
+        {
+            mat.SetFloat("_Smoothness", smoothness);
+        }
+
+        if (mat.HasProperty("_Metallic"))
+        {
+            mat.SetFloat("_Metallic", metallic);
+        }
+
+        EditorUtility.SetDirty(mat);
     }
 
     private static void EnsureUnlitMaterial(string assetPath, string assetName, Color color)
@@ -536,10 +713,13 @@ public static class SimpleArcAcademyArenaBuilder
 
     private static ArenaMaterials LoadMaterials()
     {
+        var wall = AssetDatabase.LoadAssetAtPath<Material>(WallMatPath)
+            ?? AssetDatabase.LoadAssetAtPath<Material>(LegacyWallMatPath);
+
         return new ArenaMaterials
         {
             Floor = AssetDatabase.LoadAssetAtPath<Material>(FloorMatPath),
-            Wall = AssetDatabase.LoadAssetAtPath<Material>(WallMatPath),
+            Wall = wall,
             TargetRed = AssetDatabase.LoadAssetAtPath<Material>(TargetRedMatPath),
             TargetYellow = AssetDatabase.LoadAssetAtPath<Material>(TargetYellowMatPath),
             TargetGreen = AssetDatabase.LoadAssetAtPath<Material>(TargetGreenMatPath),

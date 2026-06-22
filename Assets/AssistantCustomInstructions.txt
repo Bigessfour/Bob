@@ -7,9 +7,14 @@ PRODUCT (what finished looks like)
 - Success-rate graph shows learning progress (BobTrainingSuccessGraph).
 - Decorative geometry must NOT collide with Bob or ball (BobPhysicsLayers).
 
-VISUAL TARGET (Arc Academy Lab — not photoreal warehouse)
-- Clean AI Warehouse–style training lab: readable lighting, flat materials, one hoop.
-- Simple arena mode: SimpleArcAcademyArena primitive court; ComplexRenderGroup disabled.
+VISUAL TARGET (AI Warehouse lab — incremental polish)
+- Reference: docs/design/ai-warehouse-lab-reference.png (white tile walls, dark grid floor, soft light).
+- SimpleArcAcademyArena: white Mat_Wall_Tile_White, grid Mat_Floor_Grid, budget props hidden.
+- Legacy photoreal clutter hidden: TrainingBays, MountainWindow, WarehouseShell, ComplexRenderGroup, extra lights.
+- Lab camera: SimpleArcAcademyArena.LabCameraPosition, FOV 65°, high corner framing (LabHero mode).
+- Lab lighting: ArcAcademyLabRenderPreset.ApplyLabViewPreset — Sun only, minimal bloom, SSR off.
+- Bob face: Eye_Left/Eye_Right quads; BobSpeechBubble shows "Great job, Bob!" on made basket.
+- Screen HUD (BobTrainingScoreboard) remains; wall-mounted panels are Phase 2 defer.
 - Photoreal warehouse is stretch only — do not scope as default.
 
 AGENT & TRAINING (non-negotiable)
@@ -25,6 +30,8 @@ KEY SCRIPTS & PATHS
 - BobTrainingStats.cs — single source of truth for scoreboard metrics
 - ArcAcademyManager / SimpleArcArenaManager — spawn + episode reset (simple arena)
 - SimpleArcAcademyArenaBuilder — menu Bob → Setup → Simple Arc Academy Arena
+- SimpleArenaTextureFactory — procedural floor/wall grid textures (Editor)
+- BobSpeechBubble.cs — agent encouragement on score
 - HoopScoreZone, HoopRimContact — basket detection
 - BobTrainingSceneBuilder, BobSceneValidator — CLI scene build/validate
 
@@ -34,12 +41,13 @@ PHYSICS LAYERS
 SCENE WIRING (Simple Arc Academy)
 - SimpleArcAcademyArena root with SpawnPoint, Bob child, SimpleArcArenaManager
 - Bob prefab: Assets/Prefabs/Prefab_Bob.prefab
-- Hide legacy TrainingArena court shell when using simple arena (ComplexRenderGroup off)
+- Hide legacy TrainingArena court shell when using simple arena
 
 EDITOR WORKFLOW FOR AI
 - Before scene/component edits: inspect active scene, hierarchy, Behavior Parameters, console.
 - Prefer Bob custom MCP tools: bob_open_training_scene, bob_setup_simple_arena.
 - CLI fallbacks (Editor closed): SimpleArcAcademyArenaBuilder.ApplyFromCli, BobSceneValidator.VerifyFromCli
+- Put durable visual changes in SimpleArcAcademyArenaBuilder / ArcAcademyLabRenderPreset — not one-off scene edits.
 - Do not commit Library/, results/, .venv/, or Unity-generated churn.
 
 SCOPE DISCIPLINE

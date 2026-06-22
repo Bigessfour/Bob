@@ -21,8 +21,11 @@ public static class SimpleArcAcademyArena
     public const string ZoneTaxRevenueName = "Zone_TaxRevenue";
     public const string ObstaclePrefix = "Obstacle_OverSpend_";
 
-    public static readonly Color FloorColor = new(0.333f, 0.333f, 0.333f);
-    public static readonly Color WallColor = new(0f, 0.667f, 1f);
+    /// <summary>Budget-flavor props are hidden in AI Warehouse lab polish mode.</summary>
+    public const bool ShowBudgetFlavorProps = false;
+
+    public static readonly Color FloorColor = new(0.18f, 0.18f, 0.2f);
+    public static readonly Color WallColor = new(0.92f, 0.92f, 0.92f);
     public static readonly Color TargetRed = new(1f, 0.15f, 0.15f);
     public static readonly Color TargetYellow = new(1f, 0.92f, 0.1f);
     public static readonly Color TargetGreen = new(0.2f, 0.95f, 0.35f);
@@ -32,6 +35,13 @@ public static class SimpleArcAcademyArena
 
     /// <summary>Free-throw spawn on simple arena floor (≈ legacy BobSpawnPosition).</summary>
     public static readonly Vector3 BobSpawnLocalPosition = new(0f, 0.02f, -2f);
+
+    /// <summary>High corner camera framing (AI Warehouse lab reference).</summary>
+    public static readonly Vector3 LabCameraPosition = new(8f, 6f, -8f);
+    public static readonly Vector3 LabCameraLookAt = new(0f, 1.5f, 2f);
+    public const float LabCameraFieldOfView = 65f;
+
+    public static bool IsLabViewActive => HasArenaFloor();
 
     public static bool HasArenaFloor()
     {

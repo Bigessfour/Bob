@@ -342,6 +342,66 @@ public static class ArcAcademyLabRenderPreset
         return adjusted;
     }
 
+    public static void ApplyLabViewPreset()
+    {
+        if (!SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ApplyAll();
+            return;
+        }
+
+        var volume = Object.FindAnyObjectByType<Volume>();
+        if (volume != null && volume.profile != null)
+        {
+            ApplyMinimalTrainerVolume(volume.profile);
+
+            if (volume.profile.TryGet(out Bloom bloom))
+            {
+                bloom.active = true;
+                bloom.intensity.overrideState = true;
+                bloom.intensity.value = 0.08f;
+            }
+
+            if (volume.profile.TryGet(out ScreenSpaceReflection ssr))
+            {
+                ssr.active = true;
+                ssr.enabled.overrideState = true;
+                ssr.enabled.value = false;
+            }
+        }
+
+        DisableNonSunLights();
+        EnforceSingleDirectionalShadow();
+        Debug.Log("ARC_LAB_VIEW_OK: AI Warehouse lab preset applied (Sun only, flat volume).");
+    }
+
+    private static void DisableNonSunLights()
+    {
+        foreach (var light in Object.FindObjectsByType<Light>())
+        {
+            if (light == null)
+            {
+                continue;
+            }
+
+            if (light.gameObject.name == "Sun")
+            {
+                light.enabled = true;
+                SetLightIntensity(light, ArcAcademyLabLightingValues.SunLux, LightUnit.Lux);
+                light.shadows = LightShadows.Soft;
+                SyncHdrpLight(light);
+                continue;
+            }
+
+            light.enabled = false;
+            if (light.TryGetComponent(out HDAdditionalLightData hd))
+            {
+                hd.SetLightDimmer(0f, 0f);
+                hd.UpdateAllLightValues();
+            }
+        }
+    }
+
     public static void ApplyAll()
     {
         ApplyVolumeInScene();
@@ -370,6 +430,8 @@ public static class ArcAcademyLabRenderPreset
         if (light.type == LightType.Directional && light.gameObject.name != "Sun")
         {
             hd.interactsWithSky = false;
+            light.shadows = LightShadows.None;
+            hd.EnableShadows(false);
         }
 
         hd.UpdateAllLightValues();

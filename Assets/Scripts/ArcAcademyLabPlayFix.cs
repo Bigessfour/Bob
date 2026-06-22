@@ -8,7 +8,13 @@ public class ArcAcademyLabPlayFix : MonoBehaviour
 {
     private void Awake()
     {
-        // ArcAcademyManager also applies the lab preset; keep this as a fallback if manager is missing.
-        ArcAcademyLabRenderPreset.ApplyAll();
+        if (SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ArcAcademyLabRenderPreset.ApplyLabViewPreset();
+        }
+        else
+        {
+            ArcAcademyLabRenderPreset.ApplyAll();
+        }
     }
 }
