@@ -28,6 +28,13 @@ public static class BobSceneValidator
             return;
         }
 
+        if (SimpleArcAcademyArena.HasArenaFloor()
+            && Object.FindAnyObjectByType<SimpleArcArenaManager>() != null)
+        {
+            VerifySimpleArcAcademy();
+            return;
+        }
+
         if (GameObject.Find(ArcAcademyLayout.ArenaName) == null)
         {
             Debug.LogError("VALIDATE_FAIL: TrainingArena root missing");
@@ -655,6 +662,144 @@ public static class BobSceneValidator
         }
 
         Debug.Log("VALIDATE_PASS: Minimal free-throw trainer is ready for Play mode and training");
+        EditorApplication.Exit(0);
+    }
+
+    /// <summary>
+    /// Grok simple-arena path: one Bob, simple floor/walls, legacy photoreal shell hidden.
+    /// </summary>
+    private static void VerifySimpleArcAcademy()
+    {
+        if (GameObject.Find(ArcAcademyLayout.ArenaName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: TrainingArena root missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<ArcAcademyManager>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyManager missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var arenaRoot = GameObject.Find(SimpleArcAcademyArena.RootName);
+        if (arenaRoot == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SimpleArcAcademyArena root missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var manager = arenaRoot.GetComponent<SimpleArcArenaManager>();
+        if (manager == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SimpleArcArenaManager missing on SimpleArcAcademyArena");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (arenaRoot.transform.Find(SimpleArcAcademyArena.SpawnPointName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SpawnPoint missing under SimpleArcAcademyArena");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(SimpleArcAcademyArena.BobPrefabPath) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Prefab_Bob missing at " + SimpleArcAcademyArena.BobPrefabPath);
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.HdrpVolumeName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HdrpVolume missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var hdrpVolume = GameObject.Find(ArcAcademyLayout.HdrpVolumeName).GetComponent<Volume>();
+        if (hdrpVolume == null || hdrpVolume.sharedProfile == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HdrpVolume missing shared profile");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var scoreZones = Object.FindObjectsByType<HoopScoreZone>();
+        if (scoreZones.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one HoopScoreZone is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var movableHoops = Object.FindObjectsByType<MovableHoop>();
+        if (movableHoops.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one MovableHoop (active scoring hoop) is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var agent = Object.FindAnyObjectByType<BobAgent>();
+        if (agent == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobAgent missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.transform.parent != arenaRoot.transform)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob must be parented under SimpleArcAcademyArena");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var behavior = agent.GetComponent<BehaviorParameters>();
+        if (behavior == null || behavior.BehaviorName != "Bob")
+        {
+            Debug.LogError("VALIDATE_FAIL: BehaviorParameters must use behavior name Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (behavior.BrainParameters.VectorObservationSize != 8
+            || behavior.BrainParameters.ActionSpec.NumContinuousActions != 3)
+        {
+            Debug.LogError("VALIDATE_FAIL: Simple arena requires 8 observations and 3 continuous actions");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.hoop == null || agent.hoop.name != ArcAcademyLayout.RimName)
+        {
+            Debug.LogError("VALIDATE_FAIL: Hoop reference not wired to Rim on BobAgent");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<BobTrainingStats>() == null
+            || Object.FindAnyObjectByType<BobTrainingScoreboard>() == null
+            || Object.FindAnyObjectByType<BobTrainingSuccessGraph>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Training HUD components missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Camera.main == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Main Camera missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        Debug.Log("VALIDATE_PASS: Simple Arc Academy arena is ready for Play mode and training");
         EditorApplication.Exit(0);
     }
 

@@ -1,0 +1,51 @@
+Bob — Deep RL Free Throw Training Lab (Unity 6 + ML-Agents)
+
+PRODUCT (what finished looks like)
+- Orange cube agent Bob shoots free throws at ONE active hoop per iteration.
+- Made basket → +1 basketball point on in-scene scoreboard (separate from RL reward).
+- Scoreboard tracks: iterations, score, cumulative RL rewards/penalties, net RL, success rate %.
+- Success-rate graph shows learning progress (BobTrainingSuccessGraph).
+- Decorative geometry must NOT collide with Bob or ball (BobPhysicsLayers).
+
+VISUAL TARGET (Arc Academy Lab — not photoreal warehouse)
+- Clean AI Warehouse–style training lab: readable lighting, flat materials, one hoop.
+- Simple arena mode: SimpleArcAcademyArena primitive court; ComplexRenderGroup disabled.
+- Photoreal warehouse is stretch only — do not scope as default.
+
+AGENT & TRAINING (non-negotiable)
+- Behavior Name MUST be "Bob" — matches config/bob_free_throw.yaml behaviors: Bob:
+- BobAgent: 8 observations, 3 continuous actions (PPO).
+- Exactly ONE HoopScoreZone / active scoring hoop — BobSceneValidator enforces this.
+- Training scene: Assets/Scenes/BobTraining.unity
+- Configs live in config/ — do not hardcode hyperparameters in Python.
+- Train: mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0 (from python/ venv)
+
+KEY SCRIPTS & PATHS
+- BobAgent.cs — reward shaping, shoot impulse, episode end
+- BobTrainingStats.cs — single source of truth for scoreboard metrics
+- ArcAcademyManager / SimpleArcArenaManager — spawn + episode reset (simple arena)
+- SimpleArcAcademyArenaBuilder — menu Bob → Setup → Simple Arc Academy Arena
+- HoopScoreZone, HoopRimContact — basket detection
+- BobTrainingSceneBuilder, BobSceneValidator — CLI scene build/validate
+
+PHYSICS LAYERS
+- Bob (agent/projectile), TrainingArena (floor/walls/hoop collision), Decoration (no gameplay collision)
+
+SCENE WIRING (Simple Arc Academy)
+- SimpleArcAcademyArena root with SpawnPoint, Bob child, SimpleArcArenaManager
+- Bob prefab: Assets/Prefabs/Prefab_Bob.prefab
+- Hide legacy TrainingArena court shell when using simple arena (ComplexRenderGroup off)
+
+EDITOR WORKFLOW FOR AI
+- Before scene/component edits: inspect active scene, hierarchy, Behavior Parameters, console.
+- Prefer Bob custom MCP tools: bob_open_training_scene, bob_setup_simple_arena.
+- CLI fallbacks (Editor closed): SimpleArcAcademyArenaBuilder.ApplyFromCli, BobSceneValidator.VerifyFromCli
+- Do not commit Library/, results/, .venv/, or Unity-generated churn.
+
+SCOPE DISCIPLINE
+- MVP first: working training loop before polish or deployment.
+- Week 1 gate: validate-scene + train.sh + Play with in-scene UI (not TensorBoard as primary display).
+- No web frameworks; no second scoring hoop; no Behavior Name changes without YAML + validator updates.
+
+WHEN UNSURE
+- Read docs/what-finished-looks-like.md, docs/design/visual-vision.md, AGENTS.md, PROJECT.md.

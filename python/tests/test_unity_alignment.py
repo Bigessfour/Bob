@@ -22,16 +22,13 @@ LEGACY_EDITOR_SCRIPTS = (
     Path("Assets/Editor/BobSceneValidator.cs"),
     Path("Assets/Editor/BobTrainingSceneBuilder.cs"),
 )
-MCP_BOOTSTRAP = Path("Assets/Editor/Mcp/BobMcpBootstrap.cs")
-MCP_ASMDEF = Path("Assets/Editor/Mcp/Bob.Mcp.asmdef")
+MCP_CONFIG = Path(".cursor/mcp.json")
+UNITY_MCP_SCRIPT = Path("scripts/unity-mcp.sh")
+BOB_MCP_TOOLS = Path("Assets/Scripts/Editor/BobUnityMcpTools.cs")
+SCENE_EDITOR_ASMDEF = Path("Assets/Scripts/Editor/Bob.SceneEditor.asmdef")
+MANIFEST = Path("Packages/manifest.json")
 EDITOR_ASMDEF = Path("Assets/Editor/Bob.Editor.asmdef")
 VALIDATE_SCENE_SCRIPT = Path("scripts/validate-scene.sh")
-
-MCP_PREF_KEYS = (
-    "MCPForUnity.AutoStartOnLoad",
-    "MCPForUnity.LockCursorConfig",
-    "MCPForUnity.ClientProjectDir",
-)
 
 
 def test_yaml_behavior_name(trainer_config: dict) -> None:
@@ -58,14 +55,43 @@ def test_editor_scripts_live_under_scripts_editor(repo_root: Path) -> None:
         assert not (repo_root / path).exists(), f"Legacy path still present: {path}"
 
 
-def test_mcp_asmdef_layout(repo_root: Path) -> None:
-    assert (repo_root / MCP_BOOTSTRAP).is_file()
-    asmdef_path = repo_root / MCP_ASMDEF
-    assert asmdef_path.is_file()
-    asmdef = json.loads(asmdef_path.read_text())
-    assert asmdef["name"] == "Bob.Mcp"
-    assert "MCPForUnity.Editor" in asmdef["references"]
-    assert asmdef["includePlatforms"] == ["Editor"]
+def test_unity_mcp_cursor_config(repo_root: Path) -> None:
+    """Cursor MCP uses official Unity relay script, not CoplayDev HTTP."""
+    config = json.loads((repo_root / MCP_CONFIG).read_text())
+    servers = config["mcpServers"]
+    assert "unity-mcp" in servers
+    assert "unityMCP" not in servers
+    unity = servers["unity-mcp"]
+    assert unity["command"].endswith("unity-mcp.sh")
+    script = (repo_root / UNITY_MCP_SCRIPT).read_text()
+    assert "--mcp" in script
+    assert ".unity/relay" in script
+
+
+def test_manifest_uses_official_unity_mcp(repo_root: Path) -> None:
+    manifest = json.loads((repo_root / MANIFEST).read_text())
+    deps = manifest["dependencies"]
+    assert "com.coplaydev.unity-mcp" not in deps
+    assert "com.unity.ai.assistant" in deps
+
+
+def test_bob_unity_mcp_tools_registered(repo_root: Path) -> None:
+    source = (repo_root / BOB_MCP_TOOLS).read_text()
+    assert "[McpTool(" in source
+    assert "bob_setup_simple_arena" in source
+    assert "bob_open_training_scene" in source
+    assert 'ScenePath = "Assets/Scenes/BobTraining.unity"' in source
+
+
+def test_scene_editor_references_unity_mcp(repo_root: Path) -> None:
+    asmdef = json.loads((repo_root / SCENE_EDITOR_ASMDEF).read_text())
+    assert "Unity.AI.MCP.Editor" in asmdef["references"]
+
+
+def test_legacy_coplay_mcp_bootstrap_removed(repo_root: Path) -> None:
+    assert not (repo_root / "Assets/Editor/Mcp/BobMcpBootstrap.cs").exists()
+    assert not (repo_root / "scripts/unity-mcp-http.sh").exists()
+    assert not (repo_root / "scripts/mcp-connect.sh").exists()
 
 
 def test_bob_editor_asmdef_exists(repo_root: Path) -> None:
@@ -85,20 +111,51 @@ def test_bob_runtime_asmdef_references_hdrp(repo_root: Path) -> None:
     assert "Unity.RenderPipelines.HighDefinition.Runtime" in asmdef["references"]
 
 
-def test_mcp_bootstrap_pref_keys(repo_root: Path) -> None:
-    """BobMcpBootstrap mirrors MCPForUnity EditorPrefKeys (offline string guard)."""
-    source = (repo_root / MCP_BOOTSTRAP).read_text()
-    for key in MCP_PREF_KEYS:
-        assert key in source, f"MCP pref key missing from bootstrap: {key}"
-    assert 'ScenePath = "Assets/Scenes/BobTraining.unity"' in source
-
-
 def test_validate_scene_script_wires_cli_methods(repo_root: Path) -> None:
     script = (repo_root / VALIDATE_SCENE_SCRIPT).read_text()
     assert "ArcAcademyHdrpSetup.EnsureHdrpFromCli" in script
     assert "BobTrainingSceneBuilder.CreateTrainingSceneFromCli" in script
+    assert "SimpleArcAcademyArenaBuilder.ApplyFromCli" in script
     assert "BobSceneValidator.VerifyFromCli" in script
     assert "VALIDATE_PASS" in script
+
+
+def test_simple_arc_academy_wiring(repo_root: Path) -> None:
+    """Offline mirror of VerifySimpleArcAcademy + builder constants."""
+    arena = (repo_root / "Assets/Scripts/SimpleArcAcademyArena.cs").read_text()
+    assert 'RootName = "SimpleArcAcademyArena"' in arena
+    assert 'SpawnPointName = "SpawnPoint"' in arena
+    assert 'BobPrefabPath = "Assets/Prefabs/Prefab_Bob.prefab"' in arena
+    assert 'GoalBudgetSurplusName = "Goal_BudgetSurplus"' in arena
+
+    builder = (repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs").read_text()
+    assert "EnsureSpawnAndManager" in builder
+    assert "WireBobToArena" in builder
+    assert "HideLegacyCourtVisuals" in builder
+    assert "ApplyFromCli" in builder
+
+    manager = (repo_root / "Assets/Scripts/SimpleArcArenaManager.cs").read_text()
+    assert "GetBobSpawnPosition" in manager
+    assert "ResetEpisode" in manager
+
+    arc_mgr = (repo_root / "Assets/Scripts/ArcAcademyManager.cs").read_text()
+    assert "SimpleArcArenaManager.Instance" in arc_mgr
+
+    validator = (repo_root / "Assets/Scripts/Editor/BobSceneValidator.cs").read_text()
+    assert "VerifySimpleArcAcademy" in validator
+    assert "SimpleArcAcademyArena.BobPrefabPath" in validator
+
+    assert (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").is_file()
+    assert (repo_root / "Assets/Prefabs/Prefab_SimpleArena.prefab").is_file()
+    assert (repo_root / "Assets/AssistantCustomInstructions.txt").is_file()
+
+
+def test_bob_training_scene_simple_arena_yaml(repo_root: Path) -> None:
+    content = (repo_root / SCENE_PATH).read_text()
+    assert "m_Name: SimpleArcAcademyArena" in content
+    assert "m_Name: SpawnPoint" in content
+    assert "Bob::SimpleArcArenaManager" in content
+    assert "916a5d8bda46f469d91ec49b7dbe3355" in content
 
 
 def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
@@ -106,20 +163,28 @@ def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
     scene_path = repo_root / SCENE_PATH
     assert scene_path.is_file(), f"Missing training scene: {SCENE_PATH}"
     content = scene_path.read_text()
+    bob_prefab = (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").read_text()
+    ml_agents_blob = content + bob_prefab
 
-    assert "m_EditorClassIdentifier: Bob::BobAgent" in content
-    assert f"m_BehaviorName: {EXPECTED_BEHAVIOR_NAME}" in content
-    assert f"m_BehaviorType: {EXPECTED_BEHAVIOR_TYPE_ENUM}" in content
-    assert f"VectorObservationSize: {EXPECTED_VECTOR_OBSERVATIONS}" in content
-    assert f"m_NumContinuousActions: {EXPECTED_CONTINUOUS_ACTIONS}" in content
-    assert re.search(r"^\s*hoop: \{fileID: [1-9]\d*", content, re.MULTILINE)
+    assert "m_EditorClassIdentifier: Bob::BobAgent" in content or "Bob::BobAgent" in bob_prefab
+    assert f"m_BehaviorName: {EXPECTED_BEHAVIOR_NAME}" in ml_agents_blob
+    assert f"m_BehaviorType: {EXPECTED_BEHAVIOR_TYPE_ENUM}" in ml_agents_blob
+    assert f"VectorObservationSize: {EXPECTED_VECTOR_OBSERVATIONS}" in ml_agents_blob
+    assert f"m_NumContinuousActions: {EXPECTED_CONTINUOUS_ACTIONS}" in ml_agents_blob
+    hoop_wired = re.search(
+        r"^\s*hoop: \{fileID: [1-9]\d*", ml_agents_blob, re.MULTILINE
+    ) or re.search(
+        r"propertyPath: hoop\s*\n\s*value:\s*\n\s*objectReference: \{fileID: [1-9]\d*",
+        content,
+    )
+    assert hoop_wired, "Bob hoop reference must be set in scene or Prefab_Bob"
     assert "m_Name: TrainingArena" in content
     assert "m_Name: CourtFloor" in content
     assert "m_EditorClassIdentifier: Bob::HoopScoreZone" in content
     assert "m_EditorClassIdentifier: Bob::ArcAcademyManager" in content
     assert "m_EditorClassIdentifier: Bob::MovableHoop" in content
     assert "m_Name: BallSpawnPoint" in content
-    assert "m_EditorClassIdentifier: Bob::BobShootingInput" in content
+    assert "m_EditorClassIdentifier: Bob::BobShootingInput" in ml_agents_blob
     assert "m_EditorClassIdentifier: Bob::ArcAcademyScorePopup" in content
     assert "m_EditorClassIdentifier: Bob::HoopNetPhysics" in content
     assert "m_Name: SpawnPad" in content

@@ -58,6 +58,12 @@ public static class SimpleArcAcademyArenaBuilder
 
     public static void ApplyFromCli()
     {
+        if (EditorApplication.isCompiling)
+        {
+            EditorApplication.delayCall += ApplyFromCli;
+            return;
+        }
+
         if (!EnsureScene())
         {
             EditorApplication.Exit(1);
@@ -270,6 +276,14 @@ public static class SimpleArcAcademyArenaBuilder
 
     private static void WireBobToArena(GameObject arenaRoot)
     {
+        if (PrefabUtility.IsPartOfPrefabInstance(arenaRoot))
+        {
+            PrefabUtility.UnpackPrefabInstance(
+                arenaRoot,
+                PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+        }
+
         var spawn = arenaRoot.transform.Find(SimpleArcAcademyArena.SpawnPointName);
         var bobGo = GameObject.Find("Bob");
         if (bobGo == null)
@@ -277,8 +291,6 @@ public static class SimpleArcAcademyArenaBuilder
             Debug.LogWarning("SIMPLE_ARENA_WARN: Bob not found — skip agent wiring.");
             return;
         }
-
-        bobGo.transform.SetParent(arenaRoot.transform, true);
 
         if (!bobGo.TryGetComponent(out BobAgent bobAgent))
         {
@@ -298,6 +310,9 @@ public static class SimpleArcAcademyArenaBuilder
         }
 
         var bobPrefab = SaveBobPrefab(bobGo);
+
+        bobGo.transform.SetParent(arenaRoot.transform, true);
+
         var manager = arenaRoot.GetComponent<SimpleArcArenaManager>();
         if (manager != null)
         {
@@ -324,12 +339,52 @@ public static class SimpleArcAcademyArenaBuilder
 
     private static GameObject SaveBobPrefab(GameObject bob)
     {
+        RepairVrShootInputReference(bob);
+
         Directory.CreateDirectory(PrefabsFolder);
         var path = SimpleArcAcademyArena.BobPrefabPath;
+
+        if (PrefabUtility.IsPartOfPrefabInstance(bob))
+        {
+            var duplicate = Object.Instantiate(bob);
+            duplicate.name = bob.name;
+            try
+            {
+                return PrefabUtility.SaveAsPrefabAssetAndConnect(
+                    duplicate,
+                    path,
+                    InteractionMode.AutomatedAction);
+            }
+            finally
+            {
+                Object.DestroyImmediate(duplicate);
+            }
+        }
+
         return PrefabUtility.SaveAsPrefabAssetAndConnect(
             bob,
             path,
             InteractionMode.AutomatedAction);
+    }
+
+    /// <summary>
+    /// Scene rebuilds can leave VrShootInputPlaceholder on a stale embedded MonoScript fileID;
+    /// PrefabUtility rejects that in batchmode. Recreate the component when the script asset is missing.
+    /// </summary>
+    private static void RepairVrShootInputReference(GameObject bob)
+    {
+        if (!bob.TryGetComponent(out VrShootInputPlaceholder existing))
+        {
+            return;
+        }
+
+        if (MonoScript.FromMonoBehaviour(existing) != null)
+        {
+            return;
+        }
+
+        Object.DestroyImmediate(existing);
+        bob.AddComponent<VrShootInputPlaceholder>();
     }
 
     private static Transform FindRimTransform()
