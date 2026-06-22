@@ -45,16 +45,17 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 - [x] Success-rate graph (`BobTrainingSuccessGraph`)
 - [x] Product north star — [`docs/what-finished-looks-like.md`](what-finished-looks-like.md)
 - [x] Visual vision — [`docs/design/visual-vision.md`](design/visual-vision.md)
-- [ ] **First training run completes without errors** ← **current gate**
+- [ ] **First training run completes without errors** ← **current gate** (`BOB_TRAINING_OK`)
 
 ### Week 2 — Training & Iteration
 
-- [ ] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; scoreboards update each episode
-- [ ] **Phase 1.5** — separate basketball projectile (launcher cube + ball)
-- [ ] **Arc Academy Lab visuals** — corner room, wall scoreboards ([visual-vision.md](design/visual-vision.md) Phase 2)
+- [ ] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; wall HUD updates each episode
+- [x] **Phase 1.5** — separate basketball projectile (launcher cube + ball)
+- [x] **Arc Academy Lab visuals** — corner room, wall HUD, Bob charisma ([visual-vision.md](design/visual-vision.md) Phase 2)
 - [x] Progress screenshot history in `docs/progress/`
 - [ ] Record training progress GIFs (play-mode capture + Recorder/ffmpeg)
-- [ ] Document hyperparameters in `config/`
+- [x] Document hyperparameters in `config/`
+- [x] Session metrics export + `plot_training_progress.py`
 
 ### Week 3 — Polish + Deployment + Documentation
 
@@ -65,6 +66,7 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 - [ ] README demo link updated with CloudFront URL
 - [ ] Technical write-up in `docs/`
 - [x] GitHub Actions CI smoke test (Python + Terraform validate)
+- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`)
 
 ## Key Design Decisions
 

@@ -121,23 +121,23 @@ Work on **`feature/*`** branches → PR → green CI → merge. Never commit dir
 
 | Step | Action                                            | Done when                                                          |
 | ---- | ------------------------------------------------- | ------------------------------------------------------------------ |
-| 1.1  | `./scripts/validate-scene.sh`                     | `VALIDATE_PASS`                                                    |
+| 1.1  | `./scripts/validate-scene.sh`                     | `VALIDATE_PASS` ✅                                                 |
 | 1.2  | `./scripts/train.sh` → Press Play after port 5004 | Console shows training steps, not inference fallback               |
-| 1.3  | Confirm scoreboard + success graph update in Play | Iterations, score, rewards, penalties, success % move each episode |
-| 1.4  | Merge training fixes via PR                       | CI green                                                           |
+| 1.3  | Confirm scoreboard + success graph update in Play | Wall HUD + graph move each episode ✅                              |
+| 1.4  | Merge training fixes via PR                       | PR #7 CI green → merge                                             |
 
 ### Phase 2 — Arc Academy Lab visual mode (default scene)
 
 | Step | Action                                                                               | Done when                                  |
 | ---- | ------------------------------------------------------------------------------------ | ------------------------------------------ |
-| 2.1  | Add `ArcAcademyVisualMode` (`Lab` default, `Warehouse` optional) in layout + builder | Menu rebuild produces lab room             |
-| 2.2  | Lab geometry: corner walls, grid floor/tiles, strip warehouse/bays/windows           | Validator still passes; one hoop remains   |
-| 2.3  | Flat lighting preset (reduce bloom/SSR; soft directional)                            | Play view readable without crushed shadows |
-| 2.4  | Lab camera preset (corner, ~65° FOV)                                                 | Framing matches AI Warehouse reference     |
-| 2.5  | Bob eyes + speech bubble on score                                                    | Visible feedback on made basket            |
-| 2.6  | Wall-mounted scoreboards wired to `BobTrainingStats`                                 | Three panels update live in Play           |
-| 2.7  | `./scripts/capture-progress.sh --play arc-academy-lab-v1`                            | Gallery entry matches Play view reasonably |
-| 2.8  | PR + `pytest tests/test_unity_alignment.py`                                          | CI green                                   |
+| 2.1  | Simple Arc Academy builder (lab default)                                             | Menu rebuild produces lab room ✅          |
+| 2.2  | Lab geometry: corner walls, grid floor/tiles, hide warehouse clutter                 | Validator passes; one hoop ✅              |
+| 2.3  | Flat lighting preset (reduce bloom/SSR; soft directional)                            | Play view readable ✅                      |
+| 2.4  | Sideline lab camera (`LabHero`)                                                      | Framing matches AI Warehouse sideline ✅   |
+| 2.5  | Bob eyes + speech bubble + charisma on score                                         | Visible feedback on made basket ✅         |
+| 2.6  | Wall-mounted HUD wired to `BobTrainingStats`                                         | Consolidated panel + dual graph ✅         |
+| 2.7  | `./scripts/capture-progress.sh --play arc-academy-lab-ux-v1`                         | Gallery entry `017` ✅                     |
+| 2.8  | PR + `pytest tests/test_unity_alignment.py`                                          | 32/32 ✅                                   |
 
 ### Phase 3 — Week 2 training demo (publish learning progress)
 
@@ -163,13 +163,14 @@ Work on **`feature/*`** branches → PR → green CI → merge. Never commit dir
 
 Before calling the visual pivot “done” (Phase 2 complete):
 
-- [ ] Press Play → corner lab readable in **&lt; 5 seconds** (no confusion about what Bob is doing)
-- [ ] **One** hoop scores; bay hoops do not
-- [ ] Wall scoreboards show **iterations**, **basketball points**, **net RL reward**
-- [ ] Made basket → **+1 basketball point** + speech bubble
-- [ ] `./scripts/validate-scene.sh` → `VALIDATE_PASS`
-- [ ] `./scripts/capture-progress.sh --play arc-academy-lab-v1` → acceptable gallery still
-- [ ] CI pytest unity alignment tests green
+- [x] Press Play → lab readable in **&lt; 5 seconds** (sideline camera, one hoop, Bob + ball)
+- [x] **One** hoop scores; bay hoops do not
+- [x] Wall HUD shows **iterations**, **basketball points**, **net RL reward**, arc quality graph
+- [x] Made basket → **+1 basketball point** + speech bubble
+- [x] `./scripts/validate-scene.sh` → `VALIDATE_PASS`
+- [x] `./scripts/capture-progress.sh --play arc-academy-lab-ux-v1` → gallery still `017`
+- [x] CI pytest unity alignment tests green (32/32)
+- [ ] `./scripts/train.sh` + Play → `BOB_TRAINING_OK` (Week 1 gate — blocks “project complete”)
 
 ---
 

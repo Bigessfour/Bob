@@ -2,8 +2,8 @@
 
 > **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) (workflow) · [What Finished Looks Like](docs/what-finished-looks-like.md) (product) · [Visual vision](docs/design/visual-vision.md) (look)
 
-**Status:** Week 1 — Basic Agent + HDRP Arc Academy ([PR #3](https://github.com/Bigessfour/Bob/pull/3))  
-**Branch:** `feature/hdrp-arc-academy-visual`  
+**Status:** Week 1–2 — Simple Arc Academy Lab + Phase 1.5 basketball ([PR #7](https://github.com/Bigessfour/Bob/pull/7))  
+**Branch:** `feature/simple-arc-academy`  
 **Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio  
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + Terraform + GitHub Actions
 
@@ -19,26 +19,27 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 
 **Product definition:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md)
 
-## Build Status (2026-06-19)
+## Build Status (2026-06-22)
 
 | Area               | Status                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------ |
-| Unity scene        | `BobTraining.unity` — Arc Academy (pivoting to **Lab** mode per visual vision)             |
-| Visual north star  | [`docs/design/visual-vision.md`](docs/design/visual-vision.md) — merged target             |
+| Unity scene        | `BobTraining.unity` — Simple Arc Academy Lab (sideline camera, wall HUD)                  |
+| Visual north star  | [`docs/design/visual-vision.md`](docs/design/visual-vision.md) — Phase 2 largely complete  |
 | Render pipeline    | HDRP 17 — flat/lab materials in default mode; **no WebGL** (portfolio Week 3)              |
 | Scene validation   | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                          |
-| Offline regression | `pytest tests/test_unity_alignment.py` — **25/25**                                         |
+| Offline regression | `pytest tests/test_unity_alignment.py` — **32/32**                                         |
 | Primary reference  | [`docs/design/ai-warehouse-lab-reference.png`](docs/design/ai-warehouse-lab-reference.png) |
 | Stretch reference  | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)           |
-| Training runtime   | 1 active hoop; scoreboard + success graph; `BobTrainingStats` single source of truth       |
-| First training run | Use `./scripts/train.sh` → Press Play after port 5004 (`--service-ports` required)         |
-| Progress gallery   | [`docs/progress/`](docs/progress/)                                                         |
+| Training runtime   | 1 Bob launcher + 1 basketball; wall HUD + session CSV log                                  |
+| First training run | **Gate remaining** — `./scripts/train.sh` → Play → `BOB_TRAINING_OK` in console            |
+| Progress gallery   | [`docs/progress/`](docs/progress/) — through `017-arc-academy-lab-ux-v1`                   |
 
 ## Next Actions
 
-1. **Week 1 gate** — `./scripts/train.sh`, Play; scoreboard + success graph update live
-2. **Phase 1.5** — separate basketball projectile (see [what-finished-looks-like.md](docs/what-finished-looks-like.md))
-3. **Phase 2** — Arc Academy Lab visuals (wall scoreboards, corner room)
+1. **Week 1 gate** — `./scripts/train.sh`, Play; confirm `BOB_TRAINING_OK` and wall HUD updates
+2. **Merge PR #7** — Simple Arc Academy + basketball + lab UX polish
+3. **Phase 3** — extended training run; `plot_training_progress.py` → `docs/results/`
+4. **Phase 4** — Terraform apply + sync `docs/portfolio-site/`
 
 ## Links
 
@@ -85,7 +86,8 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 | 2026-06-18 | Unity project + BobAgent + training scene builder added                                                    |
 | 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`                            |
 | 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                               |
-| 2026-06-22 | Unity MCP — official `com.unity.ai.assistant` relay (`unity-mcp`), Bob custom MCP tools, removed CoplayDev |
+| 2026-06-22 | **PR #7** — Simple Arc Academy, basketball projectile, wall HUD, Bob charisma, power pulse |
+| 2026-06-22 | Session CSV log + `plot_training_progress.py`; portfolio site scaffold                     |
 | 2026-06-18 | Unity MCP — agent consultation rules, bob-rag integration                                                  |
 | 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan                       |
 | 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)                          |

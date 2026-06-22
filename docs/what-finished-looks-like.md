@@ -34,14 +34,14 @@ flowchart TD
 | Component         | Finished behavior                                                                                        | Current status                                                                                    |
 | ----------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                                          |
-| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | **Phase 1.5:** separate `Basketball` wired via `BasketballProjectileSetup` (simple arena builder) |
+| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | Implemented — `BasketballProjectileSetup` + single `Basketball` in simple arena                   |
 | **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                                           |
 | **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                                        |
-| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse |
-| **Success graph** | Rolling **success rate %** over recent iterations                                                        | Implemented (`BobTrainingSuccessGraph`)                                                           |
-| **Feedback**      | Speech bubble / popup on made basket                                                                     | Partial (`ArcAcademyScorePopup`); bubble Phase 2                                                  |
-| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Week 1 gate** — prove end-to-end                                                                |
-| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Planned                                                                                           |
+| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse                       |
+| **Success graph** | Rolling **success rate %** + **arc quality** over recent iterations                                    | Wall HUD dual graph + `BobTrainingSuccessGraph` fallback                                          |
+| **Feedback**      | Speech bubble / popup on made basket                                                                     | Implemented (`BobSpeechBubble` + `ArcAcademyScorePopup`)                                          |
+| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Week 1 gate** — manual verify `BOB_TRAINING_OK` in Editor console                               |
+| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Scaffold at `docs/portfolio-site/`; Terraform Week 3                                              |
 
 ---
 
@@ -49,15 +49,18 @@ flowchart TD
 
 All values come from [`BobTrainingStats`](../Assets/Scripts/BobTrainingStats.cs):
 
-| Display label       | Field                | Meaning                                       |
-| ------------------- | -------------------- | --------------------------------------------- |
-| **Iterations**      | `TotalIterations`    | ML-Agents episodes (shot attempts)            |
-| **Score**           | `BasketballPoints`   | Made baskets (+1 each, basketball rules)      |
-| **Rewards**         | `TotalRewards`       | Sum of positive RL `AddReward` values         |
-| **Penalties**       | `TotalPenalties`     | Sum of negative RL magnitudes                 |
-| **Net RL**          | `NetSessionReward`   | Rewards − penalties                           |
-| **Success rate**    | `SessionSuccessRate` | `BasketballPoints / TotalIterations` (0–100%) |
-| **Rolling success** | `RollingSuccessRate` | Recent-window rate for the graph              |
+| Display label       | Field                      | Meaning                                       |
+| ------------------- | -------------------------- | --------------------------------------------- |
+| **Iterations**      | `TotalIterations`          | ML-Agents episodes (shot attempts)            |
+| **Score**           | `BasketballPoints`         | Made baskets (+1 each, basketball rules)      |
+| **Rewards**         | `TotalRewards`             | Sum of positive RL `AddReward` values         |
+| **Penalties**       | `TotalPenalties`           | Sum of negative RL magnitudes                 |
+| **Net RL**          | `NetSessionReward`         | Rewards − penalties                           |
+| **Success rate**    | `SessionSuccessRate`       | `BasketballPoints / TotalIterations` (0–100%) |
+| **Rolling success** | `RollingSuccessRate`       | Recent-window rate for the graph              |
+| **Arc quality**     | `RollingAverageArcQuality` | Recent-window peak arc quality (0–100%)       |
+
+Session rows append to `summaries/bob_session.csv` via [`BobTrainingSessionLog`](../Assets/Scripts/BobTrainingSessionLog.cs) for offline plots.
 
 TensorBoard remains a **developer** tool (`tensorboard --logdir results`) — not the audience-facing progress UI.
 
@@ -67,39 +70,41 @@ TensorBoard remains a **developer** tool (`tensorboard --logdir results`) — no
 
 Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vision.md) for visual phases.
 
-### Phase 1 — Training loop (current)
+### Phase 1 — Training loop
 
-- [ ] `./scripts/validate-scene.sh` → `VALIDATE_PASS`
-- [ ] `./scripts/train.sh` → Play → training steps in console
+- [x] `./scripts/validate-scene.sh` → `VALIDATE_PASS`
+- [ ] `./scripts/train.sh` → Play → training steps in console (`BOB_TRAINING_OK`)
 - [x] Scoreboard + success graph update in Play
-- [ ] PR merge
+- [ ] PR #7 merge to `main`
 
 ### Phase 1.5 — Basketball projectile
 
 - [x] `Basketball` at spawn release point (orange sphere, `Rigidbody`, `SimpleBasketball`)
 - [x] `BobAgent` applies force to ball; launcher cube kinematic at pad (`BasketballProjectileSetup`)
-- [ ] `./scripts/validate-scene.sh` → `VALIDATE_PASS` with projectile wired
+- [x] `./scripts/validate-scene.sh` → `VALIDATE_PASS` with projectile wired
 - [ ] `./scripts/train.sh` + Play → single-shot training loop verified
-- [ ] `HoopScoreZone` detects ball tag/layer; update obs if action space changes (version YAML)
-- [ ] Validator + alignment tests
+- [x] `HoopScoreZone` detects ball via `SimpleBasketball` (8 obs / 3 actions unchanged)
+- [x] Validator + alignment tests (32/32)
 
 ### Phase 2 — Arc Academy Lab visuals
 
-- [ ] Lab room builder mode (grid floor, white walls, corner camera)
-- [ ] Wall-mounted scoreboard meshes
-- [ ] Bob eyes + speech bubble
-- [ ] `--play` capture `arc-academy-lab-v1`
+- [x] Lab room builder (grid floor, white walls, sideline `LabHero` camera)
+- [x] Wall-mounted training HUD (`BobWallTrainingHud` on `Wall_West`)
+- [x] Bob eyes + speech bubble + squash/stretch + power-path pulse
+- [x] `--play` captures: `arc-academy-lab-incremental-v1`, `arc-academy-ball-v1`, `arc-academy-lab-ux-v1`
 
 ### Phase 3 — Learning demo
 
-- [ ] Extended training run + exported success-rate plot (`python/scripts/`)
+- [x] Session CSV export + `python/scripts/plot_training_progress.py`
+- [ ] Extended training run + copy plot to `docs/results/`
 - [ ] Training GIF for portfolio
 - [ ] Optional inference `.onnx` demo
 
 ### Phase 4 — Publish
 
-- [ ] Terraform + CloudFront
-- [ ] Portfolio site with hero clip and write-up
+- [ ] Terraform bootstrap + dev apply
+- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`)
+- [ ] CloudFront live demo URL in README
 
 ---
 

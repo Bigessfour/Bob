@@ -83,6 +83,7 @@ public class BobTrainingStats : MonoBehaviour
         LastEpisodeNetReward = CurrentEpisodeNetReward;
         CurrentEpisodeNetReward = 0f;
         TotalIterations++;
+        BobTrainingSessionLog.Append(this, previousEpisodeScored);
     }
 
     public void RecordReward(float amount)

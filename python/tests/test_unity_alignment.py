@@ -174,6 +174,10 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     stats = (repo_root / "Assets/Scripts/BobTrainingStats.cs").read_text()
     assert "FlushEpisodeArcQuality" in stats
     assert "RollingAverageArcQuality" in stats
+    assert "BobTrainingSessionLog" in stats
+
+    assert (repo_root / "Assets/Scripts/BobTrainingSessionLog.cs").is_file()
+    assert (repo_root / "python/scripts/plot_training_progress.py").is_file()
 
     agent_src = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
     assert "episodePeakArcQuality" in agent_src

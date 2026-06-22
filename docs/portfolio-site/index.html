@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bob — Deep RL Free Throw Agent</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --text: #f8fafc;
+      --accent: #f97316;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header, main, footer {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    header { padding-top: 2.5rem; }
+    h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+    .tagline { color: var(--muted); margin: 0 0 1.5rem; }
+    .hero {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      background: var(--panel);
+    }
+    .hero img { display: block; width: 100%; height: auto; }
+    .hero figcaption {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    section { margin: 2rem 0; }
+    h2 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+    ul { padding-left: 1.25rem; }
+    a { color: var(--accent); }
+    footer {
+      border-top: 1px solid #334155;
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bob</h1>
+    <p class="tagline">An orange cube learning free throws with Unity ML-Agents PPO — AI Warehouse lab style.</p>
+  </header>
+
+  <main>
+    <figure class="hero">
+      <img src="../progress/017-2026-06-22-arc-academy-lab-ux-v1/capture.png" alt="Bob training lab with wall HUD and sideline camera">
+      <figcaption>Arc Academy Lab — wall metrics, dual success/arc graph, Bob launcher + basketball.</figcaption>
+    </figure>
+
+    <section>
+      <h2>What you see in Play</h2>
+      <ul>
+        <li>One Bob launcher + one basketball per iteration</li>
+        <li>Wall-mounted training HUD (iterations, score, RL rewards/penalties, success + arc quality graph)</li>
+        <li>Speech bubble on made baskets; squash/stretch and eye expressions on Bob</li>
+        <li>Floor power-path pulse on each shot release</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Stack</h2>
+      <ul>
+        <li>Unity 6 LTS + HDRP + ML-Agents PPO</li>
+        <li>Python 3.10 trainer (<code>mlagents-learn</code>)</li>
+        <li>Terraform S3 + CloudFront (Week 3 deploy target)</li>
+        <li>GitHub Actions CI — pytest + Terraform validate</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Repo</h2>
+      <p>
+        Source, training configs, and progress gallery:
+        <a href="https://github.com/Bigessfour/Bob">github.com/Bigessfour/Bob</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    Deploy with <code>aws s3 sync docs/portfolio-site/</code> after Terraform dev stack apply (see terraform/README.md).
+  </footer>
+</body>
+</html>

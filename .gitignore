@@ -87,6 +87,8 @@ build/
 
 # ML-Agents training output
 results/
+!docs/results/
+!docs/results/README.md
 summaries/
 Assets/ML-Agents/
 
