@@ -12,8 +12,8 @@ public class ArcAcademyManagerEditor : Editor
         EditorGUILayout.Space(8f);
         EditorGUILayout.LabelField("Scene & HDRP Tools", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
-            "These buttons do the same work as the top menu: Bob → HDRP → …\n" +
-            "Use the Game tab (not Scene view) to judge lighting after fixing.",
+            "For minimal training court: Bob → Setup → Simple Free Throw Trainer.\n" +
+            "Fix White Blowout is for the full warehouse scene only.",
             MessageType.Info);
 
         if (GUILayout.Button("Fix White Blowout (In-Place)", GUILayout.Height(28f)))

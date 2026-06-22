@@ -368,8 +368,23 @@ def test_hdrp_lab_volume_defaults(repo_root: Path) -> None:
     preset = (repo_root / "Assets/Scripts/ArcAcademyLabRenderPreset.cs").read_text()
     assert "ApplyLabVolumePolish" in setup
     assert "ArcAcademyLabRenderPreset" in setup
+    assert "ApplyMinimalTrainerVolume" in preset
+    assert "EnforceSingleDirectionalShadow" in preset
     assert "FixedExposure = 10.0f" in (repo_root / "Assets/Scripts/ArcAcademyLabLightingValues.cs").read_text()
     assert "bloom.active = false" in preset
+
+
+def test_simple_free_throw_minimal_trainer(repo_root: Path) -> None:
+    setup = (repo_root / "Assets/Scripts/SimpleFreeThrowSetup.cs").read_text()
+    agent = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    validator = (repo_root / "Assets/Scripts/Editor/BobSceneValidator.cs").read_text()
+    assert "SimpleFreeThrowSetup" in setup
+    assert "ApplyMinimalTrainerVolumeInScene" in setup
+    assert "ConfigureProjectileLauncher" in agent
+    assert "projectileBody" in agent
+    assert "VerifyMinimal" in validator
+    assert (repo_root / "Assets/Scripts/SimpleBasketball.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/SimpleFreeThrowSetupEditor.cs").read_text().count("ApplyFromCli") >= 1
 
 
 def test_scene_builder_constants_match_validator(repo_root: Path) -> None:

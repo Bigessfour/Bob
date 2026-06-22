@@ -114,12 +114,14 @@ public static class ArcAcademyLayout
     public static Vector3 MainRimWorldPosition =>
         RimWorldPosition(HoopRootDefaultPosition, RimLocalDefaultPosition);
 
-    /// <summary>Hero camera angle aligned with portfolio reference (Example.jpg composition: central platform + court + mountain vista on back wall).</summary>
-    public static readonly Vector3 CameraPosition = new(8.5f, 6.5f, 11.0f);
+    /// <summary>Court-level hero shot — Bob at the line, backboard + rim centered ahead.</summary>
+    public static readonly Vector3 CameraPosition = new(2.0f, 1.55f, 0.6f);
+    public static readonly Vector3 CameraLookAt = new(0f, 2.85f, -5.2f);
+    public const float CameraFieldOfView = 48f;
+
     public static readonly Vector3 FloorDecalEntrancePosition = new(0f, 0.04f, 8f);
-    public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -4.5f);
-    public static readonly Vector3 EntranceCameraPosition = new(2.5f, 4.2f, 9.5f);
-    public static readonly Vector3 EntranceCameraLookAt = new(0f, 1.8f, 2f);
+    public static readonly Vector3 EntranceCameraPosition = new(1.6f, 2.0f, 3.2f);
+    public static readonly Vector3 EntranceCameraLookAt = new(0f, 2.2f, -3.5f);
 
     public const float FloorGlossiness = 0.42f;
     public const float PlatformEmissiveIntensity = 0.65f;

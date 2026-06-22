@@ -10,7 +10,7 @@ using UnityEngine;
 /// Trained with PPO via ML-Agents. Behavior name must be "Bob" to match config/bob_free_throw.yaml.
 ///
 /// Observations (8):
-///   - Bob position (x,y,z)
+///   - Body position (x,y,z) — basketball when projectileBody is set, else Bob
 ///   - Relative vector to hoop (dx,dy,dz)
 ///   - Horizontal velocity (vx, vz)
 ///
@@ -23,6 +23,9 @@ public class BobAgent : Agent
     [Header("Environment References")]
     [Tooltip("Rim transform on the Hoop assembly")]
     public Transform hoop;
+
+    [Tooltip("Optional basketball rigidbody — Bob stays at spawn and launches this body")]
+    [SerializeField] private Rigidbody projectileBody;
 
     [Header("Force Tuning (for Heuristic + initial training)")]
     public float lateralForceScale = 10f;
@@ -41,6 +44,25 @@ public class BobAgent : Agent
     private float scorePulseTimer;
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private Color baseEmissive = new(1f, 0.38f, 0f);
+
+    private bool UsesProjectile => projectileBody != null;
+
+    private Transform ObservationTransform => UsesProjectile ? projectileBody.transform : transform;
+
+    private Rigidbody ActionRigidbody => UsesProjectile ? projectileBody : rb;
+
+    public Rigidbody ProjectileBody => projectileBody;
+
+    public void ConfigureProjectileLauncher(Rigidbody body)
+    {
+        projectileBody = body;
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            BobPhysicsUtility.ClearVelocitiesIfDynamic(rb);
+        }
+    }
 
     public override void Initialize()
     {
@@ -79,8 +101,8 @@ public class BobAgent : Agent
 
         scoredThisEpisode = false;
         trackingArc = false;
-        shotPeakHeight = transform.position.y;
-        shotStartHeight = transform.position.y;
+        shotPeakHeight = ObservationTransform.position.y;
+        shotStartHeight = ObservationTransform.position.y;
 
         if (ArcAcademyManager.Instance != null)
         {
@@ -97,12 +119,24 @@ public class BobAgent : Agent
     {
         transform.position = position;
         BobPhysicsUtility.ClearVelocitiesIfDynamic(rb);
+        ResetProjectile(position);
+    }
+
+    public void ResetProjectile(Vector3 bobSpawn)
+    {
+        if (projectileBody == null)
+        {
+            return;
+        }
+
+        projectileBody.transform.position = bobSpawn + new Vector3(0f, 0.15f, 0.2f);
+        BobPhysicsUtility.ClearVelocitiesIfDynamic(projectileBody);
     }
 
     private void CompleteEpisodeBegin()
     {
         trackingArc = true;
-        shotStartHeight = transform.position.y;
+        shotStartHeight = ObservationTransform.position.y;
         shotPeakHeight = shotStartHeight;
     }
 
@@ -134,20 +168,20 @@ public class BobAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        sensor.AddObservation(transform.position);
+        sensor.AddObservation(ObservationTransform.position);
 
         if (hoop != null)
         {
-            sensor.AddObservation(hoop.position - transform.position);
+            sensor.AddObservation(hoop.position - ObservationTransform.position);
         }
         else
         {
             sensor.AddObservation(Vector3.zero);
         }
 
-        if (rb != null)
+        if (ActionRigidbody != null)
         {
-            Vector3 v = rb.linearVelocity;
+            Vector3 v = ActionRigidbody.linearVelocity;
             sensor.AddObservation(v.x);
             sensor.AddObservation(v.z);
         }
@@ -165,7 +199,7 @@ public class BobAgent : Agent
             return;
         }
 
-        if (rb == null || hoop == null)
+        if (ActionRigidbody == null || hoop == null)
         {
             return;
         }
@@ -176,31 +210,32 @@ public class BobAgent : Agent
         float fy = c[1] * verticalForceScale + verticalBias;
         float fz = c[2] * forwardForceScale + forwardBias;
 
-        rb.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
+        ActionRigidbody.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
 
         GiveReward(-0.005f);
 
-        Vector3 toHoop = hoop.position - transform.position;
+        Vector3 toHoop = hoop.position - ObservationTransform.position;
         float xzDist = new Vector2(toHoop.x, toHoop.z).magnitude;
         GiveReward(-0.002f * xzDist);
 
         if (trackingArc)
         {
-            if (transform.position.y > shotPeakHeight)
+            if (ObservationTransform.position.y > shotPeakHeight)
             {
-                shotPeakHeight = transform.position.y;
+                shotPeakHeight = ObservationTransform.position.y;
             }
 
             float arcQuality = CalculateArcQuality(xzDist);
             GiveReward(arcQuality * ArcAcademyLayout.ArcQualityRewardScale);
 
-            if (rb.linearVelocity.y < -0.5f && transform.position.y < shotPeakHeight - 0.3f)
+            if (ActionRigidbody.linearVelocity.y < -0.5f
+                && ObservationTransform.position.y < shotPeakHeight - 0.3f)
             {
                 trackingArc = false;
             }
         }
 
-        if (ArcAcademyLayout.IsOutOfBounds(transform.position))
+        if (ArcAcademyLayout.IsOutOfBounds(ObservationTransform.position))
         {
             GiveReward(-0.5f);
             EndEpisode();
@@ -218,8 +253,8 @@ public class BobAgent : Agent
         float apexError = Mathf.Abs(shotPeakHeight - idealApex);
         float apexScore = Mathf.Clamp01(1f - apexError / 2.5f);
 
-        Vector3 toHoop = hoop.position - transform.position;
-        Vector3 velocity = rb.linearVelocity;
+        Vector3 toHoop = hoop.position - ObservationTransform.position;
+        Vector3 velocity = ActionRigidbody.linearVelocity;
         if (velocity.sqrMagnitude < 0.01f)
         {
             return apexScore * 0.5f;

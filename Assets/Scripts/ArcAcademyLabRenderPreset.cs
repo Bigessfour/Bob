@@ -9,6 +9,126 @@ public static class ArcAcademyLabRenderPreset
 {
     private static readonly int EmissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
 
+    public static void ApplyMinimalTrainerVolume(VolumeProfile profile)
+    {
+        if (profile == null)
+        {
+            return;
+        }
+
+        if (profile.TryGet(out Exposure exposure))
+        {
+            exposure.active = true;
+            exposure.mode.overrideState = true;
+            exposure.mode.value = ExposureMode.Fixed;
+            exposure.fixedExposure.overrideState = true;
+            exposure.fixedExposure.value = 11f;
+            exposure.limitMax.overrideState = true;
+            exposure.limitMax.value = 13f;
+        }
+
+        if (profile.TryGet(out Bloom bloom))
+        {
+            bloom.active = true;
+            bloom.intensity.overrideState = true;
+            bloom.intensity.value = 0.12f;
+            bloom.threshold.overrideState = true;
+            bloom.threshold.value = 1f;
+        }
+
+        if (profile.TryGet(out ScreenSpaceReflection ssr))
+        {
+            ssr.active = true;
+            ssr.enabled.overrideState = true;
+            ssr.enabled.value = true;
+        }
+
+        if (profile.TryGet(out MotionBlur motionBlur))
+        {
+            motionBlur.active = false;
+        }
+
+        if (profile.TryGet(out Fog fog))
+        {
+            fog.enabled.overrideState = true;
+            fog.enabled.value = false;
+        }
+
+        if (profile.TryGet(out Tonemapping tonemapping))
+        {
+            tonemapping.mode.overrideState = true;
+            tonemapping.mode.value = TonemappingMode.ACES;
+        }
+    }
+
+    public static void ApplyMinimalTrainerVolumeInScene()
+    {
+        var volume = Object.FindAnyObjectByType<Volume>();
+        if (volume != null && volume.profile != null)
+        {
+            ApplyMinimalTrainerVolume(volume.profile);
+        }
+
+        EnforceSingleDirectionalShadow();
+    }
+
+    /// <summary>
+    /// HDRP allows only one directional light to cast cascade shadows at a time.
+    /// </summary>
+    public static void EnforceSingleDirectionalShadow()
+    {
+        Light chosen = null;
+
+        foreach (var light in Object.FindObjectsByType<Light>())
+        {
+            if (light == null
+                || light.type != LightType.Directional
+                || !light.enabled
+                || !light.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            if (light.gameObject.name == "Sun")
+            {
+                chosen = light;
+                break;
+            }
+        }
+
+        if (chosen == null)
+        {
+            foreach (var light in Object.FindObjectsByType<Light>())
+            {
+                if (light != null
+                    && light.type == LightType.Directional
+                    && light.enabled
+                    && light.gameObject.activeInHierarchy)
+                {
+                    chosen = light;
+                    break;
+                }
+            }
+        }
+
+        foreach (var light in Object.FindObjectsByType<Light>())
+        {
+            if (light == null || light.type != LightType.Directional)
+            {
+                continue;
+            }
+
+            bool isCaster = light == chosen;
+            light.shadows = isCaster ? LightShadows.Soft : LightShadows.None;
+
+            if (light.TryGetComponent(out HDAdditionalLightData hd))
+            {
+                hd.EnableShadows(isCaster);
+                hd.UpdateAllLightValues();
+            }
+        }
+    }
+
     public static void ApplyVolume(VolumeProfile profile)
     {
         if (profile == null)
@@ -139,6 +259,7 @@ public static class ArcAcademyLabRenderPreset
             else if (light.gameObject.name == "LabKeyFill" || light.gameObject.name == "WindowFill")
             {
                 SetLightIntensity(light, ArcAcademyLabLightingValues.FillDirectionalLux, LightUnit.Lux);
+                light.shadows = LightShadows.None;
             }
             else if (light.gameObject.name == "WarehouseLight_Center")
             {
@@ -161,6 +282,10 @@ public static class ArcAcademyLabRenderPreset
 
                 LightUnit unit = light.type == LightType.Directional ? LightUnit.Lux : LightUnit.Lumen;
                 SetLightIntensity(light, Mathf.Min(light.intensity, target), unit);
+                if (light.type == LightType.Directional && light.gameObject.name != "Sun")
+                {
+                    light.shadows = LightShadows.None;
+                }
             }
 
             SyncHdrpLight(light);
@@ -170,6 +295,8 @@ public static class ArcAcademyLabRenderPreset
                 adjusted++;
             }
         }
+
+        EnforceSingleDirectionalShadow();
 
         return adjusted;
     }
@@ -191,14 +318,22 @@ public static class ArcAcademyLabRenderPreset
                 continue;
             }
 
-            var material = renderer.material;
+            var material = Application.isPlaying ? renderer.material : renderer.sharedMaterial;
             if (material != null && material.HasProperty(EmissiveIntensityId))
             {
                 float before = material.GetFloat(EmissiveIntensityId);
                 float target = Mathf.Min(before, 60f);
                 if (!Mathf.Approximately(before, target))
                 {
-                    material.SetFloat(EmissiveIntensityId, target);
+                    if (Application.isPlaying)
+                    {
+                        material.SetFloat(EmissiveIntensityId, target);
+                    }
+                    else
+                    {
+                        renderer.sharedMaterial.SetFloat(EmissiveIntensityId, target);
+                    }
+
                     adjusted++;
                 }
             }
@@ -212,6 +347,7 @@ public static class ArcAcademyLabRenderPreset
         ApplyVolumeInScene();
         int lights = ClampSceneLights();
         int emissive = ClampEmissiveBackdrops();
+        EnforceSingleDirectionalShadow();
         Debug.Log($"ARC_LAB_RENDER_OK: volume applied, {lights} lights clamped, {emissive} emissive backdrops toned down.");
     }
 
@@ -228,7 +364,7 @@ public static class ArcAcademyLabRenderPreset
             return;
         }
 
-        hd.useVolumetric = false;
+        //hd.useVolumetric = false;
         hd.SetLightDimmer(1f, 0f);
 
         if (light.type == LightType.Directional && light.gameObject.name != "Sun")

@@ -22,6 +22,12 @@ public static class BobSceneValidator
             return;
         }
 
+        if (Object.FindAnyObjectByType<SimpleFreeThrowSetup>() != null)
+        {
+            VerifyMinimal();
+            return;
+        }
+
         if (GameObject.Find(ArcAcademyLayout.ArenaName) == null)
         {
             Debug.LogError("VALIDATE_FAIL: TrainingArena root missing");
@@ -529,6 +535,117 @@ public static class BobSceneValidator
         }
 
         Debug.Log("VALIDATE_PASS: Bob training scene is ready for Play mode and training");
+        EditorApplication.Exit(0);
+    }
+
+    private static void VerifyMinimal()
+    {
+        if (GameObject.Find(ArcAcademyLayout.ArenaName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: TrainingArena root missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<ArcAcademyManager>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyManager missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(SimpleFreeThrowSetup.CourtName) == null
+            && GameObject.Find(ArcAcademyLayout.CourtFloorName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Court missing from minimal training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(SimpleFreeThrowSetup.BasketballName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Basketball missing from minimal training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(ArcAcademyLayout.HdrpVolumeName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HdrpVolume missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var hdrpVolume = GameObject.Find(ArcAcademyLayout.HdrpVolumeName).GetComponent<Volume>();
+        if (hdrpVolume == null || hdrpVolume.sharedProfile == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HdrpVolume missing shared profile");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var scoreZones = Object.FindObjectsByType<HoopScoreZone>();
+        if (scoreZones.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one HoopScoreZone is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var agent = Object.FindAnyObjectByType<BobAgent>();
+        if (agent == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobAgent missing from training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var behavior = agent.GetComponent<BehaviorParameters>();
+        if (behavior == null || behavior.BehaviorName != "Bob")
+        {
+            Debug.LogError("VALIDATE_FAIL: BehaviorParameters must use behavior name Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (behavior.BrainParameters.VectorObservationSize != 8
+            || behavior.BrainParameters.ActionSpec.NumContinuousActions != 3)
+        {
+            Debug.LogError("VALIDATE_FAIL: Minimal trainer requires 8 observations and 3 continuous actions");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.hoop == null || agent.hoop.name != ArcAcademyLayout.RimName)
+        {
+            Debug.LogError("VALIDATE_FAIL: Hoop reference not wired to Rim on BobAgent");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.ProjectileBody == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobAgent projectileBody must reference Basketball rigidbody");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<BobTrainingStats>() == null
+            || Object.FindAnyObjectByType<BobTrainingScoreboard>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Training HUD components missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Camera.main == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Main Camera missing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        Debug.Log("VALIDATE_PASS: Minimal free-throw trainer is ready for Play mode and training");
         EditorApplication.Exit(0);
     }
 

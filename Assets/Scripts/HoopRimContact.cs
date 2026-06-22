@@ -1,16 +1,18 @@
 using UnityEngine;
 
 /// <summary>
-/// Tracks recent Bob collisions with the rim for swish detection.
+/// Tracks recent Bob or basketball collisions with the rim for swish detection.
 /// </summary>
 public class HoopRimContact : MonoBehaviour
 {
     [SerializeField] private float contactWindowSeconds = 0.25f;
 
-    private float lastBobContactTime = -999f;
+    private float lastProjectileContactTime = -999f;
     private HoopSwishVfx swishVfx;
 
-    public bool HadRecentBobContact => Time.time - lastBobContactTime <= contactWindowSeconds;
+    public bool HadRecentBobContact => HadRecentProjectileContact;
+
+    public bool HadRecentProjectileContact => Time.time - lastProjectileContactTime <= contactWindowSeconds;
 
     private void Awake()
     {
@@ -19,12 +21,13 @@ public class HoopRimContact : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.GetComponent<BobAgent>() == null)
+        if (collision.collider.GetComponent<BobAgent>() == null
+            && collision.collider.GetComponent<SimpleBasketball>() == null)
         {
             return;
         }
 
-        lastBobContactTime = Time.time;
+        lastProjectileContactTime = Time.time;
         swishVfx?.PlayRimContact();
     }
 }

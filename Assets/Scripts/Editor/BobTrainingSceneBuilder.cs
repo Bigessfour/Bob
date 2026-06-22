@@ -146,6 +146,7 @@ public static class BobTrainingSceneBuilder
         cameraGo.transform.rotation = Quaternion.LookRotation(
             ArcAcademyLayout.CameraLookAt - ArcAcademyLayout.CameraPosition,
             Vector3.up);
+        camera.fieldOfView = ArcAcademyLayout.CameraFieldOfView;
         cameraGo.AddComponent<AudioListener>();
         cameraGo.AddComponent<ArcAcademyDemoCamera>();
         cameraGo.AddComponent<ArcAcademyDemoUi>();

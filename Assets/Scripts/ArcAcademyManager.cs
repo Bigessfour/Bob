@@ -27,8 +27,6 @@ public class ArcAcademyManager : MonoBehaviour
 
     private void Awake()
     {
-        ArcAcademyLabRenderPreset.ApplyAll();
-
         if (instance != null && instance != this)
         {
             Debug.LogWarning("ArcAcademyManager: duplicate instance ignored.");
