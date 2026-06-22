@@ -13,6 +13,84 @@ public class HoopNetPhysics : MonoBehaviour
 
     public void BuildNet(Transform rim, Material strandMaterial, PhysicsMaterial strandPhysic)
     {
+        BuildNet(rim, strandMaterial, strandPhysic, physicsColliders: false);
+    }
+
+    public void BuildNet(
+        Transform rim,
+        Material strandMaterial,
+        PhysicsMaterial strandPhysic,
+        bool physicsColliders)
+    {
+        ClearExistingStrands();
+
+        if (physicsColliders)
+        {
+            BuildPhysicsNet(rim, strandMaterial, strandPhysic);
+        }
+        else
+        {
+            BuildVisualNet(strandMaterial);
+        }
+    }
+
+    /// <summary>Replaces a physics net with stable visual-only strands (training default).</summary>
+    public void RebuildVisualOnly(Transform rim, Color strandColor)
+    {
+        ClearExistingStrands();
+        var mat = strandMaterialFromColor(strandColor);
+        BuildVisualNet(mat);
+    }
+
+    private Material strandMaterialFromColor(Color color)
+    {
+        var shader = Shader.Find("HDRP/Lit") ?? Shader.Find("Standard");
+        var mat = new Material(shader);
+        if (mat.HasProperty("_BaseColor"))
+        {
+            mat.SetColor("_BaseColor", color);
+        }
+        else
+        {
+            mat.color = color;
+        }
+
+        return mat;
+    }
+
+    private void ClearExistingStrands()
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(transform.GetChild(i).gameObject);
+        }
+    }
+
+    private void BuildVisualNet(Material strandMaterial)
+    {
+        for (int s = 0; s < strandCount; s++)
+        {
+            float angle = s / (float)strandCount * Mathf.PI * 2f;
+            var segment = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            segment.name = $"NetStrand_{s}";
+            segment.transform.SetParent(transform);
+            segment.transform.localPosition = new Vector3(
+                Mathf.Cos(angle) * rimAttachRadius,
+                -0.18f,
+                Mathf.Sin(angle) * rimAttachRadius);
+            segment.transform.localScale = new Vector3(0.014f, 0.2f, 0.014f);
+
+            if (strandMaterial != null)
+            {
+                segment.GetComponent<Renderer>().sharedMaterial = strandMaterial;
+            }
+
+            Destroy(segment.GetComponent<Collider>());
+        }
+    }
+
+    private void BuildPhysicsNet(Transform rim, Material strandMaterial, PhysicsMaterial strandPhysic)
+    {
         var rimBody = rim.GetComponent<Rigidbody>();
 
         for (int s = 0; s < strandCount; s++)

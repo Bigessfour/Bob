@@ -12,6 +12,7 @@ public class ArcAcademyLabPlayFix : MonoBehaviour
         {
             ArcAcademyLabRenderPreset.ApplyLabViewPreset();
             ArcAcademyLabSceneCleanup.HideLegacyClutter();
+            TrainingHoopDetail.UpgradeActiveHoop();
         }
         else
         {

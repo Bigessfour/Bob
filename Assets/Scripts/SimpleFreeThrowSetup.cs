@@ -276,6 +276,7 @@ public class SimpleFreeThrowSetup : MonoBehaviour
             if (rim != null)
             {
                 EnsureScoreZone(rim);
+                TrainingHoopDetail.UpgradeHoop(hoopRoot);
                 return true;
             }
         }
@@ -324,6 +325,7 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         }
 
         EnsureScoreZone(rimGo);
+        TrainingHoopDetail.UpgradeHoop(simple);
         return true;
     }
 

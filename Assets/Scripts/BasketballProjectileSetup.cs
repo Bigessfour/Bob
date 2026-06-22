@@ -13,6 +13,9 @@ public static class BasketballProjectileSetup
 
     public const float BallScale = 0.24f;
     public const float BallMass = 0.6f;
+    public const float BallLinearDamping = 0.08f;
+    public const float BallAngularDamping = 0.35f;
+    public const float BallBounciness = 0.58f;
 
     /// <summary>
     /// Ensures exactly one basketball under parent at the release position.
@@ -40,7 +43,10 @@ public static class BasketballProjectileSetup
 
         rb.mass = BallMass;
         rb.useGravity = true;
+        rb.linearDamping = BallLinearDamping;
+        rb.angularDamping = BallAngularDamping;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.isKinematic = false;
         BobPhysicsUtility.ClearVelocitiesIfDynamic(rb);
 
@@ -178,10 +184,11 @@ public static class BasketballProjectileSetup
 
         s_bouncyMaterial = new PhysicsMaterial("BasketballBounce")
         {
-            bounciness = 0.75f,
-            dynamicFriction = 0.35f,
-            staticFriction = 0.35f,
-            bounceCombine = PhysicsMaterialCombine.Maximum,
+            bounciness = BallBounciness,
+            dynamicFriction = 0.42f,
+            staticFriction = 0.42f,
+            bounceCombine = PhysicsMaterialCombine.Average,
+            frictionCombine = PhysicsMaterialCombine.Average,
         };
         return s_bouncyMaterial;
     }

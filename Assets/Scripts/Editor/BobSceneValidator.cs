@@ -753,6 +753,13 @@ public static class BobSceneValidator
             return;
         }
 
+        if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(agent.gameObject) > 0)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob has missing script references — rerun ./scripts/validate-scene.sh");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         if (agent.transform.parent != arenaRoot.transform)
         {
             Debug.LogError("VALIDATE_FAIL: Bob must be parented under SimpleArcAcademyArena");
@@ -779,6 +786,14 @@ public static class BobSceneValidator
         if (agent.hoop == null || agent.hoop.name != ArcAcademyLayout.RimName)
         {
             Debug.LogError("VALIDATE_FAIL: Hoop reference not wired to Rim on BobAgent");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var rimColliders = agent.hoop.Find("RimColliders");
+        if (rimColliders == null || rimColliders.childCount < TrainingHoopDetail.RimSegmentCount)
+        {
+            Debug.LogError("VALIDATE_FAIL: Rim must use segmented RimColliders — rerun arena builder");
             EditorApplication.Exit(1);
             return;
         }

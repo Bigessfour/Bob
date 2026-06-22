@@ -939,18 +939,19 @@ public static class BobTrainingSceneBuilder
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.9f, 0.04f, 0.9f);
         ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.GetRubber(RimOrange));
-        rim.GetComponent<CapsuleCollider>().material = HoopPhysicsMaterials.Rim;
+        Object.DestroyImmediate(rim.GetComponent<CapsuleCollider>());
         var rimRb = rim.AddComponent<Rigidbody>();
         rimRb.isKinematic = true;
         rimRb.useGravity = false;
         rim.AddComponent<HoopRimContact>();
+        TrainingHoopDetail.ConfigureRimColliders(rim);
 
         var netRoot = new GameObject("Net");
         netRoot.transform.SetParent(rim.transform);
         netRoot.transform.localPosition = new Vector3(0f, -0.08f, 0f);
         var netPhysics = netRoot.AddComponent<HoopNetPhysics>();
         var netMaterial = ArcAcademyMaterialFactory.GetMatteWall(Color.white);
-        netPhysics.BuildNet(rim.transform, netMaterial, HoopPhysicsMaterials.NetStrand);
+        netPhysics.BuildNet(rim.transform, netMaterial, HoopPhysicsMaterials.NetStrand, physicsColliders: false);
         netRoot.AddComponent<HoopSwishVfx>();
 
         movableHoop.SetRimTransform(rim.transform);
@@ -972,6 +973,7 @@ public static class BobTrainingSceneBuilder
         scoreZone.AddComponent<HoopScoreZone>();
 
         movableHoop.ApplyDefaultPose();
+        TrainingHoopDetail.UpgradeHoop(hoopRoot.transform);
         ArcAcademyPortableHoopBuilder.AddActiveHoopShell(hoopRoot.transform);
         return (rim.transform, movableHoop);
     }

@@ -32,6 +32,7 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 | Stretch reference  | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)           |
 | Training runtime   | 1 Bob launcher + 1 basketball; wall HUD + session CSV log                                  |
 | First training run | **Gate remaining** — `./scripts/train.sh` → Play → `BOB_TRAINING_OK` in console            |
+| Hoop + ball physics | Segmented rim colliders, visual net, single-shot impulse — `TrainingHoopDetail`            |
 | Progress gallery   | [`docs/progress/`](docs/progress/) — through `017-arc-academy-lab-ux-v1`                   |
 
 ## Next Actions

@@ -15,7 +15,7 @@ public static class HoopPhysicsMaterials
         {
             if (s_rim == null)
             {
-                s_rim = Create("HoopRim", 0.55f, 0.18f);
+                s_rim = Create("HoopRim", 0.42f, 0.22f);
             }
 
             return s_rim;
@@ -28,7 +28,7 @@ public static class HoopPhysicsMaterials
         {
             if (s_backboard == null)
             {
-                s_backboard = Create("HoopBackboard", 0.32f, 0.28f);
+                s_backboard = Create("HoopBackboard", 0.28f, 0.32f);
             }
 
             return s_backboard;
@@ -58,7 +58,7 @@ public static class HoopPhysicsMaterials
             bounciness = bounciness,
             dynamicFriction = friction,
             staticFriction = friction,
-            bounceCombine = PhysicsMaterialCombine.Maximum,
+            bounceCombine = PhysicsMaterialCombine.Average,
             frictionCombine = PhysicsMaterialCombine.Average,
         };
     }

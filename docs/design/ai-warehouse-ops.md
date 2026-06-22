@@ -46,17 +46,18 @@ Bob stays **single-agent PPO** (not POca/multi-agent like soccer).
 
 ## Log anomalies reviewed (2026-06-19)
 
-| Log signal                                                     | Severity     | Action                                                                                         |
-| -------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
-| `Couldn't connect to trainer on port 5004 … inference instead` | **Fix**      | `BobTrainingConnectionMonitor` + scoreboard status line; `train.sh` auto `docker compose down` |
-| `FileNotFoundError: … checkpoint.pt` on resume                   | **Fix**      | `./scripts/train.sh --force` or `RUN_ID=bob-v1 ./scripts/train.sh`; `train.sh` now auto-`--force` when checkpoint missing |
-| `ModuleNotFoundError: no module named 'onnxscript'`             | **Fix**      | Rebuild Docker after `torch<=2.8.0` pin in `python/requirements.txt`; avoid PyTorch 2.9+ with mlagents 1.1.0 |
-| Stale Docker container on 5004                                 | **Fix**      | Documented + `train.sh` clears orphans before start                                            |
-| Batchmode Burst segfault after scene build                     | **Mitigate** | `validate-scene.sh` passes `-disableBurstCompilation`                                          |
-| `[WARNING] --train option deprecated`                          | Low          | Removed `train_model` from `checkpoint_settings`                                               |
-| Unity Licensing 404 / NoSubscription AI                        | Ignore       | Batchmode + no Unity AI subscription — does not block training                                 |
-| MCP WebSocket connection failed                                | Ignore       | Bridge not running — expected when Editor closed                                               |
-| HDRP material upgrader skip                                    | Ignore       | Package shaders; Bob uses `Assets/Materials/HDRP/` + Bob menu upgrade                          |
+| Log signal                                                                | Severity     | Action                                                                                                                              |
+| ------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `Couldn't connect to trainer on port 5004 … inference instead`            | **Fix**      | `BobTrainingConnectionMonitor` + scoreboard status line; `train.sh` auto `docker compose down`                                      |
+| `FileNotFoundError: … checkpoint.pt` on resume                            | **Fix**      | `./scripts/train.sh --force` or `RUN_ID=bob-v1 ./scripts/train.sh`; `train.sh` now auto-`--force` when checkpoint missing           |
+| `ModuleNotFoundError: no module named 'onnxscript'`                       | **Fix**      | Rebuild Docker after `torch<=2.8.0` pin in `python/requirements.txt`; avoid PyTorch 2.9+ with mlagents 1.1.0                        |
+| `The referenced script on this Behaviour (Game Object 'Bob') is missing!` | **Fix**      | Run `./scripts/validate-scene.sh` (repairs `VrShootInputPlaceholder` on `Prefab_Bob`); or remove missing script on Bob in Inspector |
+| Ball flies erratically / multiple launches per shot                         | **Fix**      | One impulse per episode in `BobAgent`; visual-only net + segmented `RimColliders` via `TrainingHoopDetail`                            |
+| Batchmode Burst segfault after scene build                                | **Mitigate** | `validate-scene.sh` passes `-disableBurstCompilation`                                                                               |
+| `[WARNING] --train option deprecated`                                     | Low          | Removed `train_model` from `checkpoint_settings`                                                                                    |
+| Unity Licensing 404 / NoSubscription AI                                   | Ignore       | Batchmode + no Unity AI subscription — does not block training                                                                      |
+| MCP WebSocket connection failed                                           | Ignore       | Bridge not running — expected when Editor closed                                                                                    |
+| HDRP material upgrader skip                                               | Ignore       | Package shaders; Bob uses `Assets/Materials/HDRP/` + Bob menu upgrade                                                               |
 
 ---
 

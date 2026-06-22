@@ -109,6 +109,7 @@ public static class SimpleArcAcademyArenaBuilder
         SavePrefabFromInstance(arenaRoot);
         WireBobToArena(arenaRoot);
         EnsureSingleBasketball(arenaRoot);
+        TrainingHoopDetail.UpgradeActiveHoop();
 
         HideLegacyCourtVisuals();
         ApplyLabScenePreset();
@@ -474,6 +475,12 @@ public static class SimpleArcAcademyArenaBuilder
     private static void RepairVrShootInputReference(GameObject bob)
     {
         GameObjectUtility.RemoveMonoBehavioursWithMissingScript(bob);
+
+        var placeholders = bob.GetComponents<VrShootInputPlaceholder>();
+        for (int i = 1; i < placeholders.Length; i++)
+        {
+            Object.DestroyImmediate(placeholders[i]);
+        }
 
         if (bob.GetComponent<VrShootInputPlaceholder>() == null)
         {

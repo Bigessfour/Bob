@@ -136,6 +136,7 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "ApplyLabScenePreset" in builder
     assert "EnsureBobFace" in builder
     assert "EnsureSingleBasketball" in builder
+    assert "TrainingHoopDetail.UpgradeActiveHoop" in builder
     assert "BasketballProjectileSetup" in builder
     assert "BobWallHudBuilder.EnsureWallTrainingHud" in builder
     assert "EnsurePowerPathPulse" in builder
@@ -311,6 +312,10 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/ArcAcademyManager.cs").is_file()
     assert (repo_root / "Assets/Scripts/MovableHoop.cs").is_file()
     assert (repo_root / "Assets/Scripts/HoopNetPhysics.cs").is_file()
+    assert (repo_root / "Assets/Scripts/TrainingHoopDetail.cs").is_file()
+    hoop_detail = (repo_root / "Assets/Scripts/TrainingHoopDetail.cs").read_text()
+    assert "RimColliders" in hoop_detail
+    assert "ConfigureRimColliders" in hoop_detail
     assert (repo_root / "Assets/Scripts/BobShootingInput.cs").is_file()
     assert (repo_root / "Assets/Scripts/ArcAcademyScorePopup.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobTrainingStats.cs").is_file()
@@ -341,6 +346,8 @@ def test_arc_academy_builder_wiring(repo_root: Path) -> None:
     assert "WireReferences" in builder
     assert "BallSpawnPoint" in builder
     assert "HoopNetPhysics" in builder
+    assert "TrainingHoopDetail" in builder
+    assert "physicsColliders: false" in builder
     assert "BobShootingInput" in builder
     assert "BobEntranceController" in builder
     assert "ArcAcademyDemoCamera" in builder
@@ -413,6 +420,8 @@ def test_bob_training_scoreboard_wiring(repo_root: Path) -> None:
     assert "BobTrainingStats.Instance" in agent
     assert "GiveReward" in agent
     assert "BeginIteration" in agent
+    assert "shotImpulseThisEpisode" in agent
+    assert "if (!shotImpulseThisEpisode)" in agent
 
     manager = (repo_root / "Assets/Scripts/ArcAcademyManager.cs").read_text()
     assert "RecordBasketballPoint" in manager

@@ -211,26 +211,26 @@ public class BobAgent : Agent
             return;
         }
 
-        var c = actions.ContinuousActions;
-
-        float fx = c[0] * lateralForceScale;
-        float fy = c[1] * verticalForceScale + verticalBias;
-        float fz = c[2] * forwardForceScale + forwardBias;
-
-        ActionRigidbody.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
-
         if (!shotImpulseThisEpisode)
         {
+            var c = actions.ContinuousActions;
+
+            float fx = c[0] * lateralForceScale;
+            float fy = c[1] * verticalForceScale + verticalBias;
+            float fz = c[2] * forwardForceScale + forwardBias;
+
+            ActionRigidbody.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
             shotImpulseThisEpisode = true;
+
             GetComponent<BobProceduralAnimator>()?.NotifyShotImpulse();
             GetComponent<BobFaceExpression>()?.SetFocus();
             if (hoop != null)
             {
                 ArcAcademyPowerPathPulse.Instance?.PlayPulse(transform.position, hoop.position);
             }
-        }
 
-        GiveReward(-0.005f);
+            GiveReward(-0.005f);
+        }
 
         Vector3 toHoop = hoop.position - ObservationTransform.position;
         float xzDist = new Vector2(toHoop.x, toHoop.z).magnitude;
