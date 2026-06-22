@@ -40,6 +40,11 @@ public class ArcAcademyManager : MonoBehaviour
             movableHoop = GetComponentInChildren<MovableHoop>();
         }
 
+        if (movableHoop != null)
+        {
+            movableHoop.SetStationaryForTraining(!randomizeEpisodeLayout);
+        }
+
         if (spawnPad == null)
         {
             var pad = GameObject.Find(ArcAcademyLayout.SpawnPadName);
@@ -119,6 +124,11 @@ public class ArcAcademyManager : MonoBehaviour
 
     public Vector3 GetSpawnPosition()
     {
+        if (SimpleArcArenaManager.Instance?.PrimarySpawnPoint != null)
+        {
+            return SimpleArcArenaManager.Instance.GetBobSpawnPosition();
+        }
+
         if (ballSpawnPoint != null)
         {
             return ResolveSpawnPosition(ballSpawnPoint.position);
@@ -191,7 +201,10 @@ public class ArcAcademyManager : MonoBehaviour
     public void NotifyMadeBasket(BobAgent agent, bool swish)
     {
         sessionMadeBaskets++;
+        BobTrainingStats.Instance?.RecordBasketballPoint();
         scorePopup?.Show(swish, sessionMadeBaskets);
+        agent.GetComponent<BobSpeechBubble>()?.Show(swish);
+        agent.GetComponent<BobFaceExpression>()?.SetHappy();
         spawnPadPulse?.TriggerScoreBurst();
 
         Debug.Log(swish

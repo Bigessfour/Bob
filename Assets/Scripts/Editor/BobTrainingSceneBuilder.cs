@@ -53,6 +53,7 @@ public static class BobTrainingSceneBuilder
     {
         ArcAcademyHdrpSetup.EnsureHdrpPipeline();
         ArcAcademyShaderGraphSetup.EnsureMaterialLibrary();
+        BobPhysicsLayerSetup.EnsureLayersAndCollisionMatrix();
 
         Directory.CreateDirectory("Assets/Scenes");
 
@@ -60,6 +61,9 @@ public static class BobTrainingSceneBuilder
 
         var arena = new GameObject(ArcAcademyLayout.ArenaName);
         var manager = arena.AddComponent<ArcAcademyManager>();
+        arena.AddComponent<BobTrainingStats>();
+        arena.AddComponent<BobTrainingConnectionMonitor>();
+        arena.AddComponent<ArcAcademyLabPlayFix>();
 
         CreateHdrpVolume(arena.transform);
         CreateAdaptiveProbeVolume(arena.transform);
@@ -81,6 +85,7 @@ public static class BobTrainingSceneBuilder
 
         manager.WireReferences(movableHoop, spawnPad, ballSpawn, scorePopup);
         manager.SetupForTraining();
+        ApplyTrainingPhysicsLayers(arena.transform);
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddSceneToBuildSettings(ScenePath);
@@ -121,7 +126,7 @@ public static class BobTrainingSceneBuilder
         sunGo.transform.SetParent(rig.transform);
         var sun = sunGo.AddComponent<Light>();
         sun.type = LightType.Directional;
-        sun.intensity = 180000f; // brighter natural light for the reference look
+        sun.intensity = ArcAcademyLabLighting.SunLux;
         sun.color = new Color(1f, 0.96f, 0.9f);
         sun.shadows = LightShadows.Soft;
         // Adjusted sun to better light the back mountain panorama (Example.jpg style)
@@ -136,14 +141,17 @@ public static class BobTrainingSceneBuilder
         cameraGo.tag = "MainCamera";
         var camera = cameraGo.AddComponent<Camera>();
         var hdCamera = cameraGo.AddComponent<HDAdditionalCameraData>();
-        hdCamera.antialiasing = HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+        hdCamera.antialiasing = HDAdditionalCameraData.AntialiasingMode.None;
         cameraGo.transform.position = ArcAcademyLayout.CameraPosition;
         cameraGo.transform.rotation = Quaternion.LookRotation(
             ArcAcademyLayout.CameraLookAt - ArcAcademyLayout.CameraPosition,
             Vector3.up);
+        camera.fieldOfView = ArcAcademyLayout.CameraFieldOfView;
         cameraGo.AddComponent<AudioListener>();
         cameraGo.AddComponent<ArcAcademyDemoCamera>();
         cameraGo.AddComponent<ArcAcademyDemoUi>();
+        cameraGo.AddComponent<BobTrainingScoreboard>();
+        cameraGo.AddComponent<BobTrainingSuccessGraph>();
     }
 
     private static void CreateWarehouseShell(Transform parent)
@@ -258,7 +266,7 @@ public static class BobTrainingSceneBuilder
                 var strip = stripLightGo.AddComponent<Light>();
                 strip.type = LightType.Rectangle;
                 strip.areaSize = new Vector2(2.6f, 0.32f);
-                strip.intensity = 25000f; // brighter for well-lit warehouse like reference
+                strip.intensity = ArcAcademyLabLighting.CeilingStripLumen;
                 strip.color = new Color(0.97f, 0.98f, 1f);
                 stripLightGo.AddComponent<HDAdditionalLightData>();
             }
@@ -365,7 +373,7 @@ public static class BobTrainingSceneBuilder
         var windowArea = windowLightGo.AddComponent<Light>();
         windowArea.type = LightType.Rectangle;
         windowArea.areaSize = new Vector2(w * 0.85f, h * 0.75f);
-        windowArea.intensity = 55000f;
+        windowArea.intensity = ArcAcademyLabLighting.WindowFillLumen;
         windowArea.color = new Color(0.86f, 0.92f, 1f);
         windowLightGo.AddComponent<HDAdditionalLightData>();
     }
@@ -497,7 +505,7 @@ public static class BobTrainingSceneBuilder
         var area = fill.AddComponent<Light>();
         area.type = LightType.Rectangle;
         area.areaSize = new Vector2(w * 0.9f, h * 0.8f);
-        area.intensity = 85000f; // strong natural light through the big back windows
+        area.intensity = ArcAcademyLabLighting.WindowFillLumen;
         area.color = new Color(0.85f, 0.91f, 1f);
         fill.AddComponent<HDAdditionalLightData>();
     }
@@ -630,7 +638,7 @@ public static class BobTrainingSceneBuilder
         baseRing.transform.localScale = new Vector3(1.02f, 0.035f, 1.02f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             baseRing,
-            ArcAcademyMaterialFactory.CreateEmissive(AcademyPurple, 2.8f));
+            ArcAcademyMaterialFactory.CreateEmissive(AcademyPurple, 0.7f));
         Object.DestroyImmediate(baseRing.GetComponent<Collider>());
 
         var spawnPoint = new GameObject(ArcAcademyLayout.BallSpawnPointName);
@@ -656,7 +664,7 @@ public static class BobTrainingSceneBuilder
         var light = rimLight.AddComponent<Light>();
         light.type = LightType.Point;
         light.color = AcademyPurple;
-        light.intensity = 18500f;
+        light.intensity = ArcAcademyLabLighting.SpawnPadPointLumen;
         light.range = 7.5f;
         rimLight.AddComponent<HDAdditionalLightData>();
 
@@ -916,7 +924,7 @@ public static class BobTrainingSceneBuilder
         var backboard = GameObject.CreatePrimitive(PrimitiveType.Cube);
         backboard.name = "Backboard";
         backboard.transform.SetParent(hoopHead.transform);
-        backboard.transform.localPosition = new Vector3(0f, 0.55f, 0.08f);
+        backboard.transform.localPosition = ArcAcademyLayout.BackboardLocalOnHoopHead;
         backboard.transform.localScale = new Vector3(1.8f, 1.05f, 0.06f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             backboard,
@@ -927,22 +935,23 @@ public static class BobTrainingSceneBuilder
         var rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         rim.name = ArcAcademyLayout.RimName;
         rim.transform.SetParent(hoopHead.transform);
-        rim.transform.localPosition = ArcAcademyLayout.RimLocalDefaultPosition;
+        rim.transform.localPosition = ArcAcademyLayout.RimLocalOnHoopHead;
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.9f, 0.04f, 0.9f);
         ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.GetRubber(RimOrange));
-        rim.GetComponent<CapsuleCollider>().material = HoopPhysicsMaterials.Rim;
+        Object.DestroyImmediate(rim.GetComponent<CapsuleCollider>());
         var rimRb = rim.AddComponent<Rigidbody>();
         rimRb.isKinematic = true;
         rimRb.useGravity = false;
         rim.AddComponent<HoopRimContact>();
+        TrainingHoopDetail.ConfigureRimColliders(rim);
 
         var netRoot = new GameObject("Net");
         netRoot.transform.SetParent(rim.transform);
         netRoot.transform.localPosition = new Vector3(0f, -0.08f, 0f);
         var netPhysics = netRoot.AddComponent<HoopNetPhysics>();
         var netMaterial = ArcAcademyMaterialFactory.GetMatteWall(Color.white);
-        netPhysics.BuildNet(rim.transform, netMaterial, HoopPhysicsMaterials.NetStrand);
+        netPhysics.BuildNet(rim.transform, netMaterial, HoopPhysicsMaterials.NetStrand, physicsColliders: false);
         netRoot.AddComponent<HoopSwishVfx>();
 
         movableHoop.SetRimTransform(rim.transform);
@@ -964,7 +973,8 @@ public static class BobTrainingSceneBuilder
         scoreZone.AddComponent<HoopScoreZone>();
 
         movableHoop.ApplyDefaultPose();
-        ArcAcademyPortableHoopBuilder.AddActiveHoopShell(hoopRoot.transform);
+        movableHoop.SetStationaryForTraining(true);
+        TrainingHoopDetail.UpgradeHoop(hoopRoot.transform);
         return (rim.transform, movableHoop);
     }
 
@@ -1061,6 +1071,70 @@ public static class BobTrainingSceneBuilder
         behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(3);
 
         bob.AddComponent<DecisionRequester>().DecisionPeriod = 1;
+
+        if (BobPhysicsLayers.LayersConfigured)
+        {
+            BobPhysicsLayers.SetLayerRecursively(bob, BobPhysicsLayers.BobLayer);
+        }
+    }
+
+    private static void ApplyTrainingPhysicsLayers(Transform arena)
+    {
+        if (!BobPhysicsLayers.LayersConfigured)
+        {
+            return;
+        }
+
+        int decor = BobPhysicsLayers.DecorationLayer;
+        int training = BobPhysicsLayers.TrainingArenaLayer;
+
+        var shell = arena.Find(ArcAcademyLayout.WarehouseShellName);
+        if (shell != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(shell.gameObject, decor);
+        }
+
+        var bays = arena.Find(ArcAcademyLayout.TrainingBaysName);
+        if (bays != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(bays.gameObject, decor);
+        }
+
+        var trajectory = arena.Find(ArcAcademyLayout.TrajectoryVisualsName);
+        if (trajectory != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(trajectory.gameObject, decor);
+        }
+
+        var decals = arena.Find(ArcAcademyLayout.FloorDecalsName);
+        if (decals != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(decals.gameObject, decor);
+        }
+
+        var lighting = arena.Find(ArcAcademyLayout.LightingRigName);
+        if (lighting != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(lighting.gameObject, decor);
+        }
+
+        var courtFloor = arena.Find(ArcAcademyLayout.CourtFloorName);
+        if (courtFloor != null)
+        {
+            courtFloor.gameObject.layer = training;
+        }
+
+        var boundaries = arena.Find("Boundaries");
+        if (boundaries != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(boundaries.gameObject, training);
+        }
+
+        var hoop = arena.Find(ArcAcademyLayout.HoopName);
+        if (hoop != null)
+        {
+            BobPhysicsLayers.SetLayerRecursively(hoop.gameObject, training);
+        }
     }
 
     private static void CreateLightingRig(Transform parent)
@@ -1068,41 +1142,22 @@ public static class BobTrainingSceneBuilder
         var rig = new GameObject(ArcAcademyLayout.LightingRigName);
         rig.transform.SetParent(parent);
 
-        var windowFill = new GameObject("WindowFill");
-        windowFill.transform.SetParent(rig.transform);
-        windowFill.transform.position = new Vector3(-8f, 5.5f, -1f);
-        var fill = windowFill.AddComponent<Light>();
+        var keyFill = new GameObject("LabKeyFill");
+        keyFill.transform.SetParent(rig.transform);
+        keyFill.transform.position = new Vector3(2f, 6f, 6f);
+        var fill = keyFill.AddComponent<Light>();
         fill.type = LightType.Directional;
-        fill.intensity = 65000f;
-        fill.color = new Color(0.75f, 0.85f, 1f);
+        fill.intensity = ArcAcademyLabLighting.FillDirectionalLux;
+        fill.color = new Color(0.92f, 0.94f, 1f);
         fill.shadows = LightShadows.None;
-        windowFill.transform.rotation = Quaternion.Euler(12f, 68f, 0f);
-        windowFill.AddComponent<HDAdditionalLightData>();
+        keyFill.transform.rotation = Quaternion.Euler(38f, -25f, 0f);
+        keyFill.AddComponent<HDAdditionalLightData>();
 
-        var mountainBacklight = new GameObject("MountainBacklight");
-        mountainBacklight.transform.SetParent(rig.transform);
-        mountainBacklight.transform.position = new Vector3(-12f, 4f, -2f);
-        var back = mountainBacklight.AddComponent<Light>();
-        back.type = LightType.Directional;
-        back.intensity = 60000f;
-        back.color = new Color(0.9f, 0.95f, 1f);
-        back.shadows = LightShadows.None;
-        mountainBacklight.transform.rotation = Quaternion.Euler(5f, 85f, 0f);
-        mountainBacklight.AddComponent<HDAdditionalLightData>();
-
-        float midZ = (ArcAcademyLayout.ShellNearZ + ArcAcademyLayout.ShellFarZ) * 0.5f;
-        for (int row = 0; row < 3; row++)
-        {
-            for (int col = -2; col <= 2; col++)
-            {
-                float x = col * 3.5f;
-                float z = midZ + (row - 1) * 6f;
-                CreateCeilingAreaLight(rig.transform, $"CeilingLight_{row}_{col}",
-                    new Vector3(x, ArcAcademyLayout.CeilingHeight - 0.25f, z));
-            }
-        }
-
-        CreatePointLight(rig.transform, "WarehouseLight_Center", new Vector3(0f, 7.5f, -4f), 12000f);
+        CreatePointLight(
+            rig.transform,
+            "WarehouseLight_Center",
+            new Vector3(0f, 7.5f, -4f),
+            ArcAcademyLabLighting.CenterPointLumen);
 
         var bobRim = new GameObject("BobRimLight");
         bobRim.transform.SetParent(rig.transform);
@@ -1110,7 +1165,7 @@ public static class BobTrainingSceneBuilder
         var bobSpot = bobRim.AddComponent<Light>();
         bobSpot.type = LightType.Spot;
         bobSpot.color = AcademyPurple;
-        bobSpot.intensity = 15000f;
+        bobSpot.intensity = ArcAcademyLabLighting.BobSpotLumen;
         bobSpot.range = 8f;
         bobSpot.spotAngle = 55f;
         bobSpot.innerSpotAngle = 25f;
@@ -1126,7 +1181,7 @@ public static class BobTrainingSceneBuilder
         var light = strip.AddComponent<Light>();
         light.type = LightType.Rectangle;
         light.areaSize = new Vector2(2.8f, 0.35f);
-        light.intensity = 12000f;
+        light.intensity = ArcAcademyLabLighting.CeilingStripLumen;
         light.color = new Color(0.95f, 0.97f, 1f);
         strip.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
         strip.AddComponent<HDAdditionalLightData>();
@@ -1138,7 +1193,7 @@ public static class BobTrainingSceneBuilder
         emissive.transform.localScale = new Vector3(2.8f, 0.08f, 0.35f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             emissive,
-            ArcAcademyMaterialFactory.CreateEmissive(Color.white, 2.1f));
+            ArcAcademyMaterialFactory.CreateEmissive(Color.white, 0.5f));
         Object.DestroyImmediate(emissive.GetComponent<BoxCollider>());
     }
 

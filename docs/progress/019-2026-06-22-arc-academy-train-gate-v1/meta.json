@@ -1,0 +1,10 @@
+﻿{
+    "sequence": "019",
+    "label": "arc-academy-train-gate-v1",
+    "capturedAt": "2026-06-22T19:10:47.3146110Z",
+    "mode": "play",
+    "scene": "Assets/Scenes/BobTraining.unity",
+    "unityVersion": "6000.5.0f1",
+    "gitCommit": "09ad9f4",
+    "resolution": "1280x720"
+}

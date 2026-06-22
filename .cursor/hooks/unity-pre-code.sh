@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Remind agents to consult unityMCP before Unity-related code edits.
+# Remind agents to consult unity-mcp before Unity-related code edits.
 set -euo pipefail
 
 INPUT="$(cat)"
 
 if ! command -v jq >/dev/null 2>&1; then
-	printf '%s\n' '{"permission":"allow","agent_message":"Install jq for Unity MCP pre-edit hooks, or manually consult unityMCP before Unity edits (see docs/unity-mcp.md)."}'
+	printf '%s\n' '{"permission":"allow","agent_message":"Install jq for Unity MCP pre-edit hooks, or manually consult unity-mcp before Unity edits (see docs/unity-mcp.md)."}'
 	exit 0
 fi
 
@@ -32,18 +32,19 @@ agent_message="$(
 	cat <<EOF
 **Mandatory Unity MCP consultation before ${tool_name} on \`${path}\`**
 
-Before implementing this Unity change, call **unityMCP** MCP tools to inspect live Editor state and use correct parameter schemas:
+Before implementing this Unity change, call **unity-mcp** MCP tools to inspect live Editor state and use correct parameter schemas:
 
 1. \`manage_scene\` — \`action: get_active\` and/or \`get_hierarchy\` for scene context
 2. \`find_gameobjects\` — locate Bob, hoop, ball, and other targets before hierarchy edits
 3. \`manage_components\` — read/set Behavior Parameters, Rigidbody, colliders; Behavior Name must be \`Bob\` (matches \`config/bob_free_throw.yaml\`)
 4. \`read_console\` — verify no errors after changes
+5. Bob custom: \`bob_open_training_scene\`, \`bob_setup_simple_arena\`
 
-**Prerequisites:** Unity Editor open on this project; **Window → MCP for Unity** bridge connected (green status).
-Read tool schemas from unityMCP MCP descriptors — do not guess parameter shapes.
+**Prerequisites:** Unity Editor open on this project; **Edit → Project Settings → AI → Unity MCP** bridge **Running**; Cursor approved under Connected Clients.
+Read tool schemas from unity-mcp MCP descriptors — do not guess parameter shapes.
 Full workflow: docs/unity-mcp.md
 
-If unityMCP is unavailable, use batchmode CLI fallbacks (\`./scripts/unity.sh -executeMethod ...\`) where possible and end the turn with **Further development required**.
+If unity-mcp is unavailable, use batchmode CLI fallbacks (\`./scripts/unity.sh -executeMethod ...\`) where possible and end the turn with **Further development required**.
 EOF
 )"
 

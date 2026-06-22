@@ -6,21 +6,23 @@ A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube 
 
 **Live demo:** _Coming soon — portfolio site on AWS CloudFront (static gallery + write-up; HDRP Editor project, not WebGL)_
 
-**Project status:** See [PROJECT.md](PROJECT.md) | **North Star:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agent context:** See [AGENTS.md](AGENTS.md) | **Dev setup:** See [docs/finalized-dev-env.md](docs/finalized-dev-env.md) | **Testing:** See [docs/testing-strategy.md](docs/testing-strategy.md)
+**Project status:** See [PROJECT.md](PROJECT.md) | **Product:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) | **Visual:** [docs/design/visual-vision.md](docs/design/visual-vision.md) | **Workflow:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agents:** [AGENTS.md](AGENTS.md)
 
 ---
 
 ## Vision
 
-Bob starts with clumsy throws and gradually masters free-throw mechanics through PPO training in Unity ML-Agents. The goal is a polished, shareable portfolio: training GIFs, progress gallery captures, and a static demo site — rendered in **HDRP** in the Unity Editor (no browser build).
+Bob is an **orange cube** that learns to **shoot at one basketball hoop** through PPO training. Each made basket is **+1 score** on the **in-scene scoreboard**; a **success-rate graph** shows improvement over iterations. Cumulative **RL rewards** and **penalties** track the learning signal separately. Visual target: clean **AI Warehouse–style lab** ([docs/design/visual-vision.md](docs/design/visual-vision.md)).
+
+**Finished product:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md)
 
 ## MVP Scope
 
-- 3D basketball court environment in Unity 6 LTS
-- Bob (orange cube agent) learns free-throw mechanics via ML-Agents
-- Clear learning curve with training videos/GIFs
-- Portfolio static site on AWS (Free Tier)
-- Professional GitHub repo and technical write-up
+- Clean training lab + one active hoop (Unity 6 LTS, HDRP Editor)
+- Bob agent (`Behavior Name: Bob`) — iterative shots toward hoop
+- In-scene scoreboard + success graph (`BobTrainingStats`)
+- `./scripts/train.sh` + Play for ML-Agents training
+- Portfolio static site on AWS (Week 3)
 
 ## Stretch Goals
 
@@ -30,14 +32,14 @@ Bob starts with clumsy throws and gradually masters free-throw mechanics through
 
 ## Tech Stack
 
-| Layer               | Technology               |
-| ------------------- | ------------------------ |
-| Engine              | Unity 6 LTS (Personal)   |
-| RL Framework        | Unity ML-Agents Toolkit  |
-| Agent / Environment | C#                       |
-| Training            | Python 3.10 + `mlagents` |
+| Layer               | Technology                       |
+| ------------------- | -------------------------------- |
+| Engine              | Unity 6 LTS (Personal)           |
+| RL Framework        | Unity ML-Agents Toolkit          |
+| Agent / Environment | C#                               |
+| Training            | Python 3.10 + `mlagents`         |
 | Hosting             | Terraform + AWS (portfolio site) |
-| Tooling             | GitHub, Cursor           |
+| Tooling             | GitHub, Cursor                   |
 
 ## Repository Structure
 

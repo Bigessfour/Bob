@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Generates Arc Academy Shader Graph materials and mountain backdrop texture (idempotent).
+/// Generates Arc Academy HDRP material library (.mat presets on HDRP/Lit).
 /// </summary>
 public static class ArcAcademyShaderGraphSetup
 {
@@ -26,31 +26,27 @@ public static class ArcAcademyShaderGraphSetup
 
     public static void EnsureMaterialLibrary()
     {
-        Directory.CreateDirectory(ArcAcademyMaterialPaths.ShadersFolder);
         Directory.CreateDirectory(ArcAcademyMaterialPaths.MaterialsFolder);
         Directory.CreateDirectory(ArcAcademyMaterialPaths.TexturesFolder);
 
         EnsureMountainBackdropTexture();
         EnsureMaterialAsset(
             ArcAcademyMaterialPaths.GlossyFloorMat,
-            ArcAcademyMaterialPaths.GlossyFloorGraph,
-            "Arc Academy Glossy Floor",
+            "ArcAcademyGlossyFloor",
             Color.white,
             smoothness: 0.88f,
             metallic: 0.18f);
 
         EnsureMaterialAsset(
             ArcAcademyMaterialPaths.MatteWallMat,
-            ArcAcademyMaterialPaths.MatteWallGraph,
-            "Arc Academy Matte Wall",
+            "ArcAcademyMatteWall",
             Color.white,
             smoothness: 0.15f,
             metallic: 0f);
 
         EnsureMaterialAsset(
             ArcAcademyMaterialPaths.MetalMat,
-            ArcAcademyMaterialPaths.MetalGraph,
-            "Arc Academy Metal",
+            "ArcAcademyMetal",
             Color.white,
             smoothness: 0.55f,
             metallic: 0.85f);
@@ -76,14 +72,11 @@ public static class ArcAcademyShaderGraphSetup
 
     private static void EnsureMaterialAsset(
         string matPath,
-        string graphPath,
-        string displayName,
+        string assetName,
         Color baseColor,
         float smoothness,
         float metallic)
     {
-        EnsureShaderGraphPlaceholder(graphPath, displayName);
-
         var existing = AssetDatabase.LoadAssetAtPath<Material>(matPath);
         if (existing != null)
         {
@@ -91,13 +84,12 @@ public static class ArcAcademyShaderGraphSetup
         }
 
         var mat = ArcAcademyMaterialFactory.CreateHdrpLit(baseColor, smoothness, metallic);
-        mat.name = Path.GetFileNameWithoutExtension(matPath);
+        mat.name = assetName;
         AssetDatabase.CreateAsset(mat, matPath);
     }
 
     private static void EnsureGlassMaterial()
     {
-        EnsureShaderGraphPlaceholder(ArcAcademyMaterialPaths.GlassGraph, "Arc Academy Glass");
         if (AssetDatabase.LoadAssetAtPath<Material>(ArcAcademyMaterialPaths.GlassMat) != null)
         {
             return;
@@ -110,7 +102,6 @@ public static class ArcAcademyShaderGraphSetup
 
     private static void EnsureRubberMaterial()
     {
-        EnsureShaderGraphPlaceholder(ArcAcademyMaterialPaths.RubberGraph, "Arc Academy Rubber");
         if (AssetDatabase.LoadAssetAtPath<Material>(ArcAcademyMaterialPaths.RubberMat) != null)
         {
             return;
@@ -142,29 +133,9 @@ public static class ArcAcademyShaderGraphSetup
             }
         }
 
-        ArcAcademyMaterialFactory.SetEmissivePublic(mat, new Color(0.85f, 0.92f, 1f), 0.35f);
+        ArcAcademyMaterialFactory.SetEmissivePublic(mat, new Color(0.85f, 0.92f, 1f), 0.2f);
         mat.name = "ArcAcademyMountainBackdrop";
         AssetDatabase.CreateAsset(mat, ArcAcademyMaterialPaths.MountainBackdropMat);
-    }
-
-    /// <summary>
-    /// Lightweight Shader Graph marker asset (HDRP Lit preset drives runtime look until graphs are hand-authored).
-    /// </summary>
-    private static void EnsureShaderGraphPlaceholder(string graphPath, string displayName)
-    {
-        if (File.Exists(graphPath))
-        {
-            return;
-        }
-
-        var markerPath = graphPath + ".meta";
-        if (!File.Exists(markerPath))
-        {
-            File.WriteAllText(
-                graphPath,
-                $"// Arc Academy Shader Graph placeholder: {displayName}\n// Material preset uses HDRP/Lit; replace with authored graph when ready.\n");
-            AssetDatabase.ImportAsset(graphPath);
-        }
     }
 }
 #endif

@@ -15,6 +15,7 @@ public static class ArcAcademyLayout
     public const string SpawnPadName = "SpawnPad";
     public const string BallSpawnPointName = "BallSpawnPoint";
     public const string ScorePopupName = "ScorePopup";
+    public const string TrainingScoreboardName = "TrainingScoreboard";
     public const string HoopName = "Hoop";
     public const string RimName = "Rim";
     public const string ScoreZoneName = "ScoreZone";
@@ -54,7 +55,17 @@ public static class ArcAcademyLayout
     public static readonly float[] DistanceMarkOffsetsFromBaseline = { 3f, 6f, 9f };
 
     public static readonly Vector3 HoopRootDefaultPosition = new(0f, 0f, -5.5f);
+    /// <summary>World-space rim height offset when estimating positions from hoop root (legacy helpers).</summary>
     public static readonly Vector3 RimLocalDefaultPosition = new(0f, 3.05f, 0.2f);
+
+    /// <summary>Rim attached to backboard on HoopHead — must stay parented under Backboard/HoopHead.</summary>
+    public static readonly Vector3 RimLocalOnHoopHead = new(0f, 0.05f, 0.35f);
+
+    /// <summary>Backboard center on HoopHead (matches scene builder).</summary>
+    public static readonly Vector3 BackboardLocalOnHoopHead = new(0f, 0.55f, 0.08f);
+
+    /// <summary>Fixed HoopHead pose on Hoop root when robotic arm is disabled for training.</summary>
+    public static readonly Vector3 StationaryHoopHeadLocalPosition = new(0f, 3f, 0.2f);
 
     /// <summary>
     /// Central elevated black "Bob" platform (Example.jpg hero element).
@@ -78,10 +89,10 @@ public static class ArcAcademyLayout
     public const float MountainWindowHeight = 6.2f;
     public const float MountainWindowY = 4.2f;
 
-    /// <summary>Ceiling density for industrial grid + lights (Example.jpg warehouse).</summary>
-    public const int CeilingTrussCount = 7;
-    public const int CeilingLightRows = 4;
-    public const int CeilingLightColsPerRow = 5;
+    /// <summary>Ceiling density — lab-readable (2×3), not full photoreal warehouse grid.</summary>
+    public const int CeilingTrussCount = 5;
+    public const int CeilingLightRows = 2;
+    public const int CeilingLightColsPerRow = 3;
 
     /// <summary>Eight modular shooting bays around back and right perimeter (Example.jpg). Low partitions separate bays.</summary>
     public static readonly Vector3[] TrainingBayPositions =
@@ -113,17 +124,19 @@ public static class ArcAcademyLayout
     public static Vector3 MainRimWorldPosition =>
         RimWorldPosition(HoopRootDefaultPosition, RimLocalDefaultPosition);
 
-    /// <summary>Hero camera angle aligned with portfolio reference (Example.jpg composition: central platform + court + mountain vista on back wall).</summary>
-    public static readonly Vector3 CameraPosition = new(8.5f, 6.5f, 11.0f);
-    public static readonly Vector3 FloorDecalEntrancePosition = new(0f, 0.04f, 8f);
-    public static readonly Vector3 CameraLookAt = new(0f, 2.8f, -4.5f);
-    public static readonly Vector3 EntranceCameraPosition = new(2.5f, 4.2f, 9.5f);
-    public static readonly Vector3 EntranceCameraLookAt = new(0f, 1.8f, 2f);
+    /// <summary>Court-level hero shot — Bob at the line, backboard + rim centered ahead.</summary>
+    public static readonly Vector3 CameraPosition = new(2.0f, 1.55f, 0.6f);
+    public static readonly Vector3 CameraLookAt = new(0f, 2.85f, -5.2f);
+    public const float CameraFieldOfView = 48f;
 
-    public const float FloorGlossiness = 0.94f;
-    public const float PlatformEmissiveIntensity = 3.2f;
-    public const float ArcLineEmissiveIntensity = 2.1f;
-    public const float BobGlowIntensity = 1.35f;
+    public static readonly Vector3 FloorDecalEntrancePosition = new(0f, 0.04f, 8f);
+    public static readonly Vector3 EntranceCameraPosition = new(1.6f, 2.0f, 3.2f);
+    public static readonly Vector3 EntranceCameraLookAt = new(0f, 2.2f, -3.5f);
+
+    public const float FloorGlossiness = 0.42f;
+    public const float PlatformEmissiveIntensity = 0.65f;
+    public const float ArcLineEmissiveIntensity = 0.45f;
+    public const float BobGlowIntensity = 0.55f;
     public const float LabelBobSize = 1.2f;
     public const float LabelAcademySize = 0.45f;
 

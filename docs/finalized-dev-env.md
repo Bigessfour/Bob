@@ -61,6 +61,8 @@ cp .env.example .env
 | `RUN_ID`             | `bob-v0`                     | ML-Agents training run ID |
 | `CONFIG`             | `config/bob_free_throw.yaml` | Trainer config path       |
 
+`./scripts/train.sh` auto-adds `--resume` when `results/<RUN_ID>` already exists. For a clean slate use `RUN_ID=bob-v1 ./scripts/train.sh` or `./scripts/train.sh --force`.
+
 Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env).
 
 ## Workflows by Task
@@ -85,12 +87,12 @@ Loaded automatically via `.vscode/settings.json` (`python.envFile`, terminal env
 
 ## AI Assistants
 
-| Tool                                 | Use                                                                           |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| Cursor + [`AGENTS.md`](../AGENTS.md) | Primary code agent                                                            |
-| Unity Tools extension                | Editor debug/attach                                                           |
-| `scripts/unity.sh`                   | CLI automation (builds, tests)                                                |
-| Unity MCP (`unityMCP`)               | Live Editor MCP — [unity-mcp.md](unity-mcp.md); requires Editor open + bridge |
+| Tool                                 | Use                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------- |
+| Cursor + [`AGENTS.md`](../AGENTS.md) | Primary code agent                                                                    |
+| Unity Tools extension                | Editor debug/attach                                                                   |
+| `scripts/unity.sh`                   | CLI automation (builds, tests)                                                        |
+| Unity MCP (`unity-mcp`)              | Live Editor MCP — [unity-mcp.md](unity-mcp.md); requires Editor open + bridge Running |
 
 ## GitHub
 

@@ -72,11 +72,12 @@ See [docs/unity-dev.md](unity-dev.md) for Unity CLI, batchmode builds, and AI as
 
 Cursor reads these for project context:
 
-- [docs/what-right-looks-like.md](what-right-looks-like.md) — **North Star** milestone + workflow diagrams
-- [`AGENTS.md`](../AGENTS.md) — canonical agent instructions (includes **North Star**, **RAG workflow**)
+- [docs/what-right-looks-like.md](what-right-looks-like.md) — **workflow** North Star (milestones + PR/CI)
+- [docs/what-finished-looks-like.md](what-finished-looks-like.md) — **product** North Star (agent, hoop, scoreboard, graph)
+- [`AGENTS.md`](../AGENTS.md) — canonical agent instructions (North Stars, RAG, Unity MCP)
 - [`.cursor/rules/bob.mdc`](../.cursor/rules/bob.mdc) — always-on rules
 - [`.cursor/project-rules.md`](../.cursor/project-rules.md) — DevOps emphasis
-- [`.cursor/mcp.json`](../.cursor/mcp.json) — **`bob-rag`** + **`unityMCP`** MCP servers
+- [`.cursor/mcp.json`](../.cursor/mcp.json) — **`bob-rag`** + **`unity-mcp`** MCP servers
 - [`.cursor/hooks.json`](../.cursor/hooks.json) — RAG + Unity MCP query injection + auto re-index
 
 ### Repository RAG (required for code agents)
@@ -94,11 +95,10 @@ See [docs/rag.md](rag.md) for architecture and CLI reference.
 ### Unity MCP (required for Unity agent work)
 
 ```bash
-brew install uv
 chmod +x scripts/unity-mcp.sh
 ```
 
-Open Unity → **Window → MCP for Unity** → **Auto-Setup** (HTTP). Enable **`unityMCP`** and **`bob-rag`** in MCP settings. Agents must consult Unity MCP before scene/agent/Assets edits. See [docs/unity-mcp.md](unity-mcp.md).
+Open Unity → **Edit → Project Settings → AI → Unity MCP** → bridge **Running** → approve Cursor. Enable **`unity-mcp`** and **`bob-rag`** in MCP settings. Agents must consult Unity MCP before scene/agent/Assets edits. See [docs/unity-mcp.md](unity-mcp.md).
 
 ## Format on Save
 

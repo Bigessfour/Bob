@@ -10,6 +10,7 @@ public class ArcAcademyDemoCamera : MonoBehaviour
     public enum CameraMode
     {
         Hero,
+        LabHero,
         Orbit,
         FreeFly,
     }
@@ -40,7 +41,14 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         }
 
         Instance = this;
-        ResetToHero();
+        if (SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ResetToLabHero();
+        }
+        else
+        {
+            ResetToHero();
+        }
     }
 
     private void OnDestroy()
@@ -48,6 +56,14 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         if (Instance == this)
         {
             Instance = null;
+        }
+    }
+
+    private void Start()
+    {
+        if (Application.isPlaying && SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ResetToLabHero();
         }
     }
 
@@ -65,7 +81,14 @@ public class ArcAcademyDemoCamera : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            ResetToHero();
+            if (SimpleArcAcademyArena.IsLabViewActive)
+            {
+                ResetToLabHero();
+            }
+            else
+            {
+                ResetToHero();
+            }
         }
 
         switch (mode)
@@ -84,13 +107,18 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         mode = mode switch
         {
             CameraMode.Hero => CameraMode.Orbit,
+            CameraMode.LabHero => CameraMode.Orbit,
             CameraMode.Orbit => CameraMode.FreeFly,
-            _ => CameraMode.Hero,
+            _ => SimpleArcAcademyArena.IsLabViewActive ? CameraMode.LabHero : CameraMode.Hero,
         };
 
         if (mode == CameraMode.Hero)
         {
             ResetToHero();
+        }
+        else if (mode == CameraMode.LabHero)
+        {
+            ResetToLabHero();
         }
         else if (mode == CameraMode.Orbit)
         {
@@ -108,6 +136,26 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         Debug.Log($"Arc Academy camera: {mode}");
     }
 
+    public void ResetToLabHero()
+    {
+        if (followRoutine != null)
+        {
+            StopCoroutine(followRoutine);
+            followRoutine = null;
+        }
+
+        mode = CameraMode.LabHero;
+        transform.position = SimpleArcAcademyArena.LabCameraPosition;
+        transform.rotation = Quaternion.LookRotation(
+            SimpleArcAcademyArena.LabCameraLookAt - SimpleArcAcademyArena.LabCameraPosition,
+            Vector3.up);
+
+        if (TryGetComponent(out Camera cam))
+        {
+            cam.fieldOfView = SimpleArcAcademyArena.LabCameraFieldOfView;
+        }
+    }
+
     public void ResetToHero()
     {
         if (followRoutine != null)
@@ -121,6 +169,11 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(
             ArcAcademyLayout.CameraLookAt - ArcAcademyLayout.CameraPosition,
             Vector3.up);
+
+        if (TryGetComponent(out Camera cam))
+        {
+            cam.fieldOfView = ArcAcademyLayout.CameraFieldOfView;
+        }
     }
 
     public void FollowEntrance(Transform target, float duration)
@@ -174,9 +227,13 @@ public class ArcAcademyDemoCamera : MonoBehaviour
 
         orbitDistance = Mathf.Clamp(orbitDistance - Input.mouseScrollDelta.y * 0.8f, 4f, 28f);
 
+        Vector3 orbitTarget = SimpleArcAcademyArena.IsLabViewActive
+            ? SimpleArcAcademyArena.LabCameraLookAt
+            : ArcAcademyLayout.CameraLookAt;
+
         Quaternion rot = Quaternion.Euler(orbitPitch, orbitYaw, 0f);
-        transform.position = ArcAcademyLayout.CameraLookAt + rot * (Vector3.back * orbitDistance);
-        transform.rotation = Quaternion.LookRotation(ArcAcademyLayout.CameraLookAt - transform.position, Vector3.up);
+        transform.position = orbitTarget + rot * (Vector3.back * orbitDistance);
+        transform.rotation = Quaternion.LookRotation(orbitTarget - transform.position, Vector3.up);
     }
 
     private void UpdateFreeFly()

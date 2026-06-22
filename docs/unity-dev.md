@@ -62,27 +62,26 @@ Workspace settings (`.vscode/settings.json`) point Unity to `6000.5.0f1` and the
 
 ### AI Agent Assistants for Unity
 
-| Tool                       | Type              | Notes                                                                                                                                      |
-| -------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Cursor + AGENTS.md**     | IDE agent         | Primary — project rules in `AGENTS.md`, `.cursor/rules/bob.mdc`                                                                            |
-| **Unity MCP (`unityMCP`)** | MCP server        | **Required for agents** — live Editor access via [MCP for Unity](https://github.com/CoplayDev/unity-mcp); see [unity-mcp.md](unity-mcp.md) |
-| **Unity Muse**             | Unity cloud AI    | Paid Unity service; texture/code assist inside Editor                                                                                      |
-| **Unity Sentis**           | Runtime inference | For deployed models, not training loop setup                                                                                               |
+| Tool                        | Type              | Notes                                                                                                                                                                                       |
+| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cursor + AGENTS.md**      | IDE agent         | Primary — project rules in `AGENTS.md`, `.cursor/rules/bob.mdc`                                                                                                                             |
+| **Unity MCP (`unity-mcp`)** | MCP server        | **Required for agents** — live Editor access via [Unity MCP](https://docs.unity3d.com/Packages/com.unity.ai.assistant@2.0/manual/unity-mcp-overview.html); see [unity-mcp.md](unity-mcp.md) |
+| **Unity Muse**              | Unity cloud AI    | Paid Unity service; texture/code assist inside Editor                                                                                                                                       |
+| **Unity Sentis**            | Runtime inference | For deployed models, not training loop setup                                                                                                                                                |
 
-**Recommended for Bob:** Cursor with `AGENTS.md` + Unity Tools extension + **`unityMCP` MCP** (Editor open, HTTP bridge connected). Batchmode CLI handles automation (builds, tests, scene rebuild); Cursor + Unity MCP handles live Editor inspection and parameterized changes.
+**Recommended for Bob:** Cursor with `AGENTS.md` + Unity Tools extension + **`unity-mcp` MCP** (Editor open, Unity MCP bridge Running). Batchmode CLI handles automation (builds, tests, scene rebuild); Cursor + Unity MCP handles live Editor inspection and parameterized changes.
 
-### Unity MCP (`unityMCP`)
+### Unity MCP (`unity-mcp`)
 
-Repo-configured via [`.cursor/mcp.json`](../.cursor/mcp.json) and `com.coplaydev.unity-mcp` in [`Packages/manifest.json`](../Packages/manifest.json).
+Repo-configured via [`.cursor/mcp.json`](../.cursor/mcp.json) and `com.unity.ai.assistant` in [`Packages/manifest.json`](../Packages/manifest.json).
 
 ```bash
-brew install uv                    # if missing
 chmod +x scripts/unity-mcp.sh
 ```
 
-1. Open Bob in Unity → **Window → MCP for Unity** → setup wizard → transport **stdio** → Configure Cursor
-2. Restart Cursor; enable **`unityMCP`** and **`bob-rag`** in MCP settings
-3. Agents must consult `unityMCP` tools before Unity edits (see [unity-mcp.md](unity-mcp.md))
+1. Open Bob in Unity → **Edit → Project Settings → AI → Unity MCP** → bridge **Running** → approve Cursor
+2. Restart Cursor; enable **`unity-mcp`** and **`bob-rag`** in MCP settings
+3. Agents must consult `unity-mcp` tools before Unity edits (see [unity-mcp.md](unity-mcp.md))
 
 Keep Unity Editor open while using MCP tools.
 
@@ -112,31 +111,81 @@ Or in the Editor: **Bob → Rebuild Arc Academy (HDRP)** or **Bob → Create Tra
 
 ### Render pipeline (HDRP)
 
-Arc Academy targets **HDRP** photoreal quality (Volume bloom/SSR, APV, Physical Sky, glossy floor). `./scripts/validate-scene.sh` runs `ArcAcademyHdrpSetup.EnsureHdrpFromCli` before rebuilding the scene.
+Arc Academy uses **HDRP** in the Unity Editor. **Default visual target** is the clean **Arc Academy Lab** (AI Warehouse–inspired): flat materials, readable lighting, in-scene scoreboards — see [`docs/design/visual-vision.md`](design/visual-vision.md). A photoreal warehouse preset remains an optional stretch reference.
+
+`./scripts/validate-scene.sh` runs `ArcAcademyHdrpSetup.EnsureHdrpFromCli` before rebuilding the scene (applies **lab** exposure/bloom).
 
 **No WebGL** — HDRP is Editor-only for this project. Week 3 live demo is a **static portfolio site** (gallery, GIFs, write-up) on S3/CloudFront.
 
-### Training arena layout (Arc Academy HDRP build)
+### Where Bob tools live
 
-Visual target: [`docs/design/arc-academy-reference.jpg`](design/arc-academy-reference.jpg) (from Example.jpg).
+| What you want               | Where to click                                                               |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| Fix white / blown-out scene | **Hierarchy → TrainingArena** → Inspector → **Fix White Blowout (In-Place)** |
+| Same fix via menu           | **Top menu bar** → **Bob** → **HDRP** → **Fix White Blowout (In-Place)**     |
+| ML-Agents / shooting tuning | **Hierarchy → Bob** → Inspector (Behavior Parameters, forces)                |
+| MCP / AI Gateway            | Top menu **Bob → MCP** or **Bob → AI Gateway**                               |
 
-`BobTrainingSceneBuilder` creates a **warehouse Arc Academy** under `TrainingArena`:
+**Common mix-up:** Selecting the orange **Bob** cube only shows the agent (ML-Agents). HDRP and scene tools are on **TrainingArena** or the **Bob** top menu — not on the Bob GameObject.
 
-| Element                                      | Purpose                                                                         |
-| -------------------------------------------- | ------------------------------------------------------------------------------- |
-| `HdrpVolume` / `AdaptiveProbeVolume`         | Post-processing (Bloom, SSR, Exposure) + APV lighting                           |
-| `WarehouseShell`                             | Glossy dark floor, corrugated walls, ceiling trusses                            |
-| `MountainWindow`                             | Panoramic left-wall window with procedural mountains                            |
-| `CourtFloor` + markings                      | Orange court, key, 3pt arc, center circle, distance marks                       |
-| `SpawnPad`                                   | Central platform with purple glow, particles + **Bob** / **Arc Academy** labels |
-| `TrainingBays` (8)                           | Perimeter cubicles with decorative hoops + `RoboticLauncherVisual` placeholders |
-| `DecorativeHoops`                            | 3 static pedestal hoops on court (`DecorativeHoopMarker`, no scoring)           |
-| `TrajectoryVisuals`                          | 3 glowing parabolic `LineRenderer` arcs (portfolio visual)                      |
-| `LightingRig`                                | Window fill + HDRP rectangle ceiling lights                                     |
-| `ReflectionProbe`                            | Floor reflections (with SSR in Volume)                                          |
-| `Hoop` / `MovableHoop` / `Rim` / `ScoreZone` | **Single active scoring hoop** — glass backboard, net, physics colliders        |
-| `ArcAcademyManager`                          | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled  |
-| `Bob`                                        | 8 obs, 3 actions, purple emissive glow, gravity arcs                            |
+**No Bob top menu?** Check Console for red compile errors; wait for scripts to finish compiling, then look on the macOS menu bar between **Window** and **Help**.
+
+**CLI (Editor must be closed):** `./scripts/fix-hdrp-blowout.sh`
+
+### Scene looks dark, blown out, or blurry
+
+The scoreboard is OnGUI — it can work even when HDRP lighting is wrong. Fix the 3D view:
+
+1. **Bob → HDRP → Fix White Blowout (In-Place)** — clamps 40+ warehouse lights + exposure 6
+2. **Bob → Rebuild Arc Academy (HDRP)** — applies lab lighting (fewer lights, sane intensities)
+3. **Bob → HDRP → Apply Lab Lighting** — exposure/bloom/motion blur tuned for readability
+4. Press **Play** and watch the **Game** tab (not Scene view with gizmos)
+5. Optional: **Bob → HDRP → Upgrade Project Materials**
+
+Root cause is usually **too many HDRP lights** stacked (warehouse preset). Lab lighting targets AI Warehouse readability — see [visual-vision.md](design/visual-vision.md).
+
+### HDRP material migration warning
+
+Unity may show: _"materials that will be skipped in the automated migration process as there is not a Material Upgrader defined for them."_
+
+This is **expected** for package/UI shaders (ML-Agents defaults, etc.). Bob’s committed materials under `Assets/Materials/HDRP/` already use **HDRP/Lit**. Scene geometry gets fresh HDRP materials when the scene rebuilds.
+
+**Fix in Editor:**
+
+1. **Bob → HDRP → Apply Lab Lighting** — lowers exposure/bloom (fixes white blowout)
+2. **Bob → HDRP → Upgrade Project Materials** — converts any legacy `Assets/` materials
+3. **Bob → Polish → Rebuild Scene** — reapplies lab materials + lighting
+
+Dismiss the Unity Render Pipeline Converter dialog if `Assets/Materials/HDRP/` is already populated; use the Bob menu steps above instead.
+
+### Log anomalies (what to ignore vs fix)
+
+See [docs/design/ai-warehouse-ops.md](design/ai-warehouse-ops.md) for the full table. Key training signal:
+
+| Message                                        | Meaning                                                          |
+| ---------------------------------------------- | ---------------------------------------------------------------- |
+| `BOB_TRAINING_OK`                              | Trainer connected; time scale applied                            |
+| `BOB_TRAINING_WARN` / scoreboard orange status | Inference fallback — no trainer on 5004                          |
+| `Couldn't connect to trainer on port 5004`     | Same as above; stop Play, start `./scripts/train.sh`, Play again |
+
+Ignore: Unity Licensing 404, `NoSubscription` AI generators, MCP WebSocket errors when bridge is off.
+
+### Training arena layout
+
+**Visual north star:** [`docs/design/visual-vision.md`](design/visual-vision.md)  
+**Primary reference:** [`docs/design/ai-warehouse-lab-reference.png`](design/ai-warehouse-lab-reference.png)  
+**Stretch reference:** [`docs/design/arc-academy-reference.jpg`](design/arc-academy-reference.jpg)
+
+`BobTrainingSceneBuilder` creates the training scene under `TrainingArena`. **Lab mode** (target) simplifies the warehouse build; current builder still produces the full warehouse until Phase 2 lands.
+
+| Element                                      | Purpose                                                                          |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| `BobTrainingStats` / `BobTrainingScoreboard` | In-scene training progress (iterations, basketball points, RL rewards/penalties) |
+| `Hoop` / `MovableHoop` / `ScoreZone`         | **Single active scoring hoop**                                                   |
+| `DecorativeHoopMarker` / physics layers      | Peripheral hoops and warehouse geo do not affect Bob                             |
+| `TrajectoryVisuals`                          | Optional white arc lines (learning paths)                                        |
+| `ArcAcademyManager`                          | `PrepareEpisode()` keeps layout stable unless `randomizeEpisodeLayout` enabled   |
+| `Bob`                                        | 8 obs, 3 actions, purple emissive glow, gravity arcs                             |
 
 Shared dimensions: [`Assets/Scripts/ArcAcademyLayout.cs`](../../Assets/Scripts/ArcAcademyLayout.cs). Rebuild:
 
@@ -159,6 +208,28 @@ ML-Agents uses gRPC on port **5004** by default.
 | Local venv (Intel Mac) | `mlagents-learn` on host                                                                            |
 | Docker (Apple Silicon) | `./scripts/train.sh` or `docker compose run --rm --service-ports train ...` (publishes `5004:5004`) |
 | Dev Container          | Reopen in Container; forward port 5004                                                              |
+
+### Training handshake
+
+1. Run `./scripts/train.sh` and wait for **`Listening on port 5004`**
+2. Open **BobTraining** in Unity; stop Play if already running
+3. Press **Play** — trainer and Editor console should show training steps (not inference fallback)
+4. Scoreboard + success graph update each episode
+
+### Troubleshooting port 5004
+
+If the trainer fails to bind port 5004 or Unity never connects, a **stale `bob-train` container** may still hold the port (common after Ctrl+C or a crashed run):
+
+```bash
+docker ps -a --filter name=bob-train
+docker compose down
+docker container prune -f   # removes stopped containers
+./scripts/train.sh
+```
+
+Also check nothing else is listening: `lsof -i :5004` (macOS).
+
+Existing run data (`results/bob-v0`) is handled automatically — `train.sh` adds `--resume` unless you pass `--force` or set `RUN_ID=bob-v1`.
 
 Set Unity external Python (optional for Editor tools):
 

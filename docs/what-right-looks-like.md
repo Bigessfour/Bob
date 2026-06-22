@@ -2,7 +2,7 @@
 
 **Canonical visual spec** for [bigessfour/bob](https://github.com/Bigessfour/Bob). Every agent, contributor, and planning session must align with these diagrams before proposing work, opening PRs, or merging changes.
 
-**Pinned in:** [PROJECT.md](../PROJECT.md) · [AGENTS.md](../AGENTS.md) · [project-plan.md](project-plan.md) · [`.cursor/rules/bob.mdc`](../.cursor/rules/bob.mdc)
+**Pinned in:** [PROJECT.md](../PROJECT.md) · [AGENTS.md](../AGENTS.md) · [project-plan.md](project-plan.md) · [what-finished-looks-like.md](what-finished-looks-like.md) · [`.cursor/rules/bob.mdc`](../.cursor/rules/bob.mdc)
 
 ---
 
@@ -92,11 +92,15 @@ Before suggesting or implementing changes, confirm:
 - [ ] **Hyperparameters** stay in `config/*.yaml`; **Behavior Name** stays `Bob`
 - [ ] **Docs updated** when behavior, workflow, or milestones change
 - [ ] **Portfolio artifacts** (GIFs, demo URL, progress gallery) tracked for Week 2–3
+- [ ] **Product scope** aligns with [what-finished-looks-like.md](what-finished-looks-like.md) (agent, hoop, scoreboard vars, success graph)
+- [ ] **Visual changes** align with [docs/design/visual-vision.md](design/visual-vision.md) (Lab primary, warehouse stretch)
 
 ---
 
 ## Related
 
+- [**What finished looks like**](what-finished-looks-like.md) — product definition (agent, hoop, scoreboard, success graph)
+- [**Visual vision**](design/visual-vision.md) — Arc Academy Lab look + visual workflow
 - [project-plan.md](project-plan.md) — week-by-week checklist
 - [testing-strategy.md](testing-strategy.md) — coverage targets toward 80%+
 - [PROJECT.md](../PROJECT.md) — living status and next actions

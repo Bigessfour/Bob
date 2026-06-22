@@ -27,4 +27,10 @@ See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.
 | 012 | 2026-06-19 | arc-academy-photoreal-rebuild | edit | ![arc-academy-photoreal-rebuild](012-2026-06-19-arc-academy-photoreal-rebuild/capture.png) |
 | 013 | 2026-06-19 | arc-academy-playmode-hero | play | ![arc-academy-playmode-hero](013-2026-06-19-arc-academy-playmode-hero/capture.png) |
 | 014 | 2026-06-19 | arc-academy-hdrp-v1 | edit | ![arc-academy-hdrp-v1](014-2026-06-19-arc-academy-hdrp-v1/capture.png) |
+| 015 | 2026-06-22 | arc-academy-lab-incremental-v1 | play | ![arc-academy-lab-incremental-v1](015-2026-06-22-arc-academy-lab-incremental-v1/capture.png) |
+| 016 | 2026-06-22 | arc-academy-ball-v1 | play | ![arc-academy-ball-v1](016-2026-06-22-arc-academy-ball-v1/capture.png) |
+| 017 | 2026-06-22 | arc-academy-lab-ux-v1 | play | ![arc-academy-lab-ux-v1](017-2026-06-22-arc-academy-lab-ux-v1/capture.png) |
+| 018 | 2026-06-22 | arc-academy-lab-v1 | play | ![arc-academy-lab-v1](018-2026-06-22-arc-academy-lab-v1/capture.png) |
+| 019 | 2026-06-22 | arc-academy-train-gate-v1 | play | ![arc-academy-train-gate-v1](019-2026-06-22-arc-academy-train-gate-v1/capture.png) |
+| 019 | 2026-06-22 | arc-academy-train-gate-v1 | play | ![arc-academy-train-gate-v1](019-2026-06-22-arc-academy-train-gate-v1/capture.png) |
 

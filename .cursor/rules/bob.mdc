@@ -5,22 +5,23 @@ alwaysApply: true
 
 # Bob — Deep RL Free Throw Agent
 
-You are helping build **Bob**, a fun Deep Reinforcement Learning demo where a cheerful orange cube learns to shoot free throws in Unity.
+You are helping build **Bob**, a fun Deep Reinforcement Learning demo: an orange cube agent learns to shoot free throws at one hoop, with in-scene scoreboards and a success-rate graph (AI Warehouse style).
 
 ## North Star (required)
 
-Before planning, scoping, or suggesting changes, read [docs/what-right-looks-like.md](../../docs/what-right-looks-like.md):
+Before planning, scoping, or suggesting changes, read:
 
-- **Diagram 1** — week milestones (1→2→3) + permanent quality bars (CI/PR, tests, clean C#, portfolio)
-- **Diagram 2** — repo layout + `feature/*` → PR → green CI → merge workflow
+- [docs/what-finished-looks-like.md](../../docs/what-finished-looks-like.md) — **product** (agent, score, graph)
+- [docs/design/visual-vision.md](../../docs/design/visual-vision.md) — **visuals** (Arc Academy Lab)
+- [docs/what-right-looks-like.md](../../docs/what-right-looks-like.md) — **workflow** (weeks, PR, CI)
 
 Never propose direct commits to `main`. Reject scope that does not advance the current week in [PROJECT.md](../../PROJECT.md).
 
 ## Project
 
-- **Vision:** Entertaining training progress (AI Warehouse style), portfolio-ready HDRP demo + static site
-- **Agent:** Bob — orange cube with continuous control for shooting mechanics
-- **Environment:** 3D basketball court with hoop and ball
+- **Vision:** AI Warehouse–style training lab; Bob shoots at one hoop; scoreboard tracks iterations, score, RL rewards/penalties, success rate
+- **Agent:** Bob — orange cube; Behavior Name `Bob`; PPO via ML-Agents
+- **Environment:** Clean training lab + one active basketball hoop
 
 ## Tech Stack
 
@@ -36,9 +37,9 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 | `Assets/` | Unity scenes, scripts, prefabs |
 | `config/` | ML-Agents YAML trainer configs |
 | `python/` | venv, training scripts, **RAG** (`python/rag/`) |
-| `docs/` | Planning, diagrams, results, **North Star** (`what-right-looks-like.md`) |
+| `docs/` | Planning, diagrams, results, **North Star** (`what-right-looks-like.md`, `what-finished-looks-like.md`, `design/visual-vision.md`) |
 | `terraform/` | AWS infrastructure |
-| `.cursor/mcp.json` | `bob-rag` (repo context) + `unityMCP` (live Editor, CoplayDev HTTP) |
+| `.cursor/mcp.json` | `bob-rag` (repo context) + `unity-mcp` (official Unity relay → Editor bridge) |
 
 ## Development Priorities
 
@@ -59,7 +60,7 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 - **CI:** `.github/workflows/ci.yml` — Python smoke test + Terraform fmt/validate
 - **Docker:** `Dockerfile` for reproducible training deps (Unity Editor still runs on host)
 - **RAG:** ChromaDB index in `python/.rag/` — MCP server `bob-rag`; query before code edits (see `AGENTS.md`)
-- **Unity MCP:** MCP server `unityMCP` — consult before Unity/scene/agent work with Editor open (see `docs/unity-mcp.md`)
+- **Unity MCP:** MCP server `unity-mcp` — consult before Unity/scene/agent work with Editor open (see `docs/unity-mcp.md`)
 - **Agent docs:** See `AGENTS.md`, `PROJECT.md`, and `.cursor/project-rules.md`
 
 ## Key Commands

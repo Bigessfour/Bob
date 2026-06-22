@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "bob-rag": {
-      "command": "./scripts/rag-mcp.sh",
+      "command": "/Users/stephenmckitrick/Bob/scripts/rag-mcp.sh",
       "args": []
     },
-    "unityMCP": {
-      "url": "http://127.0.0.1:8080/mcp",
-      "type": "http"
+    "unity-mcp": {
+      "command": "/Users/stephenmckitrick/Bob/scripts/unity-mcp.sh",
+      "args": []
     }
   }
 }

@@ -7,9 +7,43 @@ cd "${REPO_ROOT}"
 
 RUN_ID="${RUN_ID:-bob-v0}"
 CONFIG="${CONFIG:-config/bob_free_throw.yaml}"
-EXTRA_ARGS=("$@")
+RESULTS_DIR="results/${RUN_ID}"
+
+TRAIN_CMD=(mlagents-learn "${CONFIG}" --run-id="${RUN_ID}")
+CHECKPOINT="${RESULTS_DIR}/Bob/checkpoint.pt"
+
+# ML-Agents refuses to start when results/<run-id> already exists unless --resume or --force.
+has_resume_or_force=false
+for arg in "$@"; do
+	case "${arg}" in
+	--resume | --force) has_resume_or_force=true ;;
+	esac
+done
+
+if [[ -d ${RESULTS_DIR} && ${has_resume_or_force} == false ]]; then
+	if [[ -f ${CHECKPOINT} ]]; then
+		echo "Resuming existing run '${RUN_ID}' (${CHECKPOINT} found)."
+		echo "  Fresh run:  RUN_ID=bob-v1 ./scripts/train.sh"
+		echo "  Overwrite:  ./scripts/train.sh --force"
+		echo ""
+		TRAIN_CMD+=(--resume)
+	else
+		echo "Incomplete run '${RUN_ID}' (${RESULTS_DIR} exists but no checkpoint.pt)."
+		echo "  Starting fresh with --force (avoids checkpoint.pt / onnxscript resume errors)."
+		echo "  Or use:  RUN_ID=bob-v1 ./scripts/train.sh"
+		echo ""
+		TRAIN_CMD+=(--force)
+	fi
+fi
+
+if (("$#")); then
+	TRAIN_CMD+=("$@")
+fi
 
 mkdir -p results summaries
+
+echo "Clearing stale trainer containers (port 5004)..."
+docker compose down --remove-orphans 2>/dev/null || true
 
 echo "Building bob-train image if needed..."
 docker compose build train
@@ -22,6 +56,7 @@ echo "  2. Wait until this trainer prints it is waiting for a connection."
 echo "  3. Press Play in Unity."
 echo "  4. Confirm Editor console shows training steps (not inference fallback)."
 echo ""
+echo "If port 5004 is busy (stale container): docker compose down && docker container prune -f"
+echo ""
 # --service-ports publishes 5004:5004 from docker-compose.yml (required on Docker Desktop Mac).
-docker compose run --rm --service-ports train \
-	mlagents-learn "${CONFIG}" --run-id="${RUN_ID}" "${EXTRA_ARGS[@]}"
+docker compose run --rm --service-ports train "${TRAIN_CMD[@]}"

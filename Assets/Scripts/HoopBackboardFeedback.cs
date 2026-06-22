@@ -38,7 +38,8 @@ public class HoopBackboardFeedback : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.GetComponent<BobAgent>() == null)
+        if (collision.collider.GetComponent<BobAgent>() == null
+            && collision.collider.GetComponent<SimpleBasketball>() == null)
         {
             return;
         }

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Trigger volume at the rim — awards a made basket when Bob enters while moving downward.
+/// Trigger volume at the rim — awards a made basket when Bob or the basketball enters while moving downward.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class HoopScoreZone : MonoBehaviour
@@ -30,8 +30,54 @@ public class HoopScoreZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (TryScoreBasketball(other))
+        {
+            return;
+        }
+
+        TryScoreBob(other);
+    }
+
+    private bool TryScoreBasketball(Collider other)
+    {
+        if (!other.TryGetComponent(out SimpleBasketball basketball) || basketball.Owner == null)
+        {
+            return false;
+        }
+
+        var rb = other.attachedRigidbody;
+        if (rb != null && rb.linearVelocity.y > minDownwardSpeed)
+        {
+            return true;
+        }
+
+        bool rimHit = rimContact != null && rimContact.HadRecentProjectileContact;
+        bool swish = !rimHit
+                     && rb != null
+                     && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
+
+        if (swish)
+        {
+            swishVfx?.PlaySwish();
+        }
+
+        var agent = basketball.Owner;
+        if (ArcAcademyManager.Instance != null)
+        {
+            ArcAcademyManager.Instance.NotifyMadeBasket(agent, swish);
+        }
+        else
+        {
+            agent.RegisterMadeShot(swish);
+        }
+
+        return true;
+    }
+
+    private void TryScoreBob(Collider other)
+    {
         var agent = other.GetComponent<BobAgent>();
-        if (agent == null)
+        if (agent == null || agent.ProjectileBody != null)
         {
             return;
         }
@@ -42,7 +88,7 @@ public class HoopScoreZone : MonoBehaviour
             return;
         }
 
-        bool rimHit = rimContact != null && rimContact.HadRecentBobContact;
+        bool rimHit = rimContact != null && rimContact.HadRecentProjectileContact;
         bool swish = !rimHit
                      && rb != null
                      && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
