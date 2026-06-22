@@ -122,6 +122,14 @@ override.tf.json
 .codex/
 .cursor/  # if local overrides
 
+# Unity Package Manager — resolve via manifest/registry; never vendor registry packages
+Packages/com.unity.ai.assistant/
+
+# Unity AI Assistant / editor-local settings (see com.unity.ai.assistant CHANGELOG)
+ProjectSettings/Packages/
+ProjectSettings/ProjectAuditorSettings.asset
+ProjectSettings/ProjectAuditorSettings.asset.meta
+
 # Captured logs during dev (committed ones are in docs/progress)
 Logs/*.log
 Logs/traces*.jsonl
