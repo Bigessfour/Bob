@@ -135,6 +135,8 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "TrainingBays" in builder
     assert "ApplyLabScenePreset" in builder
     assert "EnsureBobFace" in builder
+    assert "EnsureSingleBasketball" in builder
+    assert "BasketballProjectileSetup" in builder
     assert "Mat_Wall_Tile_White" in builder
     assert "ApplyFromCli" in builder
 
@@ -147,8 +149,10 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
 
     assert "LabCameraFieldOfView" in arena
     assert "ShowBudgetFlavorProps" in arena
+    assert "BasketballPrefabPath" in arena
 
-    assert (repo_root / "Assets/Scripts/BobSpeechBubble.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BasketballProjectileSetup.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobShotArcPreview.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/SimpleArenaTextureFactory.cs").is_file()
 
     manager = (repo_root / "Assets/Scripts/SimpleArcArenaManager.cs").read_text()
@@ -161,6 +165,8 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
 
     validator = (repo_root / "Assets/Scripts/Editor/BobSceneValidator.cs").read_text()
     assert "VerifySimpleArcAcademy" in validator
+    assert "projectileBody must reference Basketball" in validator
+    assert "Exactly one Basketball" in validator
     assert "SimpleArcAcademyArena.BobPrefabPath" in validator
 
     assert (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").is_file()
@@ -173,7 +179,9 @@ def test_bob_training_scene_simple_arena_yaml(repo_root: Path) -> None:
     assert "m_Name: SimpleArcAcademyArena" in content
     assert "m_Name: SpawnPoint" in content
     assert "Bob::SimpleArcArenaManager" in content
-    assert "916a5d8bda46f469d91ec49b7dbe3355" in content
+    assert "m_Name: Basketball" in content or "value: Basketball" in content
+    assert "projectileBody:" in content
+    assert "Bob::SimpleBasketball" in content or "Bob::BobShotArcPreview" in content
 
 
 def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:

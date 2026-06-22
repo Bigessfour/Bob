@@ -108,6 +108,7 @@ public static class SimpleArcAcademyArenaBuilder
         EnsureSpawnAndManager(arenaRoot);
         SavePrefabFromInstance(arenaRoot);
         WireBobToArena(arenaRoot);
+        EnsureSingleBasketball(arenaRoot);
 
         HideLegacyCourtVisuals();
         ApplyLabScenePreset();
@@ -327,6 +328,95 @@ public static class SimpleArcAcademyArenaBuilder
             manager.Wire(bobAgent, spawn, bobPrefab);
             EditorUtility.SetDirty(manager);
         }
+    }
+
+    private static void EnsureSingleBasketball(GameObject arenaRoot)
+    {
+        EnforceSingleBobAndBallInstances(arenaRoot);
+
+        var bobGo = GameObject.Find("Bob");
+        if (bobGo == null || !bobGo.TryGetComponent(out BobAgent bobAgent))
+        {
+            Debug.LogWarning("SIMPLE_ARENA_WARN: Bob not found — skip basketball wiring.");
+            return;
+        }
+
+        if (bobGo.GetComponent<BobShotArcPreview>() == null)
+        {
+            bobGo.AddComponent<BobShotArcPreview>();
+        }
+
+        var manager = arenaRoot.GetComponent<SimpleArcArenaManager>();
+        var spawn = arenaRoot.transform.Find(SimpleArcAcademyArena.SpawnPointName);
+        Vector3 bobSpawn = manager != null
+            ? manager.GetBobSpawnPosition()
+            : (spawn != null
+                ? spawn.position + ArcAcademyLayout.BobSpawnOffset
+                : ArcAcademyLayout.BobSpawnPosition);
+
+        var releasePos = BasketballProjectileSetup.GetReleasePosition(bobSpawn);
+        var ball = BasketballProjectileSetup.EnsureBasketball(arenaRoot.transform, releasePos);
+
+        if (ball.TryGetComponent(out Rigidbody ballRb))
+        {
+            BasketballProjectileSetup.WireLauncher(bobAgent, ballRb);
+            EditorUtility.SetDirty(bobAgent);
+        }
+
+        SaveBasketballPrefab(ball);
+        SaveBobPrefab(bobGo);
+    }
+
+    private static void EnforceSingleBobAndBallInstances(GameObject arenaRoot)
+    {
+        BobAgent primaryBob = null;
+        foreach (var agent in Object.FindObjectsByType<BobAgent>())
+        {
+            if (primaryBob == null)
+            {
+                primaryBob = agent;
+                continue;
+            }
+
+            Object.DestroyImmediate(agent.gameObject);
+        }
+
+        SimpleBasketball primaryMarker = null;
+        foreach (var marker in Object.FindObjectsByType<SimpleBasketball>())
+        {
+            if (primaryMarker == null)
+            {
+                primaryMarker = marker;
+                continue;
+            }
+
+            Object.DestroyImmediate(marker.gameObject);
+        }
+
+        var namedBall = GameObject.Find(BasketballProjectileSetup.BasketballName);
+        if (namedBall != null && namedBall.transform.parent != arenaRoot.transform)
+        {
+            namedBall.transform.SetParent(arenaRoot.transform, true);
+        }
+    }
+
+    private static GameObject SaveBasketballPrefab(GameObject ball)
+    {
+        Directory.CreateDirectory(PrefabsFolder);
+        var path = SimpleArcAcademyArena.BasketballPrefabPath;
+
+        if (PrefabUtility.IsPartOfPrefabInstance(ball))
+        {
+            return PrefabUtility.SaveAsPrefabAssetAndConnect(
+                ball,
+                path,
+                InteractionMode.AutomatedAction);
+        }
+
+        return PrefabUtility.SaveAsPrefabAssetAndConnect(
+            ball,
+            path,
+            InteractionMode.AutomatedAction);
     }
 
     private static Transform EnsureSpawnPoint(Transform arenaRoot)

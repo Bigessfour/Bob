@@ -18,7 +18,7 @@ public class SimpleFreeThrowSetup : MonoBehaviour
     public const string SetupObjectName = "SimpleFreeThrowSetup";
     public const string CourtName = "Court";
     public const string KeyMarkingsName = "KeyMarkings";
-    public const string BasketballName = "Basketball";
+    public const string BasketballName = BasketballProjectileSetup.BasketballName;
     public const string SimpleHoopName = "SimpleHoop";
 
     private static readonly string[] DisableArenaRoots =
@@ -185,14 +185,7 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         var basketball = GameObject.Find(BasketballName);
         if (basketball != null && basketball.TryGetComponent(out Rigidbody ballRb))
         {
-            agent.ConfigureProjectileLauncher(ballRb);
-
-            if (!basketball.TryGetComponent(out SimpleBasketball marker))
-            {
-                marker = basketball.AddComponent<SimpleBasketball>();
-            }
-
-            marker.Wire(agent);
+            BasketballProjectileSetup.WireLauncher(agent, ballRb);
         }
         else
         {
@@ -361,42 +354,9 @@ public class SimpleFreeThrowSetup : MonoBehaviour
 
     private static bool EnsureBasketball(Transform arena)
     {
-        var ball = GameObject.Find(BasketballName);
-        if (ball == null)
-        {
-            ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            ball.name = BasketballName;
-            ball.transform.SetParent(arena, false);
-        }
-
-        ball.transform.localScale = Vector3.one * 0.24f;
-        ball.transform.position = ArcAcademyLayout.BobSpawnPosition + new Vector3(0f, 0.15f, 0.2f);
-        ball.SetActive(true);
-        SetLayerRecursively(ball, BobPhysicsLayers.TrainingArenaLayer);
-
-        if (!ball.TryGetComponent(out Rigidbody rb))
-        {
-            rb = ball.AddComponent<Rigidbody>();
-        }
-
-        rb.mass = 0.6f;
-        rb.useGravity = true;
-        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        rb.isKinematic = false;
-
-        var col = ball.GetComponent<SphereCollider>();
-        if (col != null)
-        {
-            col.material = CreateBouncyMaterial();
-        }
-
-        ApplyBasketballMaterial(ball.GetComponent<Renderer>());
-
-        if (!ball.TryGetComponent(out SimpleBasketball _))
-        {
-            ball.AddComponent<SimpleBasketball>();
-        }
-
+        var release = BasketballProjectileSetup.GetReleasePosition(
+            ArcAcademyLayout.BobSpawnPosition);
+        BasketballProjectileSetup.EnsureBasketball(arena, release);
         return true;
     }
 
@@ -618,16 +578,6 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         renderer.sharedMaterial = CreateLitMaterial(new Color(0.75f, 0.75f, 0.78f), 0.7f, 0.85f);
     }
 
-    private static void ApplyBasketballMaterial(Renderer renderer)
-    {
-        if (renderer == null)
-        {
-            return;
-        }
-
-        renderer.sharedMaterial = CreateLitMaterial(new Color(0.92f, 0.45f, 0.12f), 0.45f, 0f);
-    }
-
     private static Material CreateLitMaterial(Color color, float smoothness, float metallic)
     {
         var shader = Shader.Find("HDRP/Lit") ?? Shader.Find("Standard");
@@ -651,18 +601,6 @@ public class SimpleFreeThrowSetup : MonoBehaviour
             mat.SetFloat("_Metallic", metallic);
         }
 
-        return mat;
-    }
-
-    private static PhysicsMaterial CreateBouncyMaterial()
-    {
-        var mat = new PhysicsMaterial("BasketballBounce")
-        {
-            bounciness = 0.75f,
-            dynamicFriction = 0.35f,
-            staticFriction = 0.35f,
-            bounceCombine = PhysicsMaterialCombine.Maximum,
-        };
         return mat;
     }
 }

@@ -9,6 +9,7 @@ public static class SimpleArcAcademyArena
     public const string RootName = "SimpleArcAcademyArena";
     public const string PrefabPath = "Assets/Prefabs/Prefab_SimpleArena.prefab";
     public const string BobPrefabPath = "Assets/Prefabs/Prefab_Bob.prefab";
+    public const string BasketballPrefabPath = "Assets/Prefabs/Prefab_Basketball.prefab";
 
     public const string SpawnPointName = "SpawnPoint";
     public const string FloorName = "Floor";
@@ -35,6 +36,9 @@ public static class SimpleArcAcademyArena
 
     /// <summary>Free-throw spawn on simple arena floor (≈ legacy BobSpawnPosition).</summary>
     public static readonly Vector3 BobSpawnLocalPosition = new(0f, 0.02f, -2f);
+
+    /// <summary>Ball release offset from Bob spawn (matches BasketballProjectileSetup.ReleaseOffset).</summary>
+    public static readonly Vector3 BallReleaseLocalOffset = BasketballProjectileSetup.ReleaseOffset;
 
     /// <summary>East sideline camera — level side view across spawn → hoop (AI Warehouse readability).</summary>
     public static readonly Vector3 LabCameraPosition = new(13f, 3.2f, -3.5f);

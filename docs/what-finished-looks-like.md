@@ -34,7 +34,7 @@ flowchart TD
 | Component         | Finished behavior                                                                                        | Current status                                                                   |
 | ----------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                         |
-| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | **Week 1:** cube acts as projectile; **Phase 1.5:** separate `Basketball` prefab |
+| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | **Phase 1.5:** separate `Basketball` wired via `BasketballProjectileSetup` (simple arena builder) |
 | **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                          |
 | **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                       |
 | **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | Screen HUD implemented; wall panels Phase 2                                      |
@@ -76,8 +76,10 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 
 ### Phase 1.5 — Basketball projectile
 
-- [ ] `Basketball` prefab at `BallSpawnPoint` (orange sphere, `Rigidbody`)
-- [ ] `BobAgent` applies force to ball; launcher cube stationary or kinematic at pad
+- [x] `Basketball` at spawn release point (orange sphere, `Rigidbody`, `SimpleBasketball`)
+- [x] `BobAgent` applies force to ball; launcher cube kinematic at pad (`BasketballProjectileSetup`)
+- [ ] `./scripts/validate-scene.sh` → `VALIDATE_PASS` with projectile wired
+- [ ] `./scripts/train.sh` + Play → single-shot training loop verified
 - [ ] `HoopScoreZone` detects ball tag/layer; update obs if action space changes (version YAML)
 - [ ] Validator + alignment tests
 

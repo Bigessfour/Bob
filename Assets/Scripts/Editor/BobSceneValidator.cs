@@ -783,6 +783,43 @@ public static class BobSceneValidator
             return;
         }
 
+        var basketballObjects = Object.FindObjectsByType<SimpleBasketball>();
+        if (basketballObjects.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one Basketball (SimpleBasketball) is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(BasketballProjectileSetup.BasketballName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Basketball GameObject missing from simple arena scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.ProjectileBody == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobAgent projectileBody must reference Basketball rigidbody");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (basketballObjects[0].Owner != agent)
+        {
+            Debug.LogError("VALIDATE_FAIL: SimpleBasketball must be wired to the single BobAgent");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var bobAgents = Object.FindObjectsByType<BobAgent>();
+        if (bobAgents.Length != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one BobAgent is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         if (Object.FindAnyObjectByType<BobTrainingStats>() == null
             || Object.FindAnyObjectByType<BobTrainingScoreboard>() == null
             || Object.FindAnyObjectByType<BobTrainingSuccessGraph>() == null)
