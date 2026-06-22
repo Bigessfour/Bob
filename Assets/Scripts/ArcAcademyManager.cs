@@ -199,6 +199,7 @@ public class ArcAcademyManager : MonoBehaviour
         BobTrainingStats.Instance?.RecordBasketballPoint();
         scorePopup?.Show(swish, sessionMadeBaskets);
         agent.GetComponent<BobSpeechBubble>()?.Show(swish);
+        agent.GetComponent<BobFaceExpression>()?.SetHappy();
         spawnPadPulse?.TriggerScoreBurst();
 
         Debug.Log(swish

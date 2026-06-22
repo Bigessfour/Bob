@@ -812,6 +812,38 @@ public static class BobSceneValidator
             return;
         }
 
+        if (Object.FindAnyObjectByType<BobWallTrainingHud>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobWallTrainingHud missing from simple arena scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var hudRoots = GameObject.FindObjectsByType<Canvas>();
+        int worldHudCount = 0;
+        foreach (var canvas in hudRoots)
+        {
+            if (canvas.renderMode == RenderMode.WorldSpace
+                && canvas.GetComponentInParent<BobWallTrainingHud>() != null)
+            {
+                worldHudCount++;
+            }
+        }
+
+        if (worldHudCount != 1)
+        {
+            Debug.LogError("VALIDATE_FAIL: Exactly one world-space lab HUD canvas is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (Object.FindAnyObjectByType<ArcAcademyPowerPathPulse>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyPowerPathPulse missing from simple arena scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         var bobAgents = Object.FindObjectsByType<BobAgent>();
         if (bobAgents.Length != 1)
         {

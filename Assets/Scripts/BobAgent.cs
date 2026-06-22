@@ -42,6 +42,8 @@ public class BobAgent : Agent
     private float shotStartHeight;
     private bool trackingArc;
     private float scorePulseTimer;
+    private float episodePeakArcQuality;
+    private bool shotImpulseThisEpisode;
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private Color baseEmissive = new(1f, 0.38f, 0f);
 
@@ -97,10 +99,14 @@ public class BobAgent : Agent
 
     public override void OnEpisodeBegin()
     {
+        GetComponent<BobFaceExpression>()?.OnEpisodeEnded(scoredThisEpisode);
+        BobTrainingStats.Instance?.FlushEpisodeArcQuality(episodePeakArcQuality);
         BobTrainingStats.Instance?.BeginIteration(scoredThisEpisode);
 
         scoredThisEpisode = false;
         trackingArc = false;
+        shotImpulseThisEpisode = false;
+        episodePeakArcQuality = 0f;
         shotPeakHeight = ObservationTransform.position.y;
         shotStartHeight = ObservationTransform.position.y;
 
@@ -149,6 +155,7 @@ public class BobAgent : Agent
 
         scoredThisEpisode = true;
         scorePulseTimer = 0.5f;
+        GetComponent<BobFaceExpression>()?.SetHappy();
 
         float reward = ArcAcademyRewards.MadeBasket;
         if (swish)
@@ -212,6 +219,17 @@ public class BobAgent : Agent
 
         ActionRigidbody.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
 
+        if (!shotImpulseThisEpisode)
+        {
+            shotImpulseThisEpisode = true;
+            GetComponent<BobProceduralAnimator>()?.NotifyShotImpulse();
+            GetComponent<BobFaceExpression>()?.SetFocus();
+            if (hoop != null)
+            {
+                ArcAcademyPowerPathPulse.Instance?.PlayPulse(transform.position, hoop.position);
+            }
+        }
+
         GiveReward(-0.005f);
 
         Vector3 toHoop = hoop.position - ObservationTransform.position;
@@ -226,6 +244,7 @@ public class BobAgent : Agent
             }
 
             float arcQuality = CalculateArcQuality(xzDist);
+            episodePeakArcQuality = Mathf.Max(episodePeakArcQuality, arcQuality);
             GiveReward(arcQuality * ArcAcademyLayout.ArcQualityRewardScale);
 
             if (ActionRigidbody.linearVelocity.y < -0.5f

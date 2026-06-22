@@ -17,6 +17,11 @@ public class BobTrainingScoreboard : MonoBehaviour
             return;
         }
 
+        if (SimpleArcAcademyArena.IsLabViewActive && BobWallTrainingHud.Instance != null)
+        {
+            return;
+        }
+
         var stats = BobTrainingStats.Instance;
         if (stats == null)
         {

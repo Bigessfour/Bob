@@ -31,17 +31,17 @@ flowchart TD
 
 ## Finished components
 
-| Component         | Finished behavior                                                                                        | Current status                                                                   |
-| ----------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                         |
+| Component         | Finished behavior                                                                                        | Current status                                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                                          |
 | **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | **Phase 1.5:** separate `Basketball` wired via `BasketballProjectileSetup` (simple arena builder) |
-| **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                          |
-| **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                       |
-| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | Screen HUD implemented; wall panels Phase 2                                      |
-| **Success graph** | Rolling **success rate %** over recent iterations                                                        | Implemented (`BobTrainingSuccessGraph`)                                          |
-| **Feedback**      | Speech bubble / popup on made basket                                                                     | Partial (`ArcAcademyScorePopup`); bubble Phase 2                                 |
-| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Week 1 gate** — prove end-to-end                                               |
-| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Planned                                                                          |
+| **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                                           |
+| **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                                        |
+| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse |
+| **Success graph** | Rolling **success rate %** over recent iterations                                                        | Implemented (`BobTrainingSuccessGraph`)                                                           |
+| **Feedback**      | Speech bubble / popup on made basket                                                                     | Partial (`ArcAcademyScorePopup`); bubble Phase 2                                                  |
+| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Week 1 gate** — prove end-to-end                                                                |
+| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Planned                                                                                           |
 
 ---
 

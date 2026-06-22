@@ -112,6 +112,8 @@ public static class SimpleArcAcademyArenaBuilder
 
         HideLegacyCourtVisuals();
         ApplyLabScenePreset();
+        BobWallHudBuilder.EnsureWallTrainingHud(arenaRoot.transform);
+        EnsurePowerPathPulse(arenaRoot.transform);
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         AssetDatabase.SaveAssets();
 
@@ -630,10 +632,47 @@ public static class SimpleArcAcademyArenaBuilder
         EditorUtility.SetDirty(camera);
     }
 
+    private static void EnsurePowerPathPulse(Transform arenaRoot)
+    {
+        var floor = arenaRoot.Find(SimpleArcAcademyArena.FloorName);
+        if (floor == null)
+        {
+            return;
+        }
+
+        var existing = floor.Find(SimpleArcAcademyArena.PowerPathPulseName);
+        GameObject pulseGo;
+        if (existing == null)
+        {
+            pulseGo = new GameObject(SimpleArcAcademyArena.PowerPathPulseName);
+            pulseGo.transform.SetParent(floor, false);
+        }
+        else
+        {
+            pulseGo = existing.gameObject;
+        }
+
+        pulseGo.transform.localPosition = Vector3.zero;
+        if (pulseGo.GetComponent<ArcAcademyPowerPathPulse>() == null)
+        {
+            pulseGo.AddComponent<ArcAcademyPowerPathPulse>();
+        }
+    }
+
     private static void EnsureBobFace(GameObject bob)
     {
         EnsureBobEye(bob.transform, "Eye_Left", new Vector3(-0.18f, 0.12f, 0.51f));
         EnsureBobEye(bob.transform, "Eye_Right", new Vector3(0.18f, 0.12f, 0.51f));
+
+        if (bob.GetComponent<BobProceduralAnimator>() == null)
+        {
+            bob.AddComponent<BobProceduralAnimator>();
+        }
+
+        if (bob.GetComponent<BobFaceExpression>() == null)
+        {
+            bob.AddComponent<BobFaceExpression>();
+        }
 
         if (bob.GetComponent<BobSpeechBubble>() == null)
         {

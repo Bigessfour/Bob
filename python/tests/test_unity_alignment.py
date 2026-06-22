@@ -137,6 +137,8 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "EnsureBobFace" in builder
     assert "EnsureSingleBasketball" in builder
     assert "BasketballProjectileSetup" in builder
+    assert "BobWallHudBuilder.EnsureWallTrainingHud" in builder
+    assert "EnsurePowerPathPulse" in builder
     assert "Mat_Wall_Tile_White" in builder
     assert "ApplyFromCli" in builder
 
@@ -153,6 +155,11 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
 
     assert (repo_root / "Assets/Scripts/BasketballProjectileSetup.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobShotArcPreview.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobWallTrainingHud.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobProceduralAnimator.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobFaceExpression.cs").is_file()
+    assert (repo_root / "Assets/Scripts/ArcAcademyPowerPathPulse.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/BobWallHudBuilder.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/SimpleArenaTextureFactory.cs").is_file()
 
     manager = (repo_root / "Assets/Scripts/SimpleArcArenaManager.cs").read_text()
@@ -162,11 +169,22 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     arc_mgr = (repo_root / "Assets/Scripts/ArcAcademyManager.cs").read_text()
     assert "SimpleArcArenaManager.Instance" in arc_mgr
     assert "BobSpeechBubble" in arc_mgr
+    assert "BobFaceExpression" in arc_mgr
+
+    stats = (repo_root / "Assets/Scripts/BobTrainingStats.cs").read_text()
+    assert "FlushEpisodeArcQuality" in stats
+    assert "RollingAverageArcQuality" in stats
+
+    agent_src = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    assert "episodePeakArcQuality" in agent_src
+    assert "BobProceduralAnimator" in agent_src
+    assert "ArcAcademyPowerPathPulse" in agent_src
 
     validator = (repo_root / "Assets/Scripts/Editor/BobSceneValidator.cs").read_text()
     assert "VerifySimpleArcAcademy" in validator
     assert "projectileBody must reference Basketball" in validator
     assert "Exactly one Basketball" in validator
+    assert "BobWallTrainingHud" in validator
     assert "SimpleArcAcademyArena.BobPrefabPath" in validator
 
     assert (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").is_file()
@@ -180,8 +198,9 @@ def test_bob_training_scene_simple_arena_yaml(repo_root: Path) -> None:
     assert "m_Name: SpawnPoint" in content
     assert "Bob::SimpleArcArenaManager" in content
     assert "m_Name: Basketball" in content or "value: Basketball" in content
-    assert "projectileBody:" in content
+    assert "projectileBody:" in content or "propertyPath: projectileBody" in content
     assert "Bob::SimpleBasketball" in content or "Bob::BobShotArcPreview" in content
+    assert "Bob::BobWallTrainingHud" in content or "LabTrainingHud" in content
 
 
 def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:

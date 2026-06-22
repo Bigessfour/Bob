@@ -23,7 +23,7 @@ public static class SimpleArcAcademyArena
     public const string ObstaclePrefix = "Obstacle_OverSpend_";
 
     /// <summary>Budget-flavor props are hidden in AI Warehouse lab polish mode.</summary>
-    public const bool ShowBudgetFlavorProps = false;
+    public static readonly bool ShowBudgetFlavorProps = false;
 
     public static readonly Color FloorColor = new(0.18f, 0.18f, 0.2f);
     public static readonly Color WallColor = new(0.92f, 0.92f, 0.92f);
@@ -39,6 +39,15 @@ public static class SimpleArcAcademyArena
 
     /// <summary>Ball release offset from Bob spawn (matches BasketballProjectileSetup.ReleaseOffset).</summary>
     public static readonly Vector3 BallReleaseLocalOffset = BasketballProjectileSetup.ReleaseOffset;
+
+    public const string LabHudWallName = WallWestName;
+public const string LabHudRootName = BobWallTrainingHud.RootName;
+    public const string PowerPathPulseName = "PowerPathPulse";
+
+    public static readonly Vector3 LabHudLocalPosition = new(0.52f, 0.35f, 0f);
+    public static readonly Vector3 LabHudLocalRotation = new(0f, 90f, 0f);
+    public static readonly Vector2 LabHudCanvasSize = new(380f, 320f);
+    public static readonly Vector3 LabHudCanvasScale = new(0.004f, 0.004f, 0.004f);
 
     /// <summary>East sideline camera — level side view across spawn → hoop (AI Warehouse readability).</summary>
     public static readonly Vector3 LabCameraPosition = new(13f, 3.2f, -3.5f);

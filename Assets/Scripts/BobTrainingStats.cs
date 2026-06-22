@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Session training metrics for the on-screen scoreboard (iterations, RL rewards/penalties, basketball points).
+/// Session training metrics for scoreboards and wall HUD (iterations, RL, basketball points, arc quality).
 /// </summary>
 public class BobTrainingStats : MonoBehaviour
 {
@@ -24,6 +24,8 @@ public class BobTrainingStats : MonoBehaviour
 
     public float CurrentEpisodeNetReward { get; private set; }
 
+    public float LastEpisodePeakArcQuality { get; private set; }
+
     public float NetSessionReward => TotalRewards - TotalPenalties;
 
     public float SessionSuccessRate =>
@@ -31,7 +33,10 @@ public class BobTrainingStats : MonoBehaviour
 
     public float RollingSuccessRate => ComputeRollingRate(DefaultRollingWindow);
 
+    public float RollingAverageArcQuality => ComputeRollingArcQuality(DefaultRollingWindow);
+
     private readonly Queue<float> m_RecentOutcomes = new();
+    private readonly Queue<float> m_RecentArcQuality = new();
 
     private void Awake()
     {
@@ -62,7 +67,9 @@ public class BobTrainingStats : MonoBehaviour
         BasketballPoints = 0;
         LastEpisodeNetReward = 0f;
         CurrentEpisodeNetReward = 0f;
+        LastEpisodePeakArcQuality = 0f;
         m_RecentOutcomes.Clear();
+        m_RecentArcQuality.Clear();
     }
 
     /// <param name="previousEpisodeScored">Whether the episode that just ended scored a basket.</param>
@@ -97,28 +104,25 @@ public class BobTrainingStats : MonoBehaviour
         BasketballPoints++;
     }
 
+    /// <summary>Call at episode boundary with peak arc quality (0–1) for the shot that just finished.</summary>
+    public void FlushEpisodeArcQuality(float peakQuality)
+    {
+        LastEpisodePeakArcQuality = Mathf.Clamp01(peakQuality);
+        m_RecentArcQuality.Enqueue(LastEpisodePeakArcQuality);
+        while (m_RecentArcQuality.Count > DefaultRollingWindow * 4)
+        {
+            m_RecentArcQuality.Dequeue();
+        }
+    }
+
     public IReadOnlyList<float> GetRecentOutcomes(int maxCount)
     {
-        if (m_RecentOutcomes.Count == 0)
-        {
-            return System.Array.Empty<float>();
-        }
+        return BuildRollingSeries(m_RecentOutcomes, maxCount);
+    }
 
-        var list = new List<float>(m_RecentOutcomes);
-        if (list.Count > maxCount)
-        {
-            list = list.GetRange(list.Count - maxCount, maxCount);
-        }
-
-        float rolling = 0f;
-        var rates = new List<float>(list.Count);
-        for (int i = 0; i < list.Count; i++)
-        {
-            rolling += list[i];
-            rates.Add(rolling / (i + 1));
-        }
-
-        return rates;
+    public IReadOnlyList<float> GetRecentArcQuality(int maxCount)
+    {
+        return BuildRollingSeries(m_RecentArcQuality, maxCount);
     }
 
     public float ComputeRollingRate(int window)
@@ -143,6 +147,54 @@ public class BobTrainingStats : MonoBehaviour
         }
 
         return sum / count;
+    }
+
+    public float ComputeRollingArcQuality(int window)
+    {
+        if (m_RecentArcQuality.Count == 0)
+        {
+            return 0f;
+        }
+
+        int count = Mathf.Min(window, m_RecentArcQuality.Count);
+        float sum = 0f;
+        int skip = m_RecentArcQuality.Count - count;
+        int index = 0;
+        foreach (float quality in m_RecentArcQuality)
+        {
+            if (index >= skip)
+            {
+                sum += quality;
+            }
+
+            index++;
+        }
+
+        return sum / count;
+    }
+
+    private static IReadOnlyList<float> BuildRollingSeries(Queue<float> source, int maxCount)
+    {
+        if (source.Count == 0)
+        {
+            return System.Array.Empty<float>();
+        }
+
+        var list = new List<float>(source);
+        if (list.Count > maxCount)
+        {
+            list = list.GetRange(list.Count - maxCount, maxCount);
+        }
+
+        float rolling = 0f;
+        var rates = new List<float>(list.Count);
+        for (int i = 0; i < list.Count; i++)
+        {
+            rolling += list[i];
+            rates.Add(rolling / (i + 1));
+        }
+
+        return rates;
     }
 
     private void RecordOutcome(bool scored)
