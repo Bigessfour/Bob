@@ -554,10 +554,19 @@ public static class BobSceneValidator
             return;
         }
 
-        if (GameObject.Find(SimpleFreeThrowSetup.CourtName) == null
+        if (!SimpleArcAcademyArena.HasArenaFloor()
+            && GameObject.Find(SimpleFreeThrowSetup.CourtName) == null
             && GameObject.Find(ArcAcademyLayout.CourtFloorName) == null)
         {
             Debug.LogError("VALIDATE_FAIL: Court missing from minimal training scene");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (GameObject.Find(SimpleArcAcademyArena.RootName) != null
+            && Object.FindAnyObjectByType<SimpleArcArenaManager>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: SimpleArcArenaManager missing on SimpleArcAcademyArena");
             EditorApplication.Exit(1);
             return;
         }

@@ -25,7 +25,6 @@ public static class SimpleArcAcademyArenaBuilder
     private const string TargetGreenMatPath = MaterialsFolder + "/Mat_Target_Green.mat";
 
     [MenuItem("Bob/Setup/Simple Arc Academy Arena")]
-    [MenuItem("Tools/Bob/Setup Simple Arc Academy Arena")]
     public static void MenuApply()
     {
         if (!EnsureScene())
@@ -38,6 +37,12 @@ public static class SimpleArcAcademyArenaBuilder
             "Simple Arc Academy Arena",
             "Arena built, prefab saved, and legacy court visuals hidden.\nPress Play to preview.",
             "OK");
+    }
+
+    [MenuItem("Tools/Bob/Setup Simple Arc Academy Arena")]
+    public static void MenuApplySilent()
+    {
+        ApplySilently();
     }
 
     public static void ApplySilently()
@@ -93,7 +98,9 @@ public static class SimpleArcAcademyArenaBuilder
         var arenaRoot = FindOrCreateArenaRoot();
         arenaRoot.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         BuildArenaHierarchy(arenaRoot.transform, materials);
+        EnsureSpawnAndManager(arenaRoot);
         SavePrefabFromInstance(arenaRoot);
+        WireBobToArena(arenaRoot);
 
         HideLegacyCourtVisuals();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -246,6 +253,113 @@ public static class SimpleArcAcademyArenaBuilder
                 Object.DestroyImmediate(collider);
             }
         }
+    }
+
+    private static void EnsureSpawnAndManager(GameObject arenaRoot)
+    {
+        var spawn = EnsureSpawnPoint(arenaRoot.transform);
+        var manager = arenaRoot.GetComponent<SimpleArcArenaManager>();
+        if (manager == null)
+        {
+            manager = arenaRoot.AddComponent<SimpleArcArenaManager>();
+        }
+
+        manager.Wire(null, spawn, null);
+        EditorUtility.SetDirty(manager);
+    }
+
+    private static void WireBobToArena(GameObject arenaRoot)
+    {
+        var spawn = arenaRoot.transform.Find(SimpleArcAcademyArena.SpawnPointName);
+        var bobGo = GameObject.Find("Bob");
+        if (bobGo == null)
+        {
+            Debug.LogWarning("SIMPLE_ARENA_WARN: Bob not found — skip agent wiring.");
+            return;
+        }
+
+        bobGo.transform.SetParent(arenaRoot.transform, true);
+
+        if (!bobGo.TryGetComponent(out BobAgent bobAgent))
+        {
+            Debug.LogWarning("SIMPLE_ARENA_WARN: BobAgent missing on Bob.");
+            return;
+        }
+
+        var rim = FindRimTransform();
+        if (rim != null)
+        {
+            bobAgent.hoop = rim;
+            EditorUtility.SetDirty(bobAgent);
+        }
+        else
+        {
+            Debug.LogWarning("SIMPLE_ARENA_WARN: Rim not found for BobAgent.hoop.");
+        }
+
+        var bobPrefab = SaveBobPrefab(bobGo);
+        var manager = arenaRoot.GetComponent<SimpleArcArenaManager>();
+        if (manager != null)
+        {
+            manager.Wire(bobAgent, spawn, bobPrefab);
+            EditorUtility.SetDirty(manager);
+        }
+    }
+
+    private static Transform EnsureSpawnPoint(Transform arenaRoot)
+    {
+        var spawn = arenaRoot.Find(SimpleArcAcademyArena.SpawnPointName);
+        if (spawn == null)
+        {
+            var go = new GameObject(SimpleArcAcademyArena.SpawnPointName);
+            go.transform.SetParent(arenaRoot, false);
+            spawn = go.transform;
+        }
+
+        spawn.localPosition = SimpleArcAcademyArena.BobSpawnLocalPosition;
+        spawn.localRotation = Quaternion.identity;
+        spawn.localScale = Vector3.one;
+        return spawn;
+    }
+
+    private static GameObject SaveBobPrefab(GameObject bob)
+    {
+        Directory.CreateDirectory(PrefabsFolder);
+        var path = SimpleArcAcademyArena.BobPrefabPath;
+        return PrefabUtility.SaveAsPrefabAssetAndConnect(
+            bob,
+            path,
+            InteractionMode.AutomatedAction);
+    }
+
+    private static Transform FindRimTransform()
+    {
+        var hoop = GameObject.Find(ArcAcademyLayout.HoopName);
+        if (hoop == null)
+        {
+            return null;
+        }
+
+        return FindDeepChild(hoop.transform, ArcAcademyLayout.RimName);
+    }
+
+    private static Transform FindDeepChild(Transform root, string name)
+    {
+        if (root.name == name)
+        {
+            return root;
+        }
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            var found = FindDeepChild(root.GetChild(i), name);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
     }
 
     private static void SavePrefabFromInstance(GameObject arenaRoot)

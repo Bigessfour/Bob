@@ -119,6 +119,11 @@ public class ArcAcademyManager : MonoBehaviour
 
     public Vector3 GetSpawnPosition()
     {
+        if (SimpleArcArenaManager.Instance?.PrimarySpawnPoint != null)
+        {
+            return SimpleArcArenaManager.Instance.GetBobSpawnPosition();
+        }
+
         if (ballSpawnPoint != null)
         {
             return ResolveSpawnPosition(ballSpawnPoint.position);

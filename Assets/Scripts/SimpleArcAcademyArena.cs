@@ -8,7 +8,9 @@ public static class SimpleArcAcademyArena
 {
     public const string RootName = "SimpleArcAcademyArena";
     public const string PrefabPath = "Assets/Prefabs/Prefab_SimpleArena.prefab";
+    public const string BobPrefabPath = "Assets/Prefabs/Prefab_Bob.prefab";
 
+    public const string SpawnPointName = "SpawnPoint";
     public const string FloorName = "Floor";
     public const string WallNorthName = "Wall_North";
     public const string WallSouthName = "Wall_South";
@@ -27,6 +29,15 @@ public static class SimpleArcAcademyArena
 
     public static readonly Vector3 FloorPosition = Vector3.zero;
     public static readonly Vector3 FloorScale = new(20f, 1f, 20f);
+
+    /// <summary>Free-throw spawn on simple arena floor (≈ legacy BobSpawnPosition).</summary>
+    public static readonly Vector3 BobSpawnLocalPosition = new(0f, 0.02f, -2f);
+
+    public static bool HasArenaFloor()
+    {
+        var arena = GameObject.Find(RootName);
+        return arena != null && arena.transform.Find(FloorName) != null;
+    }
 
     public static readonly Vector3 WallNorthScale = new(22f, 4f, 1f);
     public static readonly Vector3 WallNorthPosition = new(0f, 2f, 10.5f);
