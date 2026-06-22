@@ -1,7 +1,9 @@
 # ML-Agents 1.1.0 — Python 3.10.1–3.10.12 only (not 3.10.13+)
 # See docs/setup-checklist.md for Apple Silicon notes (Docker recommended for training).
 mlagents==1.1.0
-torch>=2.1.1
+# Cap torch <= 2.8.0 — PyTorch 2.9+ ONNX export needs onnxscript and conflicts with mlagents onnx==1.15.0
+torch>=2.1.1,<=2.8.0
+onnx==1.15.0
 numpy>=1.23.5,<1.24.0
 protobuf>=3.6,<3.21
 matplotlib>=3.7,<3.9

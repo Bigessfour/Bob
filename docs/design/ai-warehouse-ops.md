@@ -49,6 +49,8 @@ Bob stays **single-agent PPO** (not POca/multi-agent like soccer).
 | Log signal                                                     | Severity     | Action                                                                                         |
 | -------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
 | `Couldn't connect to trainer on port 5004 … inference instead` | **Fix**      | `BobTrainingConnectionMonitor` + scoreboard status line; `train.sh` auto `docker compose down` |
+| `FileNotFoundError: … checkpoint.pt` on resume                   | **Fix**      | `./scripts/train.sh --force` or `RUN_ID=bob-v1 ./scripts/train.sh`; `train.sh` now auto-`--force` when checkpoint missing |
+| `ModuleNotFoundError: no module named 'onnxscript'`             | **Fix**      | Rebuild Docker after `torch<=2.8.0` pin in `python/requirements.txt`; avoid PyTorch 2.9+ with mlagents 1.1.0 |
 | Stale Docker container on 5004                                 | **Fix**      | Documented + `train.sh` clears orphans before start                                            |
 | Batchmode Burst segfault after scene build                     | **Mitigate** | `validate-scene.sh` passes `-disableBurstCompilation`                                          |
 | `[WARNING] --train option deprecated`                          | Low          | Removed `train_model` from `checkpoint_settings`                                               |
@@ -61,7 +63,7 @@ Bob stays **single-agent PPO** (not POca/multi-agent like soccer).
 ## Recommended training workflow (Bob)
 
 ```bash
-# 1. Trainer (clears stale containers, auto-resumes bob-v0)
+# 1. Trainer (resumes bob-v0 only when results/bob-v0/Bob/checkpoint.pt exists)
 ./scripts/train.sh
 
 # 2. Unity: BobTraining scene, Play STOPPED until trainer listens

@@ -868,6 +868,34 @@ public static class BobSceneValidator
             return;
         }
 
+        var spawnPad = GameObject.Find(ArcAcademyLayout.SpawnPadName);
+        if (spawnPad != null)
+        {
+            var branding = FindDeepChild(spawnPad.transform, ArcAcademyLayout.SpawnPadBrandingName);
+            if (branding != null && branding.gameObject.activeSelf)
+            {
+                Debug.LogError("VALIDATE_FAIL: SpawnPadBranding must be inactive in simple arena lab view");
+                EditorApplication.Exit(1);
+                return;
+            }
+        }
+
+        var mainCamera = Camera.main;
+        if (!ArcAcademyLabSceneCleanup.IsLabCameraPosition(mainCamera.transform.position))
+        {
+            Debug.LogError(
+                "VALIDATE_FAIL: Main Camera must use LabHero position for simple arena sideline framing");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (mainCamera.GetComponent<ArcAcademyDemoCamera>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: ArcAcademyDemoCamera missing on Main Camera");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         Debug.Log("VALIDATE_PASS: Simple Arc Academy arena is ready for Play mode and training");
         EditorApplication.Exit(0);
     }

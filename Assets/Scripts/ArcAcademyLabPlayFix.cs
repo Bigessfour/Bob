@@ -11,10 +11,19 @@ public class ArcAcademyLabPlayFix : MonoBehaviour
         if (SimpleArcAcademyArena.IsLabViewActive)
         {
             ArcAcademyLabRenderPreset.ApplyLabViewPreset();
+            ArcAcademyLabSceneCleanup.HideLegacyClutter();
         }
         else
         {
             ArcAcademyLabRenderPreset.ApplyAll();
+        }
+    }
+
+    private void Start()
+    {
+        if (SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ArcAcademyLabSceneCleanup.EnsureLabCamera();
         }
     }
 }

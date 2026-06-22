@@ -10,21 +10,29 @@ CONFIG="${CONFIG:-config/bob_free_throw.yaml}"
 RESULTS_DIR="results/${RUN_ID}"
 
 TRAIN_CMD=(mlagents-learn "${CONFIG}" --run-id="${RUN_ID}")
+CHECKPOINT="${RESULTS_DIR}/Bob/checkpoint.pt"
 
 # ML-Agents refuses to start when results/<run-id> already exists unless --resume or --force.
-if [[ -d ${RESULTS_DIR} ]]; then
-	has_resume_or_force=false
-	for arg in "$@"; do
-		case "${arg}" in
-		--resume | --force) has_resume_or_force=true ;;
-		esac
-	done
-	if [[ ${has_resume_or_force} == false ]]; then
-		echo "Resuming existing run '${RUN_ID}' (${RESULTS_DIR} found)."
+has_resume_or_force=false
+for arg in "$@"; do
+	case "${arg}" in
+	--resume | --force) has_resume_or_force=true ;;
+	esac
+done
+
+if [[ -d ${RESULTS_DIR} && ${has_resume_or_force} == false ]]; then
+	if [[ -f ${CHECKPOINT} ]]; then
+		echo "Resuming existing run '${RUN_ID}' (${CHECKPOINT} found)."
 		echo "  Fresh run:  RUN_ID=bob-v1 ./scripts/train.sh"
 		echo "  Overwrite:  ./scripts/train.sh --force"
 		echo ""
 		TRAIN_CMD+=(--resume)
+	else
+		echo "Incomplete run '${RUN_ID}' (${RESULTS_DIR} exists but no checkpoint.pt)."
+		echo "  Starting fresh with --force (avoids checkpoint.pt / onnxscript resume errors)."
+		echo "  Or use:  RUN_ID=bob-v1 ./scripts/train.sh"
+		echo ""
+		TRAIN_CMD+=(--force)
 	fi
 fi
 

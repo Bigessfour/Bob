@@ -159,8 +159,20 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/BobProceduralAnimator.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobFaceExpression.cs").is_file()
     assert (repo_root / "Assets/Scripts/ArcAcademyPowerPathPulse.cs").is_file()
+    assert (repo_root / "Assets/Scripts/ArcAcademyLabSceneCleanup.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/BobWallHudBuilder.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/SimpleArenaTextureFactory.cs").is_file()
+
+    builder = (repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs").read_text()
+    assert "FindDeepChild(parent.transform, parts[1])" in builder
+    assert "ArcAcademyLabSceneCleanup.HideLegacyClutter" in builder
+
+    play_fix = (repo_root / "Assets/Scripts/ArcAcademyLabPlayFix.cs").read_text()
+    assert "ArcAcademyLabSceneCleanup.EnsureLabCamera" in play_fix
+
+    train_sh = (repo_root / "scripts/train.sh").read_text()
+    assert "Bob/checkpoint.pt" in train_sh
+    assert "--force" in train_sh
 
     manager = (repo_root / "Assets/Scripts/SimpleArcArenaManager.cs").read_text()
     assert "GetBobSpawnPosition" in manager
@@ -189,6 +201,8 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "projectileBody must reference Basketball" in validator
     assert "Exactly one Basketball" in validator
     assert "BobWallTrainingHud" in validator
+    assert "SpawnPadBranding must be inactive" in validator
+    assert "IsLabCameraPosition" in validator
     assert "SimpleArcAcademyArena.BobPrefabPath" in validator
 
     assert (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").is_file()

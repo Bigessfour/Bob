@@ -59,6 +59,14 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (Application.isPlaying && SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ResetToLabHero();
+        }
+    }
+
     private void Update()
     {
         if (!Application.isPlaying)

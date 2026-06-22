@@ -563,6 +563,7 @@ public static class SimpleArcAcademyArenaBuilder
         }
 
         HideSimpleArenaBudgetProps();
+        ArcAcademyLabSceneCleanup.HideLegacyClutter();
 
         var spawnPad = GameObject.Find($"{arena}/{ArcAcademyLayout.SpawnPadName}");
         if (spawnPad != null)
@@ -749,7 +750,7 @@ public static class SimpleArcAcademyArenaBuilder
             return;
         }
 
-        var child = parent.transform.Find(parts[1]);
+        var child = FindDeepChild(parent.transform, parts[1]);
         if (child != null)
         {
             child.gameObject.SetActive(active);
