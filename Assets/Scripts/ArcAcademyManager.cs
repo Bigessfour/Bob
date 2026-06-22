@@ -40,6 +40,11 @@ public class ArcAcademyManager : MonoBehaviour
             movableHoop = GetComponentInChildren<MovableHoop>();
         }
 
+        if (movableHoop != null)
+        {
+            movableHoop.SetStationaryForTraining(!randomizeEpisodeLayout);
+        }
+
         if (spawnPad == null)
         {
             var pad = GameObject.Find(ArcAcademyLayout.SpawnPadName);

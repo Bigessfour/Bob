@@ -798,6 +798,26 @@ public static class BobSceneValidator
             return;
         }
 
+        var hoopRoot = GameObject.Find(ArcAcademyLayout.HoopName);
+        if (hoopRoot != null)
+        {
+            var swivel = hoopRoot.transform.Find("RoboticSwivelBase");
+            if (swivel != null && swivel.gameObject.activeSelf)
+            {
+                Debug.LogError("VALIDATE_FAIL: RoboticSwivelBase must be disabled for stationary training hoop");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            var hoopHead = hoopRoot.transform.Find("HoopHead");
+            if (hoopHead != null && hoopHead.parent != hoopRoot.transform)
+            {
+                Debug.LogError("VALIDATE_FAIL: HoopHead must be parented directly under Hoop for stationary assembly");
+                EditorApplication.Exit(1);
+                return;
+            }
+        }
+
         var basketballObjects = Object.FindObjectsByType<SimpleBasketball>();
         if (basketballObjects.Length != 1)
         {

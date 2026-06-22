@@ -293,11 +293,11 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         simple.gameObject.SetActive(true);
 
         var backboard = EnsureChildPrimitive(simple, "Backboard", PrimitiveType.Cube,
-            new Vector3(0f, 3.05f, 0.05f), new Vector3(1.8f, 1.2f, 0.06f));
+            ArcAcademyLayout.BackboardLocalOnHoopHead, new Vector3(1.8f, 1.2f, 0.06f));
         ApplyWhiteMaterial(backboard.GetComponent<Renderer>());
 
         var rimGo = EnsureChildPrimitive(simple, ArcAcademyLayout.RimName, PrimitiveType.Cylinder,
-            new Vector3(0f, 3.05f, 0.35f), new Vector3(0.9f, 0.03f, 0.9f));
+            ArcAcademyLayout.RimLocalOnHoopHead, new Vector3(0.9f, 0.03f, 0.9f));
         rimGo.localRotation = Quaternion.Euler(90f, 0f, 0f);
         ApplyMetalMaterial(rimGo.GetComponent<Renderer>());
 

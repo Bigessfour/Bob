@@ -7,12 +7,20 @@ using UnityEngine;
 public static class TrainingHoopDetail
 {
     public const int RimSegmentCount = 12;
+    public const int NetStrandCount = 12;
     public const float RimOuterRadius = 0.43f;
     public const float RimTubeRadius = 0.018f;
 
     private static readonly Color TargetRed = new(0.82f, 0.18f, 0.12f);
     private static readonly Color FrameDark = new(0.12f, 0.12f, 0.14f);
     private static readonly Color NetWhite = new(0.92f, 0.93f, 0.95f);
+
+    private static readonly string[] DisableUnderHoop =
+    {
+        ArcAcademyLayout.PortableHoopStandName,
+        "RoboticSwivelBase",
+        "RoboticLauncher",
+    };
 
     public static void UpgradeActiveHoop()
     {
@@ -27,15 +35,58 @@ public static class TrainingHoopDetail
 
     public static void UpgradeHoop(Transform hoopRoot)
     {
+        FreezeStationaryAssembly(hoopRoot);
+
         var rim = FindRim(hoopRoot);
         if (rim == null)
         {
             return;
         }
 
+        AttachRimToBackboard(rim);
         ConfigureRimColliders(rim.gameObject);
         EnsureBackboardDetail(rim);
         EnsureVisualNet(rim);
+    }
+
+    /// <summary>
+    /// Reparents HoopHead to the hoop root, disables the robotic arm, and freezes motion for training.
+    /// </summary>
+    public static void FreezeStationaryAssembly(Transform hoopRoot)
+    {
+        if (hoopRoot == null)
+        {
+            return;
+        }
+
+        DisableIdleAnimators(hoopRoot);
+
+        var hoopHead = FindDeepChild(hoopRoot, "HoopHead");
+        if (hoopHead == null)
+        {
+            return;
+        }
+
+        hoopHead.SetParent(hoopRoot, false);
+        hoopHead.localPosition = ArcAcademyLayout.StationaryHoopHeadLocalPosition;
+        hoopHead.localRotation = Quaternion.identity;
+
+        foreach (var childName in DisableUnderHoop)
+        {
+            var child = hoopRoot.Find(childName);
+            if (child != null)
+            {
+                child.gameObject.SetActive(false);
+            }
+        }
+
+        RemoveStrayDetailOnArm(hoopRoot);
+
+        if (hoopRoot.TryGetComponent(out MovableHoop movableHoop))
+        {
+            movableHoop.SetStationaryForTraining(true);
+            movableHoop.ApplyDefaultPose();
+        }
     }
 
     public static Transform FindRim(Transform hoopRoot)
@@ -53,6 +104,39 @@ public static class TrainingHoopDetail
         }
 
         return FindDeepChild(hoopRoot, ArcAcademyLayout.RimName);
+    }
+
+    public static void AttachRimToBackboard(Transform rim)
+    {
+        if (rim == null)
+        {
+            return;
+        }
+
+        var hoopHead = rim.parent;
+        if (hoopHead == null || hoopHead.name != "HoopHead")
+        {
+            hoopHead = rim;
+            while (hoopHead != null && hoopHead.name != "HoopHead")
+            {
+                hoopHead = hoopHead.parent;
+            }
+
+            if (hoopHead != null)
+            {
+                rim.SetParent(hoopHead, false);
+            }
+        }
+
+        var backboard = hoopHead != null ? hoopHead.Find("Backboard") : null;
+        if (backboard != null)
+        {
+            backboard.localPosition = ArcAcademyLayout.BackboardLocalOnHoopHead;
+        }
+
+        rim.localPosition = ArcAcademyLayout.RimLocalOnHoopHead;
+        rim.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        rim.localScale = new Vector3(0.9f, 0.04f, 0.9f);
     }
 
     public static void ConfigureRimColliders(GameObject rimGo)
@@ -89,12 +173,6 @@ public static class TrainingHoopDetail
             collidersRoot = root.transform;
         }
 
-        if (collidersRoot.childCount >= RimSegmentCount)
-        {
-            ApplyRimColliderMaterials(collidersRoot);
-            return;
-        }
-
         ClearChildren(collidersRoot);
 
         float segmentArc = (Mathf.PI * 2f * RimOuterRadius) / RimSegmentCount;
@@ -113,14 +191,6 @@ public static class TrainingHoopDetail
             cap.direction = 2;
             cap.radius = RimTubeRadius;
             cap.height = segmentArc * 1.05f;
-            cap.material = HoopPhysicsMaterials.Rim;
-        }
-    }
-
-    private static void ApplyRimColliderMaterials(Transform collidersRoot)
-    {
-        foreach (var cap in collidersRoot.GetComponentsInChildren<CapsuleCollider>())
-        {
             cap.material = HoopPhysicsMaterials.Rim;
         }
     }
@@ -191,18 +261,6 @@ public static class TrainingHoopDetail
             new Vector3(0.12f, 0.04f, -0.14f),
             new Vector3(0.05f, 0.05f, 0.16f),
             FrameDark);
-
-        var pole = hoopHead.parent;
-        if (pole != null)
-        {
-            EnsureDetailCube(
-                pole,
-                "PolePadding",
-                new Vector3(0f, -0.35f, -0.08f),
-                new Vector3(0.26f, 0.55f, 0.26f),
-                FrameDark,
-                alpha: 0.85f);
-        }
     }
 
     private static void EnsureVisualNet(Transform rim)
@@ -212,9 +270,11 @@ public static class TrainingHoopDetail
         {
             var go = new GameObject("Net");
             go.transform.SetParent(rim, false);
-            go.transform.localPosition = new Vector3(0f, -0.08f, 0f);
+            go.transform.localPosition = new Vector3(0f, -0.06f, 0f);
             netRoot = go.transform;
         }
+
+        netRoot.localPosition = new Vector3(0f, -0.06f, 0f);
 
         if (!netRoot.TryGetComponent(out HoopSwishVfx _))
         {
@@ -224,46 +284,79 @@ public static class TrainingHoopDetail
         var netPhysics = netRoot.GetComponent<HoopNetPhysics>();
         if (netPhysics != null)
         {
-            netPhysics.RebuildVisualOnly(rim, NetWhite);
-            return;
+            Object.Destroy(netPhysics);
         }
 
-        if (netRoot.childCount >= 8)
-        {
-            StripNetPhysicsColliders(netRoot);
-            return;
-        }
-
+        StripNetPhysicsColliders(netRoot);
         ClearChildren(netRoot);
-        for (int i = 0; i < 10; i++)
+
+        for (int i = 0; i < NetStrandCount; i++)
         {
-            float angle = i / 10f * Mathf.PI * 2f;
+            float angle = i / (float)NetStrandCount * Mathf.PI * 2f;
             var strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             strand.name = $"NetStrand_{i}";
             strand.transform.SetParent(netRoot, false);
             strand.transform.localPosition = new Vector3(
-                Mathf.Cos(angle) * 0.3f,
-                -0.2f,
-                Mathf.Sin(angle) * 0.3f);
-            strand.transform.localScale = new Vector3(0.014f, 0.2f, 0.014f);
+                Mathf.Cos(angle) * 0.32f,
+                -0.22f,
+                Mathf.Sin(angle) * 0.32f);
+            strand.transform.localScale = new Vector3(0.012f, 0.22f, 0.012f);
             ApplyNetMaterial(strand.GetComponent<Renderer>());
             Object.Destroy(strand.GetComponent<Collider>());
+        }
+
+        EnsureNetRing(netRoot, "NetRing_Upper", -0.12f, 0.52f);
+        EnsureNetRing(netRoot, "NetRing_Lower", -0.28f, 0.34f);
+    }
+
+    private static void EnsureNetRing(Transform netRoot, string name, float localY, float radius)
+    {
+        var ring = netRoot.Find(name);
+        if (ring == null)
+        {
+            var torus = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            torus.name = name;
+            torus.transform.SetParent(netRoot, false);
+            Object.Destroy(torus.GetComponent<Collider>());
+            ring = torus.transform;
+        }
+
+        ring.localPosition = new Vector3(0f, localY, 0f);
+        ring.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        ring.localScale = new Vector3(radius, 0.004f, radius);
+        ApplyNetMaterial(ring.GetComponent<Renderer>());
+    }
+
+    private static void DisableIdleAnimators(Transform hoopRoot)
+    {
+        foreach (var launcher in hoopRoot.GetComponentsInChildren<RoboticLauncherVisual>(true))
+        {
+            launcher.enabled = false;
+        }
+    }
+
+    private static void RemoveStrayDetailOnArm(Transform hoopRoot)
+    {
+        var stray = FindDeepChild(hoopRoot, "PolePadding");
+        if (stray != null)
+        {
+            Object.Destroy(stray.gameObject);
         }
     }
 
     private static void StripNetPhysicsColliders(Transform netRoot)
     {
-        foreach (var col in netRoot.GetComponentsInChildren<Collider>())
+        foreach (var col in netRoot.GetComponentsInChildren<Collider>(true))
         {
             Object.Destroy(col);
         }
 
-        foreach (var rb in netRoot.GetComponentsInChildren<Rigidbody>())
+        foreach (var rb in netRoot.GetComponentsInChildren<Rigidbody>(true))
         {
             Object.Destroy(rb);
         }
 
-        foreach (var joint in netRoot.GetComponentsInChildren<Joint>())
+        foreach (var joint in netRoot.GetComponentsInChildren<Joint>(true))
         {
             Object.Destroy(joint);
         }

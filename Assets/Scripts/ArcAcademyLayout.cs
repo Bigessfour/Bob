@@ -55,7 +55,17 @@ public static class ArcAcademyLayout
     public static readonly float[] DistanceMarkOffsetsFromBaseline = { 3f, 6f, 9f };
 
     public static readonly Vector3 HoopRootDefaultPosition = new(0f, 0f, -5.5f);
+    /// <summary>World-space rim height offset when estimating positions from hoop root (legacy helpers).</summary>
     public static readonly Vector3 RimLocalDefaultPosition = new(0f, 3.05f, 0.2f);
+
+    /// <summary>Rim attached to backboard on HoopHead — must stay parented under Backboard/HoopHead.</summary>
+    public static readonly Vector3 RimLocalOnHoopHead = new(0f, 0.05f, 0.35f);
+
+    /// <summary>Backboard center on HoopHead (matches scene builder).</summary>
+    public static readonly Vector3 BackboardLocalOnHoopHead = new(0f, 0.55f, 0.08f);
+
+    /// <summary>Fixed HoopHead pose on Hoop root when robotic arm is disabled for training.</summary>
+    public static readonly Vector3 StationaryHoopHeadLocalPosition = new(0f, 3f, 0.2f);
 
     /// <summary>
     /// Central elevated black "Bob" platform (Example.jpg hero element).

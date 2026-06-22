@@ -309,6 +309,8 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     assert "BuildTrajectoryArcTargets" in layout
     assert "BallSpawnPointName" in layout
     assert "HoopRootDefaultPosition = new(0f, 0f, -5.5f)" in layout
+    assert "RimLocalOnHoopHead" in layout
+    assert "StationaryHoopHeadLocalPosition" in layout
     assert (repo_root / "Assets/Scripts/ArcAcademyManager.cs").is_file()
     assert (repo_root / "Assets/Scripts/MovableHoop.cs").is_file()
     assert (repo_root / "Assets/Scripts/HoopNetPhysics.cs").is_file()
@@ -316,6 +318,10 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     hoop_detail = (repo_root / "Assets/Scripts/TrainingHoopDetail.cs").read_text()
     assert "RimColliders" in hoop_detail
     assert "ConfigureRimColliders" in hoop_detail
+    assert "FreezeStationaryAssembly" in hoop_detail
+    movable = (repo_root / "Assets/Scripts/MovableHoop.cs").read_text()
+    assert "SetStationaryForTraining" in movable
+    assert "stationaryForTraining" in movable
     assert (repo_root / "Assets/Scripts/BobShootingInput.cs").is_file()
     assert (repo_root / "Assets/Scripts/ArcAcademyScorePopup.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobTrainingStats.cs").is_file()

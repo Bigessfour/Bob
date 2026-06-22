@@ -3,41 +3,60 @@ using UnityEngine;
 /// <summary>
 /// Robotic hoop assembly with swivel base and arm articulation.
 /// Default pose is fixed regulation height; randomize via ArcAcademyManager when curriculum is enabled.
+/// Week 1 training locks the hoop stationary via <see cref="SetStationaryForTraining"/>.
 /// </summary>
 public class MovableHoop : MonoBehaviour
 {
     [SerializeField] private Transform rimTransform;
+    [SerializeField] private Transform hoopHeadTransform;
     [SerializeField] private Transform swivelLink;
     [SerializeField] private Transform armLink;
     [SerializeField] private ArticulationBody swivelBody;
     [SerializeField] private ArticulationBody armBody;
     [SerializeField] private Vector3 defaultRootPosition = ArcAcademyLayout.HoopRootDefaultPosition;
-    [SerializeField] private Vector3 defaultRimLocalPosition = ArcAcademyLayout.RimLocalDefaultPosition;
+    [SerializeField] private Vector3 defaultRimLocalPosition = ArcAcademyLayout.RimLocalOnHoopHead;
     [SerializeField] private float poseLerpSpeed = 4f;
+    [SerializeField] private bool stationaryForTraining = true;
 
     private float targetSwivelYaw;
     private float targetArmPitch;
     private float currentSwivelYaw;
     private float currentArmPitch;
-    private float targetRimLocalY;
-    private float currentRimLocalY;
 
     public Transform RimTransform => rimTransform;
 
+    public bool IsStationaryForTraining => stationaryForTraining;
+
+    public void SetStationaryForTraining(bool stationary)
+    {
+        stationaryForTraining = stationary;
+        if (stationary)
+        {
+            ApplyDefaultPose();
+            SnapPoseImmediate();
+        }
+    }
+
     private void Awake()
     {
+        ResolveReferences();
+        SnapPoseImmediate();
+    }
+
+    private void ResolveReferences()
+    {
+        if (hoopHeadTransform == null)
+        {
+            hoopHeadTransform = transform.Find("HoopHead");
+            if (hoopHeadTransform == null)
+            {
+                hoopHeadTransform = TrainingHoopDetail.FindRim(transform)?.parent;
+            }
+        }
+
         if (rimTransform == null)
         {
-            var rim = transform.Find($"{ArcAcademyLayout.RimName}");
-            if (rim == null)
-            {
-                rim = transform.Find($"HoopHead/{ArcAcademyLayout.RimName}");
-            }
-
-            if (rim != null)
-            {
-                rimTransform = rim;
-            }
+            rimTransform = TrainingHoopDetail.FindRim(transform);
         }
 
         if (swivelLink == null)
@@ -59,9 +78,6 @@ public class MovableHoop : MonoBehaviour
         {
             armBody = armLink.GetComponent<ArticulationBody>();
         }
-
-        targetRimLocalY = defaultRimLocalPosition.y;
-        currentRimLocalY = targetRimLocalY;
     }
 
     public void SetRimTransform(Transform rim)
@@ -82,12 +98,27 @@ public class MovableHoop : MonoBehaviour
         transform.position = defaultRootPosition;
         targetSwivelYaw = 0f;
         targetArmPitch = 0f;
-        targetRimLocalY = defaultRimLocalPosition.y;
-        SnapPoseIfNeeded();
+
+        if (hoopHeadTransform != null && hoopHeadTransform.parent == transform)
+        {
+            hoopHeadTransform.localPosition = ArcAcademyLayout.StationaryHoopHeadLocalPosition;
+            hoopHeadTransform.localRotation = Quaternion.identity;
+        }
+
+        if (rimTransform != null)
+        {
+            rimTransform.localPosition = defaultRimLocalPosition;
+        }
     }
 
     public void RandomizePose(int curriculumStage)
     {
+        if (stationaryForTraining)
+        {
+            ApplyDefaultPose();
+            return;
+        }
+
         float stageScale = ArcAcademyLayout.GetStageHoopOffsetScale(curriculumStage);
         float offsetX = Random.Range(-ArcAcademyLayout.MaxHoopOffsetX, ArcAcademyLayout.MaxHoopOffsetX) * stageScale;
         float offsetZ = Random.Range(-ArcAcademyLayout.MaxHoopOffsetZ, ArcAcademyLayout.MaxHoopOffsetZ) * stageScale;
@@ -95,46 +126,33 @@ public class MovableHoop : MonoBehaviour
 
         targetSwivelYaw = Random.Range(-18f, 18f) * stageScale;
         targetArmPitch = Random.Range(-8f, 8f) * stageScale;
-        targetRimLocalY = Mathf.Lerp(
-            ArcAcademyLayout.MinRimHeight,
-            ArcAcademyLayout.MaxRimHeight,
-            Random.Range(0f, stageScale));
     }
 
     private void Update()
     {
+        if (stationaryForTraining)
+        {
+            return;
+        }
+
         float step = Time.deltaTime * poseLerpSpeed;
         currentSwivelYaw = Mathf.Lerp(currentSwivelYaw, targetSwivelYaw, step);
         currentArmPitch = Mathf.Lerp(currentArmPitch, targetArmPitch, step);
-        currentRimLocalY = Mathf.Lerp(currentRimLocalY, targetRimLocalY, step);
 
+        ApplySwivel(currentSwivelYaw);
+        ApplyArmPitch(currentArmPitch);
+    }
+
+    private void SnapPoseImmediate()
+    {
+        currentSwivelYaw = targetSwivelYaw;
+        currentArmPitch = targetArmPitch;
         ApplySwivel(currentSwivelYaw);
         ApplyArmPitch(currentArmPitch);
 
         if (rimTransform != null)
         {
-            var local = rimTransform.localPosition;
-            local.y = currentRimLocalY;
-            rimTransform.localPosition = local;
-        }
-    }
-
-    private void SnapPoseIfNeeded()
-    {
-        if (!Application.isPlaying)
-        {
-            currentSwivelYaw = targetSwivelYaw;
-            currentArmPitch = targetArmPitch;
-            currentRimLocalY = targetRimLocalY;
-            ApplySwivel(currentSwivelYaw);
-            ApplyArmPitch(currentArmPitch);
-
-            if (rimTransform != null)
-            {
-                var local = rimTransform.localPosition;
-                local.y = currentRimLocalY;
-                rimTransform.localPosition = local;
-            }
+            rimTransform.localPosition = defaultRimLocalPosition;
         }
     }
 

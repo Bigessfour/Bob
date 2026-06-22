@@ -924,7 +924,7 @@ public static class BobTrainingSceneBuilder
         var backboard = GameObject.CreatePrimitive(PrimitiveType.Cube);
         backboard.name = "Backboard";
         backboard.transform.SetParent(hoopHead.transform);
-        backboard.transform.localPosition = new Vector3(0f, 0.55f, 0.08f);
+        backboard.transform.localPosition = ArcAcademyLayout.BackboardLocalOnHoopHead;
         backboard.transform.localScale = new Vector3(1.8f, 1.05f, 0.06f);
         ArcAcademyMaterialFactory.ApplyMaterial(
             backboard,
@@ -935,7 +935,7 @@ public static class BobTrainingSceneBuilder
         var rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         rim.name = ArcAcademyLayout.RimName;
         rim.transform.SetParent(hoopHead.transform);
-        rim.transform.localPosition = ArcAcademyLayout.RimLocalDefaultPosition;
+        rim.transform.localPosition = ArcAcademyLayout.RimLocalOnHoopHead;
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.9f, 0.04f, 0.9f);
         ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.GetRubber(RimOrange));
@@ -973,8 +973,8 @@ public static class BobTrainingSceneBuilder
         scoreZone.AddComponent<HoopScoreZone>();
 
         movableHoop.ApplyDefaultPose();
+        movableHoop.SetStationaryForTraining(true);
         TrainingHoopDetail.UpgradeHoop(hoopRoot.transform);
-        ArcAcademyPortableHoopBuilder.AddActiveHoopShell(hoopRoot.transform);
         return (rim.transform, movableHoop);
     }
 
