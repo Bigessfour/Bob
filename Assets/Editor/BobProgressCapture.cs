@@ -93,6 +93,25 @@ public static class BobProgressCapture
         return string.IsNullOrWhiteSpace(label) ? "snapshot" : label.Trim();
     }
 
+    private const int DefaultPlayCaptureFrames = 180;
+
+    /// <summary>
+    /// Runtime-safe view prep before play-mode PNG capture. Do not call ArcTrainingViewValidator here
+    /// (uses DestroyImmediate). Mirrors ArcAcademyLabPlayFix + single-shot camera reset.
+    /// </summary>
+    private static void PreparePlayCaptureView()
+    {
+        if (SimpleArcAcademyArena.IsLabViewActive)
+        {
+            ArcAcademyLabSceneCleanup.EnsureLabCamera();
+        }
+
+        var orbit = UnityEngine.Object.FindAnyObjectByType<CameraOrbit>();
+        orbit?.ResetToDefault();
+
+        TrainingHoopDetail.UpgradeActiveHoop();
+    }
+
     private static class PlayCaptureSession
     {
         private const string ActiveKey = "BobPlayCapture.Active";
@@ -118,7 +137,7 @@ public static class BobProgressCapture
         {
             SessionState.SetBool(ActiveKey, true);
             SessionState.SetString(LabelKey, label);
-            SessionState.SetInt(FramesKey, ParseEnvInt("BOB_CAPTURE_PLAY_FRAMES", 120));
+            SessionState.SetInt(FramesKey, ParseEnvInt("BOB_CAPTURE_PLAY_FRAMES", DefaultPlayCaptureFrames));
 
             EditorSceneManager.OpenScene(ScenePath);
             ArcAcademyHdrpSetup.EnsureHdrpPipeline();
@@ -135,7 +154,7 @@ public static class BobProgressCapture
             switch (state)
             {
                 case PlayModeStateChange.EnteredPlayMode:
-                    SessionState.SetInt(FramesKey, ParseEnvInt("BOB_CAPTURE_PLAY_FRAMES", 120));
+                    SessionState.SetInt(FramesKey, ParseEnvInt("BOB_CAPTURE_PLAY_FRAMES", DefaultPlayCaptureFrames));
                     EditorApplication.update -= OnEditorUpdate;
                     EditorApplication.update += OnEditorUpdate;
                     break;
@@ -165,6 +184,8 @@ public static class BobProgressCapture
             }
 
             EditorApplication.update -= OnEditorUpdate;
+
+            PreparePlayCaptureView();
 
             var label = SessionState.GetString(LabelKey, "snapshot");
             if (!TryCapture(label, "play", out var folderPath, out var error, openScene: false))
@@ -220,10 +241,7 @@ public static class BobProgressCapture
         {
             SessionState.SetBool(ActiveKey, true);
             SessionState.SetBool(LaunchedKey, false);
-
-            // 3 real seconds from now (wall clock, not scaled)
-            double deadline = EditorApplication.timeSinceStartup + 3.0;
-            SessionState.SetFloat(DeadlineKey, (float)deadline);
+            SessionState.SetFloat(DeadlineKey, 0f);
 
             EditorSceneManager.OpenScene(ScenePath);
             PrepareSingleShotStartState();
@@ -241,6 +259,10 @@ public static class BobProgressCapture
             switch (state)
             {
                 case PlayModeStateChange.EnteredPlayMode:
+                    SessionState.SetBool(LaunchedKey, false);
+                    SessionState.SetFloat(
+                        DeadlineKey,
+                        (float)(EditorApplication.timeSinceStartup + 3.0));
                     EditorApplication.update -= OnEditorUpdate;
                     EditorApplication.update += OnEditorUpdate;
                     break;
@@ -286,9 +308,7 @@ public static class BobProgressCapture
             {
                 EditorApplication.update -= OnEditorUpdate;
 
-                // Final reset view to guarantee the rational default framing
-                var orbit = UnityEngine.Object.FindAnyObjectByType<CameraOrbit>();
-                if (orbit != null) orbit.ResetToDefault();
+                PreparePlayCaptureView();
 
                 var camera = Camera.main;
                 if (camera != null)
@@ -297,28 +317,30 @@ public static class BobProgressCapture
                     var outPath = Path.Combine(projectRoot, "docs", "TrainingView_Success.png");
                     Directory.CreateDirectory(Path.GetDirectoryName(outPath));
 
-                    // Reuse the project's capture (handles HDRP exposure + render)
-                    // Note: CaptureCameraToPng is private; fall back to direct render if needed.
-                    // Run the full polish validator before capture to guarantee clean state
-                    if (EditorApplication.isPlaying)
-                    {
-                        // We are still in play – call the non-interactive path if available
-                        ArcTrainingViewValidator.FixTrainingView(showDialog: false);
-                    }
-
                     bool ok = CaptureCameraToPng(camera, 1280, 720, outPath);
                     if (!ok)
                     {
                         Debug.LogError("SINGLE_SHOT_FAIL: capture failed");
+                        ClearSession();
+                        EditorApplication.ExitPlaymode();
+                        EditorApplication.delayCall += () => EditorApplication.Exit(1);
+                        return;
                     }
-                    else
-                    {
-                        Debug.Log($"SINGLE_SHOT_OK: {outPath}");
-                    }
+
+                    Debug.Log($"SINGLE_SHOT_OK: {outPath}");
+                }
+                else
+                {
+                    Debug.LogError("SINGLE_SHOT_FAIL: Main Camera not found");
+                    ClearSession();
+                    EditorApplication.ExitPlaymode();
+                    EditorApplication.delayCall += () => EditorApplication.Exit(1);
+                    return;
                 }
 
                 ClearSession();
                 EditorApplication.ExitPlaymode();
+                EditorApplication.delayCall += () => EditorApplication.Exit(0);
             }
         }
 
@@ -437,6 +459,11 @@ public static class BobProgressCapture
             if (openScene)
             {
                 EditorSceneManager.OpenScene(ScenePath);
+            }
+
+            if (mode == "play" && Application.isPlaying)
+            {
+                PreparePlayCaptureView();
             }
 
             var camera = Camera.main;

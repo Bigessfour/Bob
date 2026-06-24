@@ -104,6 +104,23 @@ Open Unity → **Edit → Project Settings → AI → Unity MCP** → bridge **R
 
 Enabled for C# and Python via workspace settings. For C#, ensure the C# extension is installed and OmniSharp is running (check status bar).
 
+## Trunk git hooks
+
+Trunk manages git hooks via `core.hooksPath` (not `.git/hooks/` directly). One-time per clone:
+
+```bash
+trunk git-hooks sync
+```
+
+| Hook           | When         | What runs                                                                                   |
+| -------------- | ------------ | ------------------------------------------------------------------------------------------- |
+| **pre-commit** | `git commit` | `trunk fmt` on staged files                                                                 |
+| **pre-push**   | `git push`   | `trunk check` on commits being pushed (lint/format/secrets; excludes advisory CVE scanners) |
+
+Bypass in a pinch: `git push --no-verify` (use sparingly). Per-developer opt-out: `.trunk/user.yaml` with `trunk-check-pre-push` under `actions.disabled`.
+
+Full lint including security advisories: `trunk check --all`.
+
 ## Optional: Global Cursor Settings
 
 These are personal preferences (not committed to repo):

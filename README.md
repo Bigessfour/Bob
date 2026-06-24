@@ -4,7 +4,7 @@
 
 A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube — learns to shoot perfect free throws in a 3D basketball court. Inspired by AI Warehouse training videos, this project showcases an entertaining learning curve with visual training progress, ideal for a portfolio piece.
 
-**Live demo:** _Coming soon — portfolio site on AWS CloudFront (static gallery + write-up; HDRP Editor project, not WebGL)_
+**Live demo:** Portfolio site scaffold at [`docs/portfolio-site/`](docs/portfolio-site/) (local / GitHub Pages–ready). **AWS deploy is not run against the AICO account** — Terraform remains CI-validated scaffold only until a separate personal/portfolio AWS profile is configured.
 
 **Project status:** See [PROJECT.md](PROJECT.md) | **Product:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) | **Visual:** [docs/design/visual-vision.md](docs/design/visual-vision.md) | **Workflow:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agents:** [AGENTS.md](AGENTS.md)
 

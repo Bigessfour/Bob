@@ -19,30 +19,30 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 
 **Product definition:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md)
 
-## Build Status (2026-06-23)
+## Build Status (2026-06-24)
 
-| Area                | Status                                                                                              |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| Unity scene         | `BobTraining.unity` — Simple Arc Academy Lab (sideline camera, wall HUD)                            |
-| Scene rebuild       | **Bob → Rebuild Arc Academy (HDRP)** defaults to **LabShowcase** via `SimpleArcAcademyArenaBuilder` |
-| Visual north star   | [`docs/design/visual-vision.md`](docs/design/visual-vision.md) — Phase 2 largely complete           |
-| Render pipeline     | HDRP 17 — flat/lab materials in default mode; **no WebGL** (portfolio Week 3)                       |
-| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                                   |
-| Offline regression  | `pytest tests/test_unity_alignment.py` — **33/33** (excl. optional asset refs)                      |
-| Primary reference   | [`docs/design/ai-warehouse-lab-reference.png`](docs/design/ai-warehouse-lab-reference.png)          |
-| Stretch reference   | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)                    |
-| Training runtime    | 1 Bob launcher + 1 basketball; wall HUD + session CSV log                                           |
-| First training run  | **Verified** 2026-06-23 — `BOB_TRAINING_OK`, trainer Step lines, Episodes/CSV advancing             |
-| Hoop + ball physics | Segmented rim colliders, visual net, single-shot impulse — `TrainingHoopDetail`                     |
-| Progress gallery    | [`docs/progress/`](docs/progress/) — through `017-arc-academy-lab-ux-v1`                            |
+| Area                | Status                                                                                                |
+| ------------------- | ----------------------------------------------------------------------------------------------------- |
+| Unity scene         | `BobTraining.unity` — Simple Arc Academy Lab (sideline camera, wall HUD on **Wall_South**)            |
+| Scene rebuild       | **Bob → Rebuild Arc Academy (HDRP)** defaults to **LabShowcase** via `SimpleArcAcademyArenaBuilder`   |
+| Visual north star   | [`docs/design/visual-vision.md`](docs/design/visual-vision.md) — Phase 2 complete; hero capture `022` |
+| Render pipeline     | HDRP 17 — flat/lab materials in default mode; **no WebGL** (portfolio Week 3)                         |
+| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                                     |
+| Offline regression  | `pytest tests/test_unity_alignment.py` — **33/33** (excl. optional asset refs)                        |
+| Primary reference   | [`docs/design/ai-warehouse-lab-reference.png`](docs/design/ai-warehouse-lab-reference.png)            |
+| Stretch reference   | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)                      |
+| Training runtime    | 1 Bob launcher + 1 basketball; wall HUD + session CSV log; `BobTrainingSessionRunner` batchmode       |
+| Phase 3 training    | **bob-v2** 5 min @ 20× (2026-06-24) — 865 iterations, plot refreshed; launch shaping tuned for v3     |
+| Hoop + ball physics | Segmented rim colliders, visual net, single-shot impulse — `TrainingHoopDetail`                       |
+| Progress gallery    | [`docs/progress/`](docs/progress/) — through `022-lab-hero-v2`; `docs/TrainingView_Success.png`       |
 
 ## Next Actions
 
 **Live checklist:** [docs/bob-done-tracker.md](docs/bob-done-tracker.md) — pin in Cursor to track Week 1 gate and Done Detector status.
 
-1. **Phase 3** — `RUN_ID=bob-v2 ./scripts/train.sh --force` (5+ min) → refresh plot + training GIF
-2. **Follow-up PR** — reward shaping, validator/pytest fixes, uncommitted lab work → `main`
-3. **Phase 4** — Terraform apply + sync `docs/portfolio-site/`
+1. **Follow-up PR** — merge `feature/simple-arc-academy` → `main` (play capture fix, bob-v2 plot, reward tune)
+2. **Training GIF** — `./scripts/capture-progress.sh --play` for portfolio embed
+3. **Phase 4** — Terraform scaffold only (no apply to AICO AWS); portfolio HTML in `docs/portfolio-site/`
 
 ## Links
 

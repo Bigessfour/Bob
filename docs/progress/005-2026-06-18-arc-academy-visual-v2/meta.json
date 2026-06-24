@@ -1,10 +1,10 @@
 ﻿{
-    "sequence": "005",
-    "label": "arc-academy-visual-v2",
-    "capturedAt": "2026-06-18T19:38:30.7975570Z",
-    "mode": "edit",
-    "scene": "Assets/Scenes/BobTraining.unity",
-    "unityVersion": "6000.5.0f1",
-    "gitCommit": "4985d27",
-    "resolution": "1280x720"
+  "sequence": "005",
+  "label": "arc-academy-visual-v2",
+  "capturedAt": "2026-06-18T19:38:30.7975570Z",
+  "mode": "edit",
+  "scene": "Assets/Scenes/BobTraining.unity",
+  "unityVersion": "6000.5.0f1",
+  "gitCommit": "4985d27",
+  "resolution": "1280x720"
 }

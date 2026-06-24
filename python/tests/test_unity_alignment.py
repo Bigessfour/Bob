@@ -163,7 +163,7 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "LabHudWorldX" in arena
     assert "LabHudWorldZ" in arena
     assert "WallSouthName" in arena
-    assert 'LabHudWallName = WallSouthName' in arena
+    assert "LabHudWallName = WallSouthName" in arena
     assert "ShowBudgetFlavorProps" in arena
     assert "BasketballPrefabPath" in arena
 
@@ -309,7 +309,10 @@ def test_bob_training_scene_yaml_alignment(repo_root: Path) -> None:
     is_lab_showcase = is_simple_arc and "m_Name: TrainingBays" not in content
     if is_lab_showcase:
         assert "m_Name: Floor" in content
-        assert "Bob::SimpleArcArenaManager" in content or "SimpleArcAcademyArena" in content
+        assert (
+            "Bob::SimpleArcArenaManager" in content
+            or "SimpleArcAcademyArena" in content
+        )
     else:
         assert "m_Name: CourtFloor" in content
     assert "m_EditorClassIdentifier: Bob::HoopScoreZone" in content
@@ -354,7 +357,9 @@ def test_arc_academy_visual_builder_wiring(repo_root: Path) -> None:
     assert "GetGlossyFloor" in builder
     assert "GetMetal" in builder
     assert "GetGlass" in builder
-    assert "GetRimOrange" in builder or "GetRimSilver" in builder or "GetRubber" in builder
+    assert (
+        "GetRimOrange" in builder or "GetRimSilver" in builder or "GetRubber" in builder
+    )
     assert "CreateFloorDecals" in builder
     assert "PrimitiveType.Cube" in builder
     assert "ArcAcademyMaterialFactory" in builder
@@ -388,7 +393,9 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     assert "FreeThrowCircleRadius = 1.83f" in layout
     assert "HalfCourtLineWorldZ" in layout
     assert "KeyDepthFromBaseline = 5.79f" in layout
-    markings = (repo_root / "Assets/Scripts/Editor/SimpleArcCourtMarkingsBuilder.cs").read_text()
+    markings = (
+        repo_root / "Assets/Scripts/Editor/SimpleArcCourtMarkingsBuilder.cs"
+    ).read_text()
     assert "ThreePointArc" in markings
     assert "CreateCourtLineMaterial" in markings
     assert "CreateKeyPaintMaterial" in markings
@@ -478,14 +485,8 @@ def test_arc_academy_builder_wiring(repo_root: Path) -> None:
     material_factory = (
         repo_root / "Assets/Scripts/Editor/ArcAcademyMaterialFactory.cs"
     ).read_text()
-    assert (
-        "GetRimOrange" in material_factory
-        or "GetRimSilver" in material_factory
-    )
-    assert (
-        "GetOpaqueNet" in material_factory
-        or "GetTranslucentNet" in material_factory
-    )
+    assert "GetRimOrange" in material_factory or "GetRimSilver" in material_factory
+    assert "GetOpaqueNet" in material_factory or "GetTranslucentNet" in material_factory
     assert (
         "ArcAcademyRim.mat"
         in (repo_root / "Assets/Scripts/Editor/ArcAcademyMaterialPaths.cs").read_text()
@@ -516,9 +517,10 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "RegisterMadeShot" in agent
     assert "CalculateArcQuality" in agent
     assert "ApplyLaunchDirectionRewards" in agent
-    assert "LaunchRadicallyWrongFlatPenalty" in (
-        repo_root / "Assets/Scripts/ArcAcademyLayout.cs"
-    ).read_text()
+    assert (
+        "LaunchRadicallyWrongFlatPenalty"
+        in (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
+    )
     assert "ApplyFlightDirectionPenalties" in agent
     assert "NotifyEpisodeBegin" in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
@@ -536,8 +538,24 @@ def test_progress_capture_play_mode_entry_point(repo_root: Path) -> None:
     capture = (repo_root / "Assets/Editor/BobProgressCapture.cs").read_text()
     assert "CapturePlayModeFromCli" in capture
     assert "PlayCaptureSession" in capture
+    assert "PreparePlayCaptureView" in capture
     assert "BOB_CAPTURE_PLAY_FRAMES" in capture
     assert "SessionState" in capture
+
+
+def test_bob_training_session_runner_batchmode_entry(repo_root: Path) -> None:
+    runner = (repo_root / "Assets/Editor/BobTrainingSessionRunner.cs").read_text()
+    assert "RunFromCli" in runner
+    assert "BOB_TRAIN_SESSION_SECONDS" in runner
+    assert "BOB_TRAIN_SESSION_DONE" in runner
+
+
+def test_deploy_portfolio_script_exists(repo_root: Path) -> None:
+    script = repo_root / "scripts/deploy-portfolio.sh"
+    assert script.is_file()
+    text = script.read_text()
+    assert "AICO" in text
+    assert "aws s3 sync" in text
 
 
 def test_bob_training_scoreboard_wiring(repo_root: Path) -> None:
@@ -606,7 +624,9 @@ def test_training_connection_monitor_wiring(repo_root: Path) -> None:
     assert "trainingTimeScale" in monitor
     assert (repo_root / "Assets/Scripts/BobTrainingSessionFlags.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/BobTrainingPlayModeGuard.cs").is_file()
-    guard = (repo_root / "Assets/Scripts/Editor/BobTrainingPlayModeGuard.cs").read_text()
+    guard = (
+        repo_root / "Assets/Scripts/Editor/BobTrainingPlayModeGuard.cs"
+    ).read_text()
     assert "BOB_TRAINING_COMPILE_DURING_PLAY" in guard
     assert "BOB_TRAINING_END" in guard
 

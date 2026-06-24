@@ -170,9 +170,10 @@ Permanent code changes applied per this digest using batch CLI verification (Uni
 - New validator check enforces <=1 shadow caster.
 
 **Re-verify commands succeeded**:
+
 - `./scripts/validate-scene.sh` → VALIDATE_PASS (includes new shadow check).
 - No new BubbleText / SSR / cascade errors in fresh batch logs.
-- Historical spam remains in old Editor.log (safe to rm Logs/Editor*.log to clean console view).
+- Historical spam remains in old Editor.log (safe to rm Logs/Editor\*.log to clean console view).
 
 MCP relay / gateway remain user-side (restart Unity, approve in Project Settings → AI → Unity MCP; run gateway setup script).
 

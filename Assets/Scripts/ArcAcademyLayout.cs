@@ -194,7 +194,7 @@ public static class ArcAcademyLayout
     public const float IdealLaunchUpRatio = 0.62f;
 
     /// <summary>Reward when horizontal impulse aims toward the hoop (XZ plane).</summary>
-    public const float LaunchTowardHoopRewardScale = 0.25f;
+    public const float LaunchTowardHoopRewardScale = 0.35f;
 
     /// <summary>Extra penalty scale when horizontal impulse points away from the hoop.</summary>
     public const float LaunchAwayFromHoopPenaltyScale = 0.85f;
@@ -206,7 +206,7 @@ public static class ArcAcademyLayout
     public const float LaunchRadicallyWrongFlatPenalty = 0.15f;
 
     /// <summary>Reward for positive vertical impulse (arching shot).</summary>
-    public const float LaunchUpwardRewardScale = 0.2f;
+    public const float LaunchUpwardRewardScale = 0.3f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;
