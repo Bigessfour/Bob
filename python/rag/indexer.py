@@ -86,8 +86,8 @@ def index_files(paths: list[Path], *, mode: str = "partial") -> dict[str, int]:
     return {"files": len(paths), "chunks": len(chunks)}
 
 
-def index_all() -> dict[str, int]:
-    files = iter_indexable_files()
+def index_all(roots: list[str] | None = None) -> dict[str, int]:
+    files = iter_indexable_files(roots)
     reset_chroma_store()
 
     chunks: list[TextChunk] = []
