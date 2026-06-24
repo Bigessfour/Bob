@@ -63,7 +63,7 @@ public static class ArcAcademyPortableHoopBuilder
         rim.transform.localScale = new Vector3(0.62f * s, 0.028f * s, 0.62f * s);
         ArcAcademyMaterialFactory.ApplyMaterial(
             rim,
-            ArcAcademyMaterialFactory.GetRubber(RimOrange));
+            ArcAcademyMaterialFactory.GetRimOrange());
         Object.DestroyImmediate(rim.GetComponent<Collider>());
 
         AddSimpleNet(rim.transform, s);
@@ -222,7 +222,7 @@ public static class ArcAcademyPortableHoopBuilder
             strand.transform.localScale = new Vector3(0.015f * scale, 0.14f * scale, 0.015f * scale);
             ArcAcademyMaterialFactory.ApplyMaterial(
                 strand,
-                ArcAcademyMaterialFactory.GetMatteWall(Color.white));
+                ArcAcademyMaterialFactory.GetOpaqueNet());
             Object.DestroyImmediate(strand.GetComponent<Collider>());
         }
     }

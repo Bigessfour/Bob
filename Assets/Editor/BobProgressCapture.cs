@@ -38,6 +38,17 @@ public static class BobProgressCapture
         CaptureWithLabel("wiley-widget-demo");
     }
 
+    [MenuItem("Bob/Test/Play Single Shot")]
+    public static void PlaySingleShotMenu()
+    {
+        PlaySingleShotSession.Start();
+    }
+
+    public static void PlaySingleShotFromCli()
+    {
+        PlaySingleShotSession.Start();
+    }
+
     private static void CaptureWithLabel(string label)
     {
         if (!TryCapture(label, "edit", out var folderPath, out var error))
@@ -179,6 +190,228 @@ public static class BobProgressCapture
         }
     }
 
+    /// <summary>
+    /// Single-shot test flow for Prompt 6: reset to clean start state, EnterPlaymode,
+    /// auto-launch ball ("click START") after settle, capture exactly "docs/TrainingView_Success.png" after 3 real seconds,
+    /// exit play. Reuses the same play + capture timing pattern as PlayCaptureSession.
+    /// </summary>
+    private static class PlaySingleShotSession
+    {
+        private const string ActiveKey = "BobSingleShot.Active";
+        private const string DeadlineKey = "BobSingleShot.Deadline";
+        private const string LaunchedKey = "BobSingleShot.Launched";
+
+        public static bool Active => SessionState.GetBool(ActiveKey, false);
+
+        [InitializeOnLoadMethod]
+        private static void Bootstrap()
+        {
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+            if (Active && EditorApplication.isPlaying)
+            {
+                EditorApplication.update -= OnEditorUpdate;
+                EditorApplication.update += OnEditorUpdate;
+            }
+        }
+
+        public static void Start()
+        {
+            SessionState.SetBool(ActiveKey, true);
+            SessionState.SetBool(LaunchedKey, false);
+
+            // 3 real seconds from now (wall clock, not scaled)
+            double deadline = EditorApplication.timeSinceStartup + 3.0;
+            SessionState.SetFloat(DeadlineKey, (float)deadline);
+
+            EditorSceneManager.OpenScene(ScenePath);
+            PrepareSingleShotStartState();
+
+            // Run the full one-click polish (Prompt 5) so eyes, camera, hoop, scoreboard, trails are guaranteed
+            ArcTrainingViewValidator.FixTrainingView(showDialog: false);
+
+            EditorApplication.EnterPlaymode();
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (!Active) return;
+
+            switch (state)
+            {
+                case PlayModeStateChange.EnteredPlayMode:
+                    EditorApplication.update -= OnEditorUpdate;
+                    EditorApplication.update += OnEditorUpdate;
+                    break;
+
+                case PlayModeStateChange.ExitingPlayMode:
+                    EditorApplication.update -= OnEditorUpdate;
+                    break;
+
+                case PlayModeStateChange.EnteredEditMode:
+                    ClearSession();
+                    break;
+            }
+        }
+
+        private static void OnEditorUpdate()
+        {
+            if (!Active || !EditorApplication.isPlaying)
+                return;
+
+            double deadline = SessionState.GetFloat(DeadlineKey, 0f);
+            bool launched = SessionState.GetBool(LaunchedKey, false);
+
+            double now = EditorApplication.timeSinceStartup;
+
+            // Launch ball ~0.9s after play for nice flying arc by 3s capture
+            if (!launched && (now > (deadline - 2.1)))
+            {
+                SessionState.SetBool(LaunchedKey, true);
+                // Trigger the "START"
+                var shooter = UnityEngine.Object.FindAnyObjectByType<BobShootingInput>();
+                if (shooter != null)
+                {
+                    shooter.ForceTestLaunchForSnapshot();
+                }
+                else
+                {
+                    // Fallback direct launch of existing ball
+                    TryDirectBallLaunch();
+                }
+            }
+
+            if (now >= deadline)
+            {
+                EditorApplication.update -= OnEditorUpdate;
+
+                // Final reset view to guarantee the rational default framing
+                var orbit = UnityEngine.Object.FindAnyObjectByType<CameraOrbit>();
+                if (orbit != null) orbit.ResetToDefault();
+
+                var camera = Camera.main;
+                if (camera != null)
+                {
+                    var projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? ".";
+                    var outPath = Path.Combine(projectRoot, "docs", "TrainingView_Success.png");
+                    Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+
+                    // Reuse the project's capture (handles HDRP exposure + render)
+                    // Note: CaptureCameraToPng is private; fall back to direct render if needed.
+                    // Run the full polish validator before capture to guarantee clean state
+                    if (EditorApplication.isPlaying)
+                    {
+                        // We are still in play – call the non-interactive path if available
+                        ArcTrainingViewValidator.FixTrainingView(showDialog: false);
+                    }
+
+                    bool ok = CaptureCameraToPng(camera, 1280, 720, outPath);
+                    if (!ok)
+                    {
+                        Debug.LogError("SINGLE_SHOT_FAIL: capture failed");
+                    }
+                    else
+                    {
+                        Debug.Log($"SINGLE_SHOT_OK: {outPath}");
+                    }
+                }
+
+                ClearSession();
+                EditorApplication.ExitPlaymode();
+            }
+        }
+
+        private static void ClearSession()
+        {
+            SessionState.EraseBool(ActiveKey);
+            SessionState.EraseFloat(DeadlineKey);
+            SessionState.EraseBool(LaunchedKey);
+        }
+
+        private static void TryDirectBallLaunch()
+        {
+            var ball = UnityEngine.Object.FindAnyObjectByType<SimpleBasketball>();
+            if (ball == null) return;
+            var rb = ball.GetComponent<Rigidbody>();
+            if (rb == null) return;
+
+            // Simple visible arc from near spawn area toward hoop
+            Vector3 dir = (new Vector3(0f, 3.5f, -5.5f) - rb.position).normalized;
+            rb.linearVelocity = Vector3.zero;
+            rb.AddForce(dir * 10.5f + Vector3.up * 3.5f, ForceMode.Impulse);
+        }
+    }
+
+    /// <summary>
+    /// Resets the training scene to a pristine single-shot start state for the test snapshot.
+    /// Bob at spawn, ball at release point with zero velocity, stats cleared, camera to default rig view,
+    /// hoop/net upgraded, clean single instances.
+    /// </summary>
+    private static void PrepareSingleShotStartState()
+    {
+        // Prefer simple arena for clean AI-Warehouse single training shot look
+        try
+        {
+            SimpleArcAcademyArenaBuilder.ApplySilently();
+        }
+        catch { /* best effort if already applied */ }
+
+        // Reset metrics
+        var stats = UnityEngine.Object.FindAnyObjectByType<BobTrainingStats>();
+        stats?.ResetSession();
+
+        // Reset positions + episode
+        var manager = UnityEngine.Object.FindAnyObjectByType<SimpleArcArenaManager>();
+        if (manager != null)
+        {
+            manager.ResetEpisode();
+        }
+
+        // Position Bob + clear physics
+        var bob = UnityEngine.Object.FindAnyObjectByType<BobAgent>();
+        if (bob != null)
+        {
+            Vector3 spawn = (manager != null) ? manager.GetBobSpawnPosition() : bob.transform.position;
+            bob.transform.position = spawn;
+            var bobRb = bob.GetComponent<Rigidbody>();
+            if (bobRb != null) BobPhysicsUtility.ClearVelocitiesIfDynamic(bobRb);
+        }
+
+        // Ball at exact release, zeroed
+        var spawnGo = GameObject.Find(SimpleArcAcademyArena.SpawnPointName);
+        Vector3 bobSpawnForRelease = (bob != null) ? bob.transform.position :
+            (spawnGo != null ? spawnGo.transform.position : Vector3.zero);
+        Vector3 releasePos = BasketballProjectileSetup.GetReleasePosition(bobSpawnForRelease);
+
+        var ball = UnityEngine.Object.FindAnyObjectByType<SimpleBasketball>();
+        if (ball != null)
+        {
+            var ballRb = ball.GetComponent<Rigidbody>();
+            if (ballRb != null)
+            {
+                ballRb.isKinematic = false;
+                ball.transform.position = releasePos;
+                BobPhysicsUtility.ClearVelocitiesIfDynamic(ballRb);
+            }
+        }
+        else
+        {
+            // Ensure one if missing
+            var parent = (bob != null ? bob.transform.parent : null) ?? (manager != null ? manager.transform : null);
+            BasketballProjectileSetup.EnsureBasketball(parent, releasePos);
+        }
+
+        // Camera to the rational default (CameraRig view)
+        var orbit = UnityEngine.Object.FindAnyObjectByType<CameraOrbit>();
+        orbit?.ResetToDefault();
+
+        // Hoop/net fully detailed
+        TrainingHoopDetail.UpgradeActiveHoop();
+
+        Debug.Log("SINGLE_SHOT_START_STATE: Bob, ball, stats, camera, hoop prepared for clean warehouse snapshot.");
+    }
+
     private static bool TryCapture(
         string label,
         string mode,
@@ -316,11 +549,19 @@ public static class BobProgressCapture
 
         float? restoredExposure = null;
         Volume volume = UnityEngine.Object.FindAnyObjectByType<Volume>();
-        if (volume != null && volume.profile != null && volume.profile.TryGet(out Exposure exposure))
+        if (volume != null && volume.profile != null)
         {
-            restoredExposure = exposure.fixedExposure.value;
-            exposure.fixedExposure.overrideState = true;
-            exposure.fixedExposure.value = 9f;
+            // Clone to avoid destroyed override refs (see ArcAcademyLabRenderPreset SSR fix).
+            if (volume.profile == volume.sharedProfile)
+            {
+                volume.profile = UnityEngine.Object.Instantiate(volume.profile);
+            }
+            if (volume.profile.TryGet(out Exposure exposure))
+            {
+                restoredExposure = exposure.fixedExposure.value;
+                exposure.fixedExposure.overrideState = true;
+                exposure.fixedExposure.value = 9f;
+            }
         }
 
         return restoredExposure;
@@ -334,10 +575,16 @@ public static class BobProgressCapture
         }
 
         Volume volume = UnityEngine.Object.FindAnyObjectByType<Volume>();
-        if (volume != null && volume.profile != null
-            && volume.profile.TryGet(out Exposure exposureRestore))
+        if (volume != null && volume.profile != null)
         {
-            exposureRestore.fixedExposure.value = restoredExposure.Value;
+            if (volume.profile == volume.sharedProfile)
+            {
+                volume.profile = UnityEngine.Object.Instantiate(volume.profile);
+            }
+            if (volume.profile.TryGet(out Exposure exposureRestore))
+            {
+                exposureRestore.fixedExposure.value = restoredExposure.Value;
+            }
         }
     }
 
@@ -377,6 +624,14 @@ public static class BobProgressCapture
             RenderTexture.active = previousActive;
             RenderTexture.ReleaseTemporary(renderTexture);
         }
+    }
+
+    /// <summary>
+    /// Snapshot-specific capture wrapper (re-uses private impl + HDRP prep).
+    /// </summary>
+    private static bool CaptureCameraToPngForSnapshot(Camera camera, int width, int height, string outputPath)
+    {
+        return CaptureCameraToPng(camera, width, height, outputPath);
     }
 
     private static void RegenerateReadme(string progressDir)

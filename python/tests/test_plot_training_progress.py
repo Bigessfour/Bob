@@ -5,9 +5,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-from plot_training_progress import (  # noqa: E402
+from plot_training_progress import (
     load_session_log,
-    main as plot_progress_main,
+)
+from plot_training_progress import main as plot_progress_main  # noqa: E402
+from plot_training_progress import (
     plot_training_progress,
 )
 

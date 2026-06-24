@@ -10,19 +10,6 @@ public interface IShootInputProvider
 }
 
 /// <summary>
-/// No-op VR stub until an XR rig is wired in.
-/// </summary>
-public class VrShootInputPlaceholder : MonoBehaviour, IShootInputProvider
-{
-    public bool TryGetShot(out Vector3 worldDirection, out float power)
-    {
-        worldDirection = Vector3.zero;
-        power = 0f;
-        return false;
-    }
-}
-
-/// <summary>
 /// Manual shooting for Play mode — Space or mouse release toward the hoop.
 /// Disabled during ML-Agents Default training to avoid conflicting with PPO actions.
 /// </summary>
@@ -63,6 +50,10 @@ public class BobShootingInput : MonoBehaviour
         if (vrInput == null)
         {
             vrInput = GetComponent<VrShootInputPlaceholder>();
+            if (vrInput == null)
+            {
+                vrInput = gameObject.AddComponent<VrShootInputPlaceholder>();
+            }
         }
     }
 
@@ -201,4 +192,17 @@ public class BobShootingInput : MonoBehaviour
             rb.AddTorque(spinAxis.normalized * impulse.magnitude * spinTorqueScale, ForceMode.Impulse);
         }
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// Test hook for "Play Single Shot" snapshot: fires a single nice visible arc toward the hoop.
+    /// Called by the Bob → Test menu after Play is entered (simulates "clicking START").
+    /// </summary>
+    public void ForceTestLaunchForSnapshot()
+    {
+        // Tuned for a pleasing visible arc ~1-2s flight from free-throw line to hoop in the sideline view.
+        const float testPower = 11.5f;
+        FireTowardHoop(testPower);
+    }
+#endif
 }

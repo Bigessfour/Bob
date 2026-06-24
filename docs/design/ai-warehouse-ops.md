@@ -46,19 +46,45 @@ Bob stays **single-agent PPO** (not POca/multi-agent like soccer).
 
 ## Log anomalies reviewed (2026-06-19)
 
-| Log signal                                                                | Severity     | Action                                                                                                                              |
-| ------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `Couldn't connect to trainer on port 5004 … inference instead`            | **Fix**      | `BobTrainingConnectionMonitor` + scoreboard status line; `train.sh` auto `docker compose down`                                      |
-| `FileNotFoundError: … checkpoint.pt` on resume                            | **Fix**      | `./scripts/train.sh --force` or `RUN_ID=bob-v1 ./scripts/train.sh`; `train.sh` now auto-`--force` when checkpoint missing           |
-| `ModuleNotFoundError: no module named 'onnxscript'`                       | **Fix**      | Rebuild Docker after `torch<=2.8.0` pin in `python/requirements.txt`; avoid PyTorch 2.9+ with mlagents 1.1.0                        |
-| `The referenced script on this Behaviour (Game Object 'Bob') is missing!` | **Fix**      | Run `./scripts/validate-scene.sh` (repairs `VrShootInputPlaceholder` on `Prefab_Bob`); or remove missing script on Bob in Inspector |
-| Ball flies erratically / multiple launches per shot                       | **Fix**      | One impulse per episode in `BobAgent`; visual-only net + segmented `RimColliders` via `TrainingHoopDetail`                          |
-| Rim detached from backboard / hoop bobbing up and down                    | **Fix**      | `TrainingHoopDetail.FreezeStationaryAssembly` — reparent `HoopHead`, disable arm, snap rim to backboard                             |
-| Batchmode Burst segfault after scene build                                | **Mitigate** | `validate-scene.sh` passes `-disableBurstCompilation`                                                                               |
-| `[WARNING] --train option deprecated`                                     | Low          | Removed `train_model` from `checkpoint_settings`                                                                                    |
-| Unity Licensing 404 / NoSubscription AI                                   | Ignore       | Batchmode + no Unity AI subscription — does not block training                                                                      |
-| MCP WebSocket connection failed                                           | Ignore       | Bridge not running — expected when Editor closed                                                                                    |
-| HDRP material upgrader skip                                               | Ignore       | Package shaders; Bob uses `Assets/Materials/HDRP/` + Bob menu upgrade                                                               |
+| Log signal                                                                  | Severity     | Action                                                                                                                              |
+| --------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `Couldn't connect to trainer on port 5004 … inference instead`              | **Fix**      | `BobTrainingConnectionMonitor` + scoreboard status line; `train.sh` auto `docker compose down`                                      |
+| `FileNotFoundError: … checkpoint.pt` on resume                              | **Fix**      | `./scripts/train.sh --force` or `RUN_ID=bob-v1 ./scripts/train.sh`; `train.sh` now auto-`--force` when checkpoint missing           |
+| `ModuleNotFoundError: no module named 'onnxscript'`                         | **Fix**      | Rebuild Docker after `torch<=2.8.0` pin in `python/requirements.txt`; avoid PyTorch 2.9+ with mlagents 1.1.0                        |
+| `The referenced script on this Behaviour (Game Object 'Bob') is missing!`   | **Fix**      | Run `./scripts/validate-scene.sh` (repairs `VrShootInputPlaceholder` on `Prefab_Bob`); or remove missing script on Bob in Inspector |
+| Ball flies erratically / multiple launches per shot                         | **Fix**      | One impulse per episode in `BobAgent`; visual-only net + segmented `RimColliders` via `TrainingHoopDetail`                          |
+| Rim detached from backboard / hoop bobbing up and down                      | **Fix**      | `TrainingHoopDetail.FreezeStationaryAssembly` — reparent `HoopHead`, disable arm, snap rim to backboard                             |
+| Batchmode Burst segfault after scene build                                  | **Mitigate** | `validate-scene.sh` passes `-disableBurstCompilation`                                                                               |
+| `[WARNING] --train option deprecated`                                       | Low          | Removed `train_model` from `checkpoint_settings`                                                                                    |
+| Unity Licensing 404 / NoSubscription AI                                     | Ignore       | Batchmode + no Unity AI subscription — does not block training                                                                      |
+| MCP WebSocket connection failed                                             | Ignore       | Bridge not running — expected when Editor closed                                                                                    |
+| HDRP material upgrader skip                                                 | Ignore       | Package shaders; Bob uses `Assets/Materials/HDRP/` + Bob menu upgrade                                                               |
+| `Communicator has exited` / `Worker 0 exceeded restarts`                    | **Fix**      | Play stopped while trainer running — see stability rules below; wait for compile idle before Play; press Play **once**              |
+| `UnityTimeOutException` (trainer waiting, Unity not in Play)                | **Fix**      | Press Play after `Listening on port 5004`, or stop trainer (Ctrl+C) before stopping Play                                            |
+| `BOB_TRAINING_COMPILE_DURING_PLAY` / `Reloading assemblies after recompile` | **Fix**      | Script save during Play — stop Play, let compile finish, `./scripts/train.sh`, Play once                                            |
+| `BOB_TRAINING_LOST` / `BOB_TRAINING_END` in Unity console                   | **Info**     | Expected when Play stops; reconnect only after trainer listens again                                                                |
+
+---
+
+## Training stability (prevent crashes)
+
+ML-Agents keeps a subprocess open to Unity while **Play mode is running**. If Play exits, the trainer logs `Communicator has exited` and tries to restart the worker. After a few failed restarts you get `Worker 0 exceeded the allowed number of restarts` and learning stops.
+
+**Common causes (from `Logs/Editor.log`):**
+
+1. **Script recompile during Play** — saving `BobAgent.cs` / `ArcAcademyLayout.cs` triggers `Reloading assemblies after forced synchronous recompile` and drops Play.
+2. **Double-toggling Play** (Cmd+P twice) or automation sending Play while already playing.
+3. **Stopping Play** while `./scripts/train.sh` is still running without reconnecting.
+
+**Safe workflow:**
+
+1. Finish all script edits; wait for Unity compile to complete (**Editor idle**).
+2. `./scripts/train.sh` (or `RUN_ID=bob-v2 ./scripts/train.sh --resume`) → wait for **`Listening on port 5004`**.
+3. Unity → BobTraining scene → **Play once**. Console → **`BOB_TRAINING_OK`**.
+4. Let training run; **do not edit C# until you Stop Play**.
+5. When done: **Stop Play first**, then Ctrl+C trainer (or leave trainer running and Play again after a deliberate stop).
+
+Console markers: `BOB_TRAINING_OK` (connected), `BOB_TRAINING_LOST` (disconnect), `BOB_TRAINING_END` (Play exiting while connected), `BOB_TRAINING_COMPILE_DURING_PLAY` (fatal to session).
 
 ---
 

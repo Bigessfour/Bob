@@ -12,7 +12,7 @@ from rag.settings import (
     SKIP_DIR_NAMES,
     SKIP_FILE_NAMES,
 )
-from rag.store import COLLECTION_NAME, get_client, get_collection, touch_manifest
+from rag.store import get_collection, reset_chroma_store, touch_manifest
 
 
 def iter_indexable_files(roots: list[str] | None = None) -> list[Path]:
@@ -88,9 +88,7 @@ def index_files(paths: list[Path], *, mode: str = "partial") -> dict[str, int]:
 
 def index_all() -> dict[str, int]:
     files = iter_indexable_files()
-    client = get_client()
-    if any(c.name == COLLECTION_NAME for c in client.list_collections()):
-        client.delete_collection(COLLECTION_NAME)
+    reset_chroma_store()
 
     chunks: list[TextChunk] = []
     for path in files:

@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
 using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -95,7 +97,7 @@ public static class SimpleArcAcademyArenaBuilder
         return true;
     }
 
-    private static void ApplyAll()
+    public static void ApplyAll()
     {
         BobPhysicsLayerSetup.EnsureLayersAndCollisionMatrix();
 
@@ -105,7 +107,10 @@ public static class SimpleArcAcademyArenaBuilder
         var arenaRoot = FindOrCreateArenaRoot();
         arenaRoot.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         BuildArenaHierarchy(arenaRoot.transform, materials);
+        SimpleArcLabLightingBuilder.EnsureLabGymFillLights(arenaRoot.transform);
+        SimpleArcCourtMarkingsBuilder.EnsureCourtMarkings(arenaRoot.transform);
         EnsureSpawnAndManager(arenaRoot);
+        BobWallHudBuilder.EnsureWallTrainingHud(arenaRoot.transform);
         SavePrefabFromInstance(arenaRoot);
         WireBobToArena(arenaRoot);
         EnsureSingleBasketball(arenaRoot);
@@ -113,8 +118,9 @@ public static class SimpleArcAcademyArenaBuilder
 
         HideLegacyCourtVisuals();
         ApplyLabScenePreset();
-        BobWallHudBuilder.EnsureWallTrainingHud(arenaRoot.transform);
+        BobWallHudLayout.ApplyLabHudLayout(arenaRoot.transform);
         EnsurePowerPathPulse(arenaRoot.transform);
+        StripBackgroundHoopDecorations();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         AssetDatabase.SaveAssets();
 
@@ -144,6 +150,16 @@ public static class SimpleArcAcademyArenaBuilder
             materials.Floor,
             BobPhysicsLayers.TrainingArenaLayer,
             keepCollider: true);
+
+        var floor = root.Find(SimpleArcAcademyArena.FloorName);
+        if (floor != null)
+        {
+            var legacyMarkings = floor.Find(SimpleArcCourtMarkingsBuilder.CourtMarkingsName);
+            if (legacyMarkings != null)
+            {
+                Object.DestroyImmediate(legacyMarkings.gameObject);
+            }
+        }
 
         EnsurePrimitive(
             root,
@@ -282,6 +298,7 @@ public static class SimpleArcAcademyArenaBuilder
         }
 
         manager.Wire(null, spawn, null);
+        manager.ConfigureLabFloorSpawn(SimpleArcAcademyArena.BobFloorSpawnOffset);
         EditorUtility.SetDirty(manager);
     }
 
@@ -303,6 +320,14 @@ public static class SimpleArcAcademyArenaBuilder
             return;
         }
 
+        if (PrefabUtility.IsPartOfPrefabInstance(bobGo))
+        {
+            PrefabUtility.UnpackPrefabInstance(
+                bobGo,
+                PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+        }
+
         if (!bobGo.TryGetComponent(out BobAgent bobAgent))
         {
             Debug.LogWarning("SIMPLE_ARENA_WARN: BobAgent missing on Bob.");
@@ -320,15 +345,21 @@ public static class SimpleArcAcademyArenaBuilder
             Debug.LogWarning("SIMPLE_ARENA_WARN: Rim not found for BobAgent.hoop.");
         }
 
+        EnsureBobVisual(bobGo);
         EnsureBobFace(bobGo);
-        var bobPrefab = SaveBobPrefab(bobGo);
+        NormalizeBobTransform(bobGo, bobAgent);
+        SaveBobPrefabAsset(bobGo);
 
         bobGo.transform.SetParent(arenaRoot.transform, true);
+        NormalizeBobTransform(bobGo, bobAgent);
 
         var manager = arenaRoot.GetComponent<SimpleArcArenaManager>();
         if (manager != null)
         {
-            manager.Wire(bobAgent, spawn, bobPrefab);
+            manager.Wire(bobAgent, spawn, AssetDatabase.LoadAssetAtPath<GameObject>(SimpleArcAcademyArena.BobPrefabPath));
+            manager.ConfigureLabFloorSpawn(SimpleArcAcademyArena.BobFloorSpawnOffset);
+            bobAgent.ApplySpawn(manager.GetBobSpawnPosition(), manager.GetBobSpawnRotation());
+            EditorUtility.SetDirty(bobAgent);
             EditorUtility.SetDirty(manager);
         }
     }
@@ -344,7 +375,12 @@ public static class SimpleArcAcademyArenaBuilder
             return;
         }
 
-        if (bobGo.GetComponent<BobShotArcPreview>() == null)
+        var previews = bobGo.GetComponents<BobShotArcPreview>();
+        for (int i = 1; i < previews.Length; i++)
+        {
+            Object.DestroyImmediate(previews[i]);
+        }
+        if (previews.Length == 0)
         {
             bobGo.AddComponent<BobShotArcPreview>();
         }
@@ -354,10 +390,14 @@ public static class SimpleArcAcademyArenaBuilder
         Vector3 bobSpawn = manager != null
             ? manager.GetBobSpawnPosition()
             : (spawn != null
-                ? spawn.position + ArcAcademyLayout.BobSpawnOffset
-                : ArcAcademyLayout.BobSpawnPosition);
+                ? SimpleArcAcademyArena.GetLabBobSpawnPosition(spawn)
+                : new Vector3(0f, SimpleArcAcademyArena.BobFloorSpawnOffset.y, ArcAcademyLayout.FreeThrowLineWorldZ));
 
-        var releasePos = BasketballProjectileSetup.GetReleasePosition(bobSpawn);
+        Quaternion bobRotation = manager != null
+            ? manager.GetBobSpawnRotation()
+            : SimpleArcAcademyArena.GetSpawnFacingRotation(bobSpawn, bobAgent.hoop);
+
+        var releasePos = BasketballProjectileSetup.GetReleasePosition(bobSpawn, bobRotation);
         var ball = BasketballProjectileSetup.EnsureBasketball(arenaRoot.transform, releasePos);
 
         if (ball.TryGetComponent(out Rigidbody ballRb))
@@ -367,7 +407,8 @@ public static class SimpleArcAcademyArenaBuilder
         }
 
         SaveBasketballPrefab(ball);
-        SaveBobPrefab(bobGo);
+        NormalizeBobTransform(bobGo, bobAgent);
+        SaveBobPrefabAsset(bobGo);
     }
 
     private static void EnforceSingleBobAndBallInstances(GameObject arenaRoot)
@@ -438,34 +479,54 @@ public static class SimpleArcAcademyArenaBuilder
         return spawn;
     }
 
-    private static GameObject SaveBobPrefab(GameObject bob)
+    private static void NormalizeBobTransform(GameObject bobGo, BobAgent bobAgent)
+    {
+        float scale = BobVisualProfile.AgentCubeScale;
+        bobGo.transform.localScale = new Vector3(scale, scale, scale);
+
+        Vector3 spawn = bobGo.transform.position;
+        bobGo.transform.rotation = SimpleArcAcademyArena.GetSpawnFacingRotation(
+            spawn,
+            bobAgent != null ? bobAgent.hoop : null);
+        EditorUtility.SetDirty(bobGo);
+    }
+
+    private static void SaveBobPrefabAsset(GameObject bob)
     {
         RepairVrShootInputReference(bob);
+
+        float scale = BobVisualProfile.AgentCubeScale;
+        bob.transform.localScale = new Vector3(scale, scale, scale);
+        bob.name = "Bob";
 
         Directory.CreateDirectory(PrefabsFolder);
         var path = SimpleArcAcademyArena.BobPrefabPath;
 
+        GameObject source = bob;
+        GameObject temp = null;
         if (PrefabUtility.IsPartOfPrefabInstance(bob))
         {
-            var duplicate = Object.Instantiate(bob);
-            duplicate.name = bob.name;
-            try
+            temp = Object.Instantiate(bob);
+            temp.name = bob.name;
+            temp.transform.localScale = new Vector3(scale, scale, scale);
+            source = temp;
+        }
+
+        try
+        {
+            PrefabUtility.SaveAsPrefabAsset(source, path);
+            AssetDatabase.SaveAssets();
+        }
+        finally
+        {
+            if (temp != null)
             {
-                return PrefabUtility.SaveAsPrefabAssetAndConnect(
-                    duplicate,
-                    path,
-                    InteractionMode.AutomatedAction);
-            }
-            finally
-            {
-                Object.DestroyImmediate(duplicate);
+                Object.DestroyImmediate(temp);
             }
         }
 
-        return PrefabUtility.SaveAsPrefabAssetAndConnect(
-            bob,
-            path,
-            InteractionMode.AutomatedAction);
+        bob.transform.localScale = new Vector3(scale, scale, scale);
+        EditorUtility.SetDirty(bob);
     }
 
     /// <summary>
@@ -476,15 +537,22 @@ public static class SimpleArcAcademyArenaBuilder
     {
         GameObjectUtility.RemoveMonoBehavioursWithMissingScript(bob);
 
-        var placeholders = bob.GetComponents<VrShootInputPlaceholder>();
-        for (int i = 1; i < placeholders.Length; i++)
+        foreach (var mb in bob.GetComponents<MonoBehaviour>())
         {
-            Object.DestroyImmediate(placeholders[i]);
+            if (mb == null)
+            {
+                continue;
+            }
+
+            if (MonoScript.FromMonoBehaviour(mb) == null)
+            {
+                Object.DestroyImmediate(mb);
+            }
         }
 
-        if (bob.GetComponent<VrShootInputPlaceholder>() == null)
+        foreach (var placeholder in bob.GetComponents<VrShootInputPlaceholder>())
         {
-            bob.AddComponent<VrShootInputPlaceholder>();
+            Object.DestroyImmediate(placeholder);
         }
     }
 
@@ -543,18 +611,22 @@ public static class SimpleArcAcademyArenaBuilder
         var arena = ArcAcademyLayout.ArenaName;
 
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.CourtFloorName}", false);
-        SetActiveIfFound($"{arena}/Boundaries", false);
-        SetActiveIfFound($"{arena}/{ArcAcademyLayout.WarehouseShellName}", false);
-        SetActiveIfFound($"{arena}/{ArcAcademyLayout.TrainingBaysName}", false);
-        SetActiveIfFound($"{arena}/{ArcAcademyLayout.MountainWindowName}", false);
-        SetActiveIfFound($"{arena}/{ArcAcademyLayout.DecorativeHoopsName}", false);
+        DestroyIfFound($"{arena}/Boundaries");
+        DestroyIfFound($"{arena}/{ArcAcademyLayout.WarehouseShellName}");
+        DestroyIfFound($"{arena}/{ArcAcademyLayout.TrainingBaysName}");
+        DestroyIfFound($"{arena}/{ArcAcademyLayout.MountainWindowName}");
+        DestroyIfFound($"{arena}/{ArcAcademyLayout.DecorativeHoopsName}");
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.DistanceMarkingsName}", false);
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.FloorDecalsName}", false);
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.SpawnPadBrandingName}", false);
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.CourtMarkingsName}", false);
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.TrajectoryVisualsName}", false);
         SetActiveIfFound($"{arena}/{ArcAcademyLayout.SignageArcAcademyName}", false);
-        SetActiveIfFound($"{arena}/ComplexRenderGroup", false);
+        DestroyIfFound("ComplexRenderGroup");
+
+        // Aggressively remove any reintroduced background hoop decorations that take up room on the court
+        // (the 8 bay portable stands etc. should not be visible in simple single-hoop training mode)
+        HideExtraDecorativeHoops();
 
         var lightingRig = GameObject.Find($"{arena}/{ArcAcademyLayout.LightingRigName}");
         if (lightingRig != null)
@@ -575,17 +647,7 @@ public static class SimpleArcAcademyArenaBuilder
         var spawnPad = GameObject.Find($"{arena}/{ArcAcademyLayout.SpawnPadName}");
         if (spawnPad != null)
         {
-            if (spawnPad.TryGetComponent(out Renderer renderer))
-            {
-                renderer.enabled = false;
-            }
-
-            spawnPad.SetActive(true);
-            var ballSpawn = spawnPad.transform.Find(ArcAcademyLayout.BallSpawnPointName);
-            if (ballSpawn != null)
-            {
-                ballSpawn.gameObject.SetActive(true);
-            }
+            spawnPad.SetActive(false);
         }
     }
 
@@ -619,25 +681,59 @@ public static class SimpleArcAcademyArenaBuilder
     {
         ArcAcademyLabRenderPreset.ApplyLabViewPreset();
 
-        var camera = Camera.main;
-        if (camera == null)
+        // Target CameraRig (parent at exact requested pose) + child Main Camera.
+        // Write pose to rig so it "is at (13, 3.2, -3.5) looking at..."; keep child local zero.
+        GameObject rig = GameObject.Find("CameraRig");
+        Camera cam = null;
+        Transform camXform = null;
+
+        if (rig != null)
+        {
+            camXform = rig.transform;
+            cam = rig.GetComponentInChildren<Camera>();
+            if (cam == null && Camera.main != null)
+            {
+                cam = Camera.main;
+            }
+        }
+        else
+        {
+            cam = Camera.main;
+            camXform = cam != null ? cam.transform : null;
+        }
+
+        if (camXform == null)
         {
             return;
         }
 
-        camera.transform.position = SimpleArcAcademyArena.LabCameraPosition;
-        camera.transform.rotation = Quaternion.LookRotation(
+        camXform.position = SimpleArcAcademyArena.LabCameraPosition;
+        camXform.rotation = Quaternion.LookRotation(
             SimpleArcAcademyArena.LabCameraLookAt - SimpleArcAcademyArena.LabCameraPosition,
             Vector3.up);
-        camera.fieldOfView = SimpleArcAcademyArena.LabCameraFieldOfView;
 
-        if (camera.TryGetComponent(out ArcAcademyDemoCamera demoCamera))
+        if (cam != null)
         {
-            demoCamera.ResetToLabHero();
-            EditorUtility.SetDirty(demoCamera);
+            cam.fieldOfView = SimpleArcAcademyArena.LabCameraFieldOfView;
+
+            // Force child local identity (if the camera component lives on a child of rig)
+            if (cam.transform.parent != null && cam.transform.parent.name == "CameraRig")
+            {
+                cam.transform.localPosition = Vector3.zero;
+                cam.transform.localRotation = Quaternion.identity;
+            }
         }
 
-        EditorUtility.SetDirty(camera);
+        // Call orbit reset on rig (preferred) so internal yaw/pitch/distance are correct
+        if (rig != null)
+        {
+            if (rig.TryGetComponent(out CameraOrbit orbit))
+            {
+                orbit.ResetToDefault();
+            }
+        }
+
+        EditorUtility.SetDirty(rig != null ? rig : (cam != null ? cam.gameObject : null));
     }
 
     private static void EnsurePowerPathPulse(Transform arenaRoot)
@@ -667,80 +763,386 @@ public static class SimpleArcAcademyArenaBuilder
         }
     }
 
-    private static void EnsureBobFace(GameObject bob)
+    private static void EnsureBobVisual(GameObject bob)
     {
-        EnsureBobEye(bob.transform, "Eye_Left", new Vector3(-0.18f, 0.12f, 0.51f));
-        EnsureBobEye(bob.transform, "Eye_Right", new Vector3(0.18f, 0.12f, 0.51f));
-
-        if (bob.GetComponent<BobProceduralAnimator>() == null)
+        if (!bob.TryGetComponent(out Renderer renderer))
         {
-            bob.AddComponent<BobProceduralAnimator>();
+            return;
         }
 
-        if (bob.GetComponent<BobFaceExpression>() == null)
+        var bodyMat = EnsureBobBodyMaterialAsset();
+        renderer.sharedMaterial = bodyMat;
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        renderer.receiveShadows = true;
+
+        if (!bob.TryGetComponent(out BobVisualApplier applier))
         {
-            bob.AddComponent<BobFaceExpression>();
+            applier = bob.AddComponent<BobVisualApplier>();
         }
 
-        if (bob.GetComponent<BobSpeechBubble>() == null)
+        applier.SetBodyMaterialAsset(bodyMat);
+        EditorUtility.SetDirty(bob);
+    }
+
+    private static Material EnsureBobBodyMaterialAsset()
+    {
+        const string path = BobVisualProfile.BodyMaterialAssetPath;
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (mat != null)
         {
-            var bubbleRoot = new GameObject("BobSpeechBubble");
-            bubbleRoot.transform.SetParent(bob.transform, false);
-            bubbleRoot.transform.localPosition = new Vector3(0f, 1.1f, 0f);
+            SyncBobBodyMaterial(mat);
+            EditorUtility.SetDirty(mat);
+            return mat;
+        }
 
-            var textGo = new GameObject("BubbleText");
-            textGo.transform.SetParent(bubbleRoot.transform, false);
-            textGo.transform.localPosition = Vector3.zero;
-            textGo.transform.localRotation = Quaternion.identity;
-            textGo.transform.localScale = Vector3.one;
+        var folder = System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(folder) && !AssetDatabase.IsValidFolder(folder))
+        {
+            System.IO.Directory.CreateDirectory(folder);
+            AssetDatabase.Refresh();
+        }
 
-            var textMesh = textGo.AddComponent<TextMesh>();
-            textMesh.text = "Great job, Bob!";
-            textMesh.characterSize = 0.08f;
-            textMesh.fontStyle = FontStyle.Bold;
-            textMesh.anchor = TextAnchor.MiddleCenter;
-            textMesh.alignment = TextAlignment.Center;
-            textMesh.color = Color.white;
+        mat = BuildBobBodyMaterial();
+        AssetDatabase.CreateAsset(mat, path);
+        AssetDatabase.SaveAssets();
+        return mat;
+    }
 
-            var bubble = bubbleRoot.AddComponent<BobSpeechBubble>();
-            var so = new SerializedObject(bubble);
-            so.FindProperty("textMesh").objectReferenceValue = textMesh;
-            so.ApplyModifiedPropertiesWithoutUndo();
+    private static Material BuildBobBodyMaterial()
+    {
+        var mat = ArcAcademyMaterialFactory.CreateEmissive(
+            BobVisualProfile.BodyOrange,
+            BobVisualProfile.BodyGlowIntensity);
+        SyncBobBodyMaterial(mat);
+        return mat;
+    }
+
+    private static void SyncBobBodyMaterial(Material mat)
+    {
+        if (mat == null)
+        {
+            return;
+        }
+
+        if (mat.HasProperty("_Smoothness"))
+        {
+            mat.SetFloat("_Smoothness", BobVisualProfile.BodySmoothness);
+        }
+
+        if (mat.HasProperty("_Metallic"))
+        {
+            mat.SetFloat("_Metallic", BobVisualProfile.BodyMetallic);
         }
     }
 
-    private static void EnsureBobEye(Transform bob, string name, Vector3 localPosition)
+    private static void EnsureBobFace(GameObject bob)
     {
-        var existing = bob.Find(name);
-        GameObject eyeGo;
+        // Sphere eyes + smile on -Z face (toward hoop); persisted via SaveBobPrefabAsset.
+        RemoveLegacyEye(bob.transform, "Eye_Left");
+        RemoveLegacyEye(bob.transform, "Eye_Right");
 
+        EnsureBobEyeSphere(bob.transform, BobFaceLayout.LeftEyeName, BobFaceLayout.LeftEyeLocalPosition);
+        EnsureBobEyeSphere(bob.transform, BobFaceLayout.RightEyeName, BobFaceLayout.RightEyeLocalPosition);
+        EnsureHappyMouth(bob.transform);
+
+        // Cleanup any duplicate BobSpeechBubble child GameObjects
+        var speechBubbles = new List<Transform>();
+        for (int i = 0; i < bob.transform.childCount; i++)
+        {
+            var child = bob.transform.GetChild(i);
+            if (child.name == "BobSpeechBubble")
+            {
+                speechBubbles.Add(child);
+            }
+        }
+        for (int i = 1; i < speechBubbles.Count; i++)
+        {
+            Object.DestroyImmediate(speechBubbles[i].gameObject);
+        }
+
+        // Cleanup any duplicate components
+        var animators = bob.GetComponents<BobProceduralAnimator>();
+        for (int i = 1; i < animators.Length; i++) Object.DestroyImmediate(animators[i]);
+        if (animators.Length == 0) bob.AddComponent<BobProceduralAnimator>();
+
+        var expressions = bob.GetComponents<BobFaceExpression>();
+        for (int i = 1; i < expressions.Length; i++) Object.DestroyImmediate(expressions[i]);
+        if (expressions.Length == 0) bob.AddComponent<BobFaceExpression>();
+
+        var eyeFollows = bob.GetComponents<BobEyeFollow>();
+        for (int i = 1; i < eyeFollows.Length; i++) Object.DestroyImmediate(eyeFollows[i]);
+        if (eyeFollows.Length == 0) bob.AddComponent<BobEyeFollow>();
+
+        WireBobEyeFollow(bob);
+        EnsureSpeechBubble(bob);
+    }
+
+    private static void EnsureSpeechBubble(GameObject bob)
+    {
+        var bubbleRoot = bob.transform.Find("BobSpeechBubble");
+        if (bubbleRoot == null)
+        {
+            bubbleRoot = new GameObject("BobSpeechBubble").transform;
+            bubbleRoot.SetParent(bob.transform, false);
+        }
+
+        bubbleRoot.localPosition = new Vector3(0f, 1.15f, 0f);
+        bubbleRoot.localRotation = Quaternion.identity;
+        bubbleRoot.localScale = Vector3.one;
+
+        var background = EnsureSpeechBubbleBackground(bubbleRoot);
+        var textMesh = EnsureSpeechBubbleText(bubbleRoot);
+
+        if (bubbleRoot.GetComponent<CameraFacingBillboard>() == null)
+        {
+            bubbleRoot.gameObject.AddComponent<CameraFacingBillboard>();
+        }
+
+        if (!bubbleRoot.TryGetComponent(out BobSpeechBubble bubble))
+        {
+            bubble = bubbleRoot.gameObject.AddComponent<BobSpeechBubble>();
+        }
+
+        var so = new SerializedObject(bubble);
+        so.FindProperty("textMesh").objectReferenceValue = textMesh;
+        so.FindProperty("background").objectReferenceValue = background;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(bubbleRoot.gameObject);
+    }
+
+    private static Transform EnsureSpeechBubbleBackground(Transform bubbleRoot)
+    {
+        var existing = bubbleRoot.Find("BubbleBackground");
+        Transform background;
         if (existing != null)
         {
-            eyeGo = existing.gameObject;
+            background = existing;
         }
         else
         {
-            eyeGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            eyeGo.name = name;
-            eyeGo.transform.SetParent(bob, false);
+            var bgGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            bgGo.name = "BubbleBackground";
+            bgGo.transform.SetParent(bubbleRoot, false);
+            Object.DestroyImmediate(bgGo.GetComponent<Collider>());
+            background = bgGo.transform;
+        }
 
-            var collider = eyeGo.GetComponent<Collider>();
+        background.localPosition = new Vector3(0f, 0f, 0.015f);
+        background.localRotation = Quaternion.identity;
+        background.localScale = new Vector3(2.35f, 0.68f, 1f);
+        BobPhysicsLayers.SetLayerRecursively(background.gameObject, BobPhysicsLayers.DecorationLayer);
+
+        var renderer = background.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.sharedMaterial = ArcAcademyMaterialFactory.CreateHdrpLit(
+                new Color(0.97f, 0.98f, 1f, 1f),
+                0.04f,
+                0f);
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+        }
+
+        return background;
+    }
+
+    private static TextMesh EnsureSpeechBubbleText(Transform bubbleRoot)
+    {
+        var existing = bubbleRoot.Find("BubbleText");
+        GameObject textGo;
+        if (existing != null)
+        {
+            textGo = existing.gameObject;
+        }
+        else
+        {
+            textGo = new GameObject("BubbleText");
+            textGo.transform.SetParent(bubbleRoot, false);
+        }
+
+        textGo.transform.localPosition = Vector3.zero;
+        textGo.transform.localRotation = Quaternion.identity;
+        textGo.transform.localScale = Vector3.one;
+        BobPhysicsLayers.SetLayerRecursively(textGo, BobPhysicsLayers.DecorationLayer);
+
+        // Defensive: batchmode / prior bad saves can leave missing-script TextMesh refs (similar to VR placeholder).
+        GameObjectUtility.RemoveMonoBehavioursWithMissingScript(textGo);
+        foreach (var mb in textGo.GetComponents<MonoBehaviour>())
+        {
+            if (mb != null && MonoScript.FromMonoBehaviour(mb) == null)
+            {
+                Object.DestroyImmediate(mb);
+            }
+        }
+
+        var textMesh = textGo.GetComponent<TextMesh>();
+        if (textMesh == null)
+        {
+            textMesh = textGo.AddComponent<TextMesh>();
+        }
+
+        // Ensure a font (prefab may serialize 0/default; batch creation needs explicit to avoid set_text issues).
+        if (textMesh.font == null)
+        {
+            textMesh.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
+
+        textMesh.text = BobVisualProfile.FormatPraise("Great job, Bob!");
+        textMesh.characterSize = 0.075f;
+        textMesh.fontStyle = FontStyle.Bold;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        textMesh.alignment = TextAlignment.Center;
+        textMesh.color = Color.white;
+        textMesh.richText = true;
+        return textMesh;
+    }
+
+    private static void WireBobEyeFollow(GameObject bob)
+    {
+        if (!bob.TryGetComponent(out BobEyeFollow eyeFollow))
+        {
+            return;
+        }
+
+        var so = new SerializedObject(eyeFollow);
+        so.FindProperty("leftEye").objectReferenceValue = bob.transform.Find(BobFaceLayout.LeftEyeName);
+        so.FindProperty("rightEye").objectReferenceValue = bob.transform.Find(BobFaceLayout.RightEyeName);
+        var mouthTransform = bob.transform.Find(BobFaceLayout.MouthName);
+        so.FindProperty("mouth").objectReferenceValue = mouthTransform != null
+            ? mouthTransform.GetComponent<LineRenderer>()
+            : null;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(eyeFollow);
+    }
+
+    private static void RemoveLegacyEye(Transform bob, string legacyName)
+    {
+        var legacy = bob.Find(legacyName);
+        if (legacy != null)
+        {
+            Object.DestroyImmediate(legacy.gameObject);
+        }
+    }
+
+    private static void EnsureBobEyeSphere(Transform bob, string name, Vector3 localPosition)
+    {
+        var existing = bob.Find(name);
+        Transform eyeRoot;
+
+        if (existing != null)
+        {
+            eyeRoot = existing;
+        }
+        else
+        {
+            var pivot = new GameObject(name);
+            pivot.transform.SetParent(bob, false);
+            eyeRoot = pivot.transform;
+        }
+
+        eyeRoot.localPosition = localPosition;
+        eyeRoot.localRotation = Quaternion.identity;
+        eyeRoot.localScale = Vector3.one;
+        BobPhysicsLayers.SetLayerRecursively(eyeRoot.gameObject, BobPhysicsLayers.DecorationLayer);
+
+        EnsureEyePart(
+            eyeRoot,
+            BobFaceLayout.ScleraName,
+            PrimitiveType.Sphere,
+            BobFaceLayout.ScleraLocalScale,
+            Vector3.zero,
+            BobFaceLayout.ScleraColor);
+
+        EnsureEyePart(
+            eyeRoot,
+            BobFaceLayout.PupilName,
+            PrimitiveType.Sphere,
+            BobFaceLayout.PupilLocalScale,
+            BobFaceLayout.PupilLocalOffset,
+            BobFaceLayout.PupilColor);
+    }
+
+    private static void EnsureEyePart(
+        Transform eyeRoot,
+        string partName,
+        PrimitiveType primitiveType,
+        Vector3 localScale,
+        Vector3 localPosition,
+        Color color)
+    {
+        var existing = eyeRoot.Find(partName);
+        GameObject partGo;
+
+        if (existing != null)
+        {
+            partGo = existing.gameObject;
+        }
+        else
+        {
+            partGo = GameObject.CreatePrimitive(primitiveType);
+            partGo.name = partName;
+            partGo.transform.SetParent(eyeRoot, false);
+
+            var collider = partGo.GetComponent<Collider>();
             if (collider != null)
             {
                 Object.DestroyImmediate(collider);
             }
         }
 
-        eyeGo.transform.localPosition = localPosition;
-        eyeGo.transform.localRotation = Quaternion.identity;
-        eyeGo.transform.localScale = new Vector3(0.14f, 0.2f, 1f);
-        BobPhysicsLayers.SetLayerRecursively(eyeGo, BobPhysicsLayers.DecorationLayer);
+        partGo.transform.localPosition = localPosition;
+        partGo.transform.localRotation = Quaternion.identity;
+        partGo.transform.localScale = localScale;
+        BobPhysicsLayers.SetLayerRecursively(partGo, BobPhysicsLayers.DecorationLayer);
 
-        var renderer = eyeGo.GetComponent<Renderer>();
+        var renderer = partGo.GetComponent<Renderer>();
         if (renderer != null)
         {
-            renderer.sharedMaterial = ArcAcademyMaterialFactory.CreateHdrpLit(new Color(0.08f, 0.08f, 0.1f), 0.1f, 0f);
+            renderer.sharedMaterial = ArcAcademyMaterialFactory.CreateHdrpLit(color, 0.1f, 0f);
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
         }
+    }
+
+    private static void EnsureHappyMouth(Transform bob)
+    {
+        var existing = bob.Find(BobFaceLayout.MouthName);
+        GameObject mouthGo;
+
+        if (existing != null)
+        {
+            mouthGo = existing.gameObject;
+        }
+        else
+        {
+            mouthGo = new GameObject(BobFaceLayout.MouthName);
+            mouthGo.transform.SetParent(bob, false);
+        }
+
+        mouthGo.transform.localPosition = BobFaceLayout.MouthLocalPosition;
+        mouthGo.transform.localRotation = Quaternion.identity;
+        mouthGo.transform.localScale = Vector3.one;
+        BobPhysicsLayers.SetLayerRecursively(mouthGo, BobPhysicsLayers.DecorationLayer);
+
+        var line = mouthGo.GetComponent<LineRenderer>();
+        if (line == null)
+        {
+            line = mouthGo.AddComponent<LineRenderer>();
+        }
+
+        line.useWorldSpace = false;
+        line.loop = false;
+        line.widthMultiplier = BobFaceLayout.MouthLineWidth;
+        line.positionCount = BobFaceLayout.MouthSmileLocalPoints.Length;
+        for (int i = 0; i < BobFaceLayout.MouthSmileLocalPoints.Length; i++)
+        {
+            line.SetPosition(i, BobFaceLayout.MouthSmileLocalPoints[i]);
+        }
+
+        line.material = ArcAcademyMaterialFactory.CreateHdrpLit(BobFaceLayout.MouthColor, 0.1f, 0f);
+        line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        line.receiveShadows = false;
+        line.numCapVertices = 4;
     }
 
     private static void SetActiveIfFound(string path, bool active)
@@ -764,6 +1166,111 @@ public static class SimpleArcAcademyArenaBuilder
         }
     }
 
+    private static void DestroyIfFound(string path)
+    {
+        var parts = path.Split('/');
+        Transform target = null;
+        if (parts.Length == 2)
+        {
+            var parent = GameObject.Find(parts[0]);
+            if (parent != null)
+            {
+                target = FindDeepChild(parent.transform, parts[1]);
+            }
+        }
+        else
+        {
+            var go = GameObject.Find(path);
+            if (go != null)
+            {
+                target = go.transform;
+            }
+        }
+
+        if (target != null)
+        {
+            Undo.DestroyObjectImmediate(target.gameObject);
+        }
+    }
+
+    private static void HideExtraDecorativeHoops()
+    {
+        var activeHoop = GameObject.Find(ArcAcademyLayout.HoopName);
+        int hidden = 0;
+
+        // Deactivate all PortableHoopStand that are not children of the active scoring hoop
+        var allTransforms = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
+        foreach (var t in allTransforms)
+        {
+            if (t.name != ArcAcademyLayout.PortableHoopStandName)
+                continue;
+
+            bool isPartOfActive = activeHoop != null && t.IsChildOf(activeHoop.transform);
+            if (!isPartOfActive)
+            {
+                if (t.gameObject.activeSelf)
+                {
+                    t.gameObject.SetActive(false);
+                    hidden++;
+                }
+            }
+        }
+
+        // Also deactivate any remaining objects with DecorativeHoopMarker that aren't for the active
+        var markers = Object.FindObjectsByType<DecorativeHoopMarker>(FindObjectsInactive.Include);
+        foreach (var marker in markers)
+        {
+            bool isActiveScoring = activeHoop != null && marker.transform.IsChildOf(activeHoop.transform);
+            if (!isActiveScoring && marker.gameObject.activeSelf)
+            {
+                marker.gameObject.SetActive(false);
+                hidden++;
+            }
+        }
+
+        if (hidden > 0)
+        {
+            Debug.Log($"[SimpleArc] Hid {hidden} background decorative hoop stands/markers for clean single-hoop court (no clutter taking room).");
+        }
+    }
+
+    /// <summary>
+    /// Completely remove (destroy) background decorative hoop objects from the scene
+    /// so they don't take up room in the clean single-hoop training court (for BobTraining.unity lab focus).
+    /// The full complex view with bays is in the _Backup scene.
+    /// </summary>
+    private static void StripBackgroundHoopDecorations()
+    {
+        // In simple lab, ensure background decorative hoops are deactivated so they don't take up room or appear on the clean court.
+        // (DestroyImmediate during builder can cause access-after-destroy in some build steps; deactivate is sufficient and safe.)
+        int hidden = 0;
+
+        var stands = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include);
+        for (int i = 0; i < stands.Length; i++)
+        {
+            if (stands[i].name == ArcAcademyLayout.PortableHoopStandName && stands[i].gameObject.activeSelf)
+            {
+                stands[i].gameObject.SetActive(false);
+                hidden++;
+            }
+        }
+
+        var markers = Object.FindObjectsByType<DecorativeHoopMarker>(FindObjectsInactive.Include);
+        for (int i = 0; i < markers.Length; i++)
+        {
+            if (markers[i].gameObject.activeSelf)
+            {
+                markers[i].gameObject.SetActive(false);
+                hidden++;
+            }
+        }
+
+        if (hidden > 0)
+        {
+            Debug.Log($"[SimpleArc] Deactivated {hidden} background decorative hoop objects for clean single-hoop court.");
+        }
+    }
+
     private static void EnsureMaterialAssets()
     {
         Directory.CreateDirectory(MaterialsFolder);
@@ -774,9 +1281,9 @@ public static class SimpleArcAcademyArenaBuilder
         EnsureLitMaterialWithTexture(
             FloorMatPath,
             "Mat_Floor_Grid",
-            SimpleArcAcademyArena.FloorColor,
+            new Color(0.18f, 0.18f, 0.20f),
             floorTex,
-            smoothness: 0.25f,
+            smoothness: 0.18f,
             metallic: 0f,
             textureScale: new Vector2(20f, 20f));
 
@@ -792,6 +1299,7 @@ public static class SimpleArcAcademyArenaBuilder
         EnsureUnlitMaterial(TargetRedMatPath, "Mat_Target_Red", SimpleArcAcademyArena.TargetRed);
         EnsureUnlitMaterial(TargetYellowMatPath, "Mat_Target_Yellow", SimpleArcAcademyArena.TargetYellow);
         EnsureUnlitMaterial(TargetGreenMatPath, "Mat_Target_Green", SimpleArcAcademyArena.TargetGreen);
+        ArcAcademyMaterialFactory.RefreshHoopMaterialAssets();
     }
 
     private static void EnsureLitMaterialWithTexture(
@@ -799,6 +1307,7 @@ public static class SimpleArcAcademyArenaBuilder
         string assetName,
         Color baseColor,
         Texture2D texture,
+        Texture2D normalMap,
         float smoothness,
         float metallic,
         Vector2 textureScale)
@@ -822,6 +1331,12 @@ public static class SimpleArcAcademyArenaBuilder
             mat.SetTextureScale("_BaseColorMap", textureScale);
         }
 
+        if (normalMap != null && mat.HasProperty("_NormalMap"))
+        {
+            mat.SetTexture("_NormalMap", normalMap);
+            mat.EnableKeyword("_NORMALMAP");
+        }
+
         if (mat.HasProperty("_Smoothness"))
         {
             mat.SetFloat("_Smoothness", smoothness);
@@ -833,6 +1348,26 @@ public static class SimpleArcAcademyArenaBuilder
         }
 
         EditorUtility.SetDirty(mat);
+    }
+
+    private static void EnsureLitMaterialWithTexture(
+        string assetPath,
+        string assetName,
+        Color baseColor,
+        Texture2D texture,
+        float smoothness,
+        float metallic,
+        Vector2 textureScale)
+    {
+        EnsureLitMaterialWithTexture(
+            assetPath,
+            assetName,
+            baseColor,
+            texture,
+            null,
+            smoothness,
+            metallic,
+            textureScale);
     }
 
     private static void EnsureUnlitMaterial(string assetPath, string assetName, Color color)

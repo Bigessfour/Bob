@@ -18,9 +18,11 @@ python scripts/plot_rewards.py --run-id bob-v0 --output ../docs/results/reward_c
 
 ## Inputs
 
-| File | Source |
-|------|--------|
-| `summaries/bob_session.csv` | `BobTrainingSessionLog` — one row per ML-Agents iteration |
-| `results/<run-id>/Bob/TrainingRewards.csv` | ML-Agents trainer |
+| File                                       | Source                                                    |
+| ------------------------------------------ | --------------------------------------------------------- |
+| `summaries/bob_session.csv`                | `BobTrainingSessionLog` — one row per ML-Agents iteration |
+| `results/<run-id>/Bob/TrainingRewards.csv` | ML-Agents trainer                                         |
 
 Both paths are gitignored. Copy finished PNGs here for portfolio references.
+
+After launch-direction penalty changes, retrain with `RUN_ID=bob-v3 ./scripts/train.sh --force` before comparing success curves to bob-v2.

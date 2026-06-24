@@ -163,7 +163,7 @@ public class ArcAcademyManager : MonoBehaviour
 
         if (entrance == null)
         {
-            agent.ApplySpawn(spawn);
+            agent.ApplySpawn(spawn, ResolveSpawnRotation(agent, spawn));
             TriggerSpawnReady();
             onReady?.Invoke();
             return;
@@ -174,7 +174,7 @@ public class ArcAcademyManager : MonoBehaviour
             firstEpisode = false;
             entrance.PlaySessionIntro(spawn, () =>
             {
-                agent.ApplySpawn(spawn);
+                agent.ApplySpawn(spawn, ResolveSpawnRotation(agent, spawn));
                 onReady?.Invoke();
             });
         }
@@ -182,10 +182,15 @@ public class ArcAcademyManager : MonoBehaviour
         {
             entrance.PlayEpisodeReset(spawn, () =>
             {
-                agent.ApplySpawn(spawn);
+                agent.ApplySpawn(spawn, ResolveSpawnRotation(agent, spawn));
                 onReady?.Invoke();
             });
         }
+    }
+
+    private static Quaternion ResolveSpawnRotation(BobAgent agent, Vector3 spawn)
+    {
+        return SimpleArcAcademyArena.GetSpawnFacingRotation(spawn, agent != null ? agent.hoop : null);
     }
 
     public void TriggerSpawnReady()
@@ -200,8 +205,10 @@ public class ArcAcademyManager : MonoBehaviour
 
     public void NotifyMadeBasket(BobAgent agent, bool swish)
     {
+        // Basketball point is now recorded unconditionally at the make detection site
+        // (HoopScoreZone.RecordBasketballPointAndNotify) for robustness across all MVP paths
+        // (lab + minimal free-throw trainer). Manager focuses on rich UI/feedback + session counter.
         sessionMadeBaskets++;
-        BobTrainingStats.Instance?.RecordBasketballPoint();
         scorePopup?.Show(swish, sessionMadeBaskets);
         agent.GetComponent<BobSpeechBubble>()?.Show(swish);
         agent.GetComponent<BobFaceExpression>()?.SetHappy();

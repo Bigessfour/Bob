@@ -1,11 +1,11 @@
 {
   "mcpServers": {
     "bob-rag": {
-      "command": "/Users/stephenmckitrick/Bob/scripts/rag-mcp.sh",
+      "command": "./scripts/rag-mcp.sh",
       "args": []
     },
     "unity-mcp": {
-      "command": "/Users/stephenmckitrick/Bob/scripts/unity-mcp.sh",
+      "command": "./scripts/unity-mcp.sh",
       "args": []
     }
   }

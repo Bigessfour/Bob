@@ -18,6 +18,11 @@ public class BobTrainingSuccessGraph : MonoBehaviour
 
     private void OnGUI()
     {
+        if (SimpleArcAcademyArena.IsLabViewActive)
+        {
+            return;
+        }
+
         if (!Application.isPlaying)
         {
             return;

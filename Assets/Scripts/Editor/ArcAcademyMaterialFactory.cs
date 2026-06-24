@@ -38,15 +38,11 @@ public static class ArcAcademyMaterialFactory
 
     public static Material CreateGlassBackboard(Color tint)
     {
-        var mat = CreateHdrpLit(new Color(tint.r, tint.g, tint.b, 0.35f), 0.92f, 0.05f);
-        if (HdrpLitShader.name.Contains("HDRP"))
+        var mat = HoopVisualMaterials.CreateGymProGlassBackboard();
+        if (mat.HasProperty("_BaseColor"))
         {
-            mat.SetFloat("_SurfaceType", 1f);
-            mat.SetFloat("_BlendMode", 0f);
-            mat.SetFloat("_ZWrite", 0f);
-            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            mat.EnableKeyword("_BLENDMODE_ALPHA");
-            mat.renderQueue = 3000;
+            var glass = HoopVisualMaterials.BackboardGlassTint;
+            mat.SetColor("_BaseColor", new Color(glass.r, glass.g, glass.b, glass.a));
         }
 
         return mat;
@@ -91,18 +87,13 @@ public static class ArcAcademyMaterialFactory
 
     public static Material GetActiveBackboardGlass(Color tint)
     {
-        var mat = CreateHdrpLit(new Color(tint.r, tint.g, tint.b, 0.4f), 0.97f, 0.08f);
-        if (HdrpLitShader.name.Contains("HDRP"))
+        var baseMat = LoadMaterial(ArcAcademyMaterialPaths.GlassMat);
+        if (baseMat != null)
         {
-            mat.SetFloat("_SurfaceType", 1f);
-            mat.SetFloat("_BlendMode", 0f);
-            mat.SetFloat("_ZWrite", 0f);
-            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            mat.EnableKeyword("_BLENDMODE_ALPHA");
-            mat.renderQueue = 3000;
+            return new Material(baseMat);
         }
 
-        return mat;
+        return HoopVisualMaterials.CreateGymProGlassBackboard();
     }
 
     public static Material GetRubber(Color tint)
@@ -111,6 +102,104 @@ public static class ArcAcademyMaterialFactory
             LoadMaterial(ArcAcademyMaterialPaths.RubberMat)
             ?? CreateHdrpLit(new Color(0.12f, 0.1f, 0.08f), 0.25f, 0f),
             tint);
+    }
+
+    public static Material GetRimSilver()
+    {
+        var baseMat = LoadMaterial(ArcAcademyMaterialPaths.RimMat);
+        if (baseMat != null)
+        {
+            return new Material(baseMat);
+        }
+
+        return HoopVisualMaterials.CreateRimOrange();
+    }
+
+    public static Material GetRimOrange() => GetRimSilver();
+
+    public static Material GetTranslucentNet()
+    {
+        var baseMat = LoadMaterial(ArcAcademyMaterialPaths.NetMat);
+        if (baseMat != null)
+        {
+            return new Material(baseMat);
+        }
+
+        return HoopVisualMaterials.CreateOpaqueNet();
+    }
+
+    public static Material GetOpaqueNet()
+    {
+        var baseMat = LoadMaterial(ArcAcademyMaterialPaths.NetMat);
+        if (baseMat != null)
+        {
+            var inst = new Material(baseMat);
+            ClearTransparentSurface(inst);
+            if (inst.HasProperty("_BaseColor"))
+            {
+                inst.SetColor("_BaseColor", HoopVisualMaterials.NetWhiteColor);
+            }
+
+            return inst;
+        }
+
+        return HoopVisualMaterials.CreateOpaqueNet();
+    }
+
+    public static Material CreateRimSilverMaterial() => CreateRimOrangeMaterial();
+
+    public static Material CreateRimOrangeMaterial()
+    {
+        var mat = CreateHdrpLit(
+            HoopVisualMaterials.RimOrangeColor,
+            HoopVisualMaterials.RimSmoothness,
+            HoopVisualMaterials.RimMetallic);
+        SetEmissive(mat, HoopVisualMaterials.RimOrangeColor, HoopVisualMaterials.RimEmissiveIntensity);
+        return mat;
+    }
+
+    public static Material CreateTranslucentNetMaterial()
+    {
+        return CreateOpaqueNetMaterial();
+    }
+
+    public static Material CreateOpaqueNetMaterial()
+    {
+        return CreateHdrpLit(HoopVisualMaterials.NetWhiteColor, HoopVisualMaterials.NetSmoothness, 0f);
+    }
+
+    /// <summary>Updates committed rim/net .mat assets when colors change (Editor refresh).</summary>
+    public static void RefreshHoopMaterialAssets()
+    {
+        RefreshMaterialAsset(ArcAcademyMaterialPaths.RimMat, CreateRimOrangeMaterial());
+        RefreshMaterialAsset(ArcAcademyMaterialPaths.NetMat, CreateOpaqueNetMaterial());
+        RefreshMaterialAsset(ArcAcademyMaterialPaths.GlassMat, CreateGlassBackboard(Color.white));
+    }
+
+    private static void RefreshMaterialAsset(string path, Material template)
+    {
+        var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (existing == null || template == null)
+        {
+            return;
+        }
+
+        existing.CopyPropertiesFromMaterial(template);
+        EditorUtility.SetDirty(existing);
+    }
+
+    private static void ClearTransparentSurface(Material mat)
+    {
+        if (mat == null || !mat.shader.name.Contains("HDRP"))
+        {
+            return;
+        }
+
+        mat.SetFloat("_SurfaceType", 0f);
+        mat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.DisableKeyword("_BLENDMODE_ALPHA");
+        mat.DisableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+        mat.renderQueue = -1;
     }
 
     public static Material CreateBasketballMaterial(Color orange, Color seam)
@@ -307,6 +396,18 @@ public static class ArcAcademyMaterialFactory
         }
 
         return mat;
+    }
+
+    /// <summary>Thin painted court line — matte white on hardwood, no emissive glow.</summary>
+    public static Material CreateCourtLineMaterial(Color color)
+    {
+        return CreateHdrpLit(color, 0.12f, 0f);
+    }
+
+    /// <summary>Royal blue gym key paint (matte vinyl on hardwood).</summary>
+    public static Material CreateKeyPaintMaterial(Color color)
+    {
+        return CreateHdrpLit(color, 0.22f, 0f);
     }
 
     public static void ApplyMaterial(GameObject go, Material mat)

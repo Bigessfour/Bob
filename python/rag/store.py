@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import datetime, timezone
 from typing import Any
 
@@ -13,6 +14,13 @@ from rag.settings import CHROMA_PATH, COLLECTION_NAME, MANIFEST_PATH, RAG_DATA_D
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def reset_chroma_store() -> None:
+    """Remove on-disk Chroma data so full rebuilds do not leave stale HNSW segments."""
+    if CHROMA_PATH.exists():
+        shutil.rmtree(CHROMA_PATH)
+    CHROMA_PATH.mkdir(parents=True, exist_ok=True)
 
 
 def get_client() -> chromadb.PersistentClient:

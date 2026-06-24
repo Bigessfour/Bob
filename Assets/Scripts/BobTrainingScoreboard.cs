@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// On-screen training scoreboard — iterations, basketball points, and cumulative RL rewards/penalties.
+/// On-screen training scoreboard fallback for warehouse scenes without a wall HUD.
+/// In Simple Arc Academy lab view, <see cref="BobWallTrainingHud"/> on Wall_South is canonical.
 /// </summary>
 public class BobTrainingScoreboard : MonoBehaviour
 {
@@ -12,6 +13,11 @@ public class BobTrainingScoreboard : MonoBehaviour
 
     private void OnGUI()
     {
+        if (SimpleArcAcademyArena.IsLabViewActive)
+        {
+            return;
+        }
+
         if (!Application.isPlaying)
         {
             return;
@@ -36,9 +42,9 @@ public class BobTrainingScoreboard : MonoBehaviour
 
         GUILayout.BeginArea(rect, panelStyle);
         GUILayout.Label("Arc Academy Scoreboard", titleStyle);
-        GUILayout.Label($"Iterations: {stats.TotalIterations}", lineStyle);
-        GUILayout.Label($"Score (baskets): {stats.BasketballPoints}", highlightStyle);
-        GUILayout.Label($"Success rate: {stats.SessionSuccessRate:P1}", lineStyle);
+        GUILayout.Label($"{BobScoreboardDisplay.EpisodesLabel}: {stats.TotalIterations}", lineStyle);
+        GUILayout.Label($"{BobScoreboardDisplay.ScoreLabel} (baskets): {stats.BasketballPoints}", highlightStyle);
+        GUILayout.Label($"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P1}", lineStyle);
         var monitor = BobTrainingConnectionMonitor.Instance;
         if (monitor != null)
         {
@@ -58,7 +64,9 @@ public class BobTrainingScoreboard : MonoBehaviour
         GUILayout.Label($"Rewards (RL): +{stats.TotalRewards:F2}", lineStyle);
         GUILayout.Label($"Penalties (RL): -{stats.TotalPenalties:F2}", lineStyle);
         GUILayout.Label($"Net RL reward: {stats.NetSessionReward:+0.00;-0.00}", lineStyle);
-        GUILayout.Label($"Last iteration: {stats.LastEpisodeNetReward:+0.00;-0.00}", lineStyle);
+        GUILayout.Label(
+            $"Last iteration: {stats.LastEpisodeNetReward:+0.00;-0.00}  ·  {BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}",
+            lineStyle);
         GUILayout.EndArea();
     }
 

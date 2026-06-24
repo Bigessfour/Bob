@@ -86,16 +86,30 @@ public class BobShotArcPreview : MonoBehaviour
             return;
         }
 
-        var go = new GameObject("ShotArcPreview");
-        go.transform.SetParent(transform, false);
-        lineRenderer = go.AddComponent<LineRenderer>();
-        lineRenderer.useWorldSpace = true;
-        lineRenderer.startWidth = lineWidth;
-        lineRenderer.endWidth = lineWidth * 0.35f;
-        lineRenderer.numCapVertices = 4;
-        lineRenderer.enabled = false;
-        lineRenderer.sharedMaterial = ArcAcademyShaderUtility.CreateEmissiveLineMaterial(
-            new Color(0.25f, 0.95f, 0.35f, 0.9f),
-            1.4f);
+        var existingChild = transform.Find("ShotArcPreview");
+        GameObject go;
+        if (existingChild != null)
+        {
+            go = existingChild.gameObject;
+            lineRenderer = go.GetComponent<LineRenderer>();
+        }
+        else
+        {
+            go = new GameObject("ShotArcPreview");
+            go.transform.SetParent(transform, false);
+        }
+
+        if (lineRenderer == null)
+        {
+            lineRenderer = go.AddComponent<LineRenderer>();
+            lineRenderer.useWorldSpace = true;
+            lineRenderer.startWidth = lineWidth;
+            lineRenderer.endWidth = lineWidth * 0.35f;
+            lineRenderer.numCapVertices = 4;
+            lineRenderer.enabled = false;
+            lineRenderer.sharedMaterial = ArcAcademyShaderUtility.CreateEmissiveLineMaterial(
+                new Color(0.25f, 0.95f, 0.35f, 0.9f),
+                1.4f);
+        }
     }
 }

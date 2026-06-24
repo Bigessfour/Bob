@@ -28,5 +28,12 @@ public static class BobPolishMenu
             "APV_BAKE_STARTED: If indirect lighting stays flat, open Window → Rendering → Lighting " +
             "and click Bake Probe Volumes (HDRP APV).");
     }
+
+    // Note: The main "Fix Training View" is registered in ArcTrainingViewValidator.cs under Bob/Polish and Bob/Test
+    // to avoid duplicate MenuItem registration.
+    public static void FixTrainingView()
+    {
+        ArcTrainingViewValidator.FixTrainingViewMenu();
+    }
 }
 #endif

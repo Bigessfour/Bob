@@ -62,14 +62,7 @@ public class HoopScoreZone : MonoBehaviour
         }
 
         var agent = basketball.Owner;
-        if (ArcAcademyManager.Instance != null)
-        {
-            ArcAcademyManager.Instance.NotifyMadeBasket(agent, swish);
-        }
-        else
-        {
-            agent.RegisterMadeShot(swish);
-        }
+        RecordBasketballPointAndNotify(agent, swish);
 
         return true;
     }
@@ -97,6 +90,20 @@ public class HoopScoreZone : MonoBehaviour
         {
             swishVfx?.PlaySwish();
         }
+
+        RecordBasketballPointAndNotify(agent, swish);
+    }
+
+    /// <summary>
+    /// Records the canonical basketball point (for scoreboard, success rate, CSV) on every make,
+    /// independent of whether the rich ArcAcademyManager feedback path is present.
+    /// This makes scoring robust for the minimal free-throw trainer path and any fallback.
+    /// </summary>
+    private void RecordBasketballPointAndNotify(BobAgent agent, bool swish)
+    {
+        // Authoritative make detection site: always increment the basketball score metric.
+        // Success rate, HUDs, and session log derive from this (see BobTrainingStats + what-finished-looks-like.md).
+        BobTrainingStats.Instance?.RecordBasketballPoint();
 
         if (ArcAcademyManager.Instance != null)
         {

@@ -47,14 +47,27 @@ docker compose down --remove-orphans 2>/dev/null || true
 
 echo "Building bob-train image if needed..."
 docker compose build train
+echo "Verifying pinned torch in image (should be <=2.8.0):"
+docker run --rm bob-train python -c "
+import torch, sys
+print('TRAIN_TORCH_VERSION:', torch.__version__)
+if not any(x in torch.__version__ for x in ('2.1','2.2','2.3','2.4','2.5','2.6','2.7','2.8')):
+    print('WARNING: torch may exceed cap; onnxscript errors possible. Rebuild with --no-cache.')
+" 2>&1 | cat || true
 
 echo "Starting trainer (Unity Editor must be open with BobTraining scene)..."
 echo ""
 echo "Training handshake order:"
 echo "  1. Stop Play if already running (inference fallback blocks reconnect)."
 echo "  2. Wait until this trainer prints it is waiting for a connection."
-echo "  3. Press Play in Unity."
-echo "  4. Confirm Editor console shows training steps (not inference fallback)."
+echo "  3. Wait for Unity compile spinner to finish (no script edits in progress)."
+echo "  4. Press Play in Unity ONCE — do not toggle Play while trainer is running."
+echo "  5. Confirm Editor console: BOB_TRAINING_OK (not BOB_TRAINING_LOST / compile-during-play)."
+echo ""
+echo "Stability (avoid trainer crash):"
+echo "  - Do NOT save/edit Assets/Scripts while Play is running (forces domain reload → Communicator has exited)."
+echo "  - Stop Play before Ctrl+C on trainer, or trainer may hit UnityTimeOutException on restart."
+echo "  - If trainer shows 'Worker 0 exceeded restarts': stop trainer, Stop Play, fix compile, train.sh again."
 echo ""
 echo "If port 5004 is busy (stale container): docker compose down && docker container prune -f"
 echo ""

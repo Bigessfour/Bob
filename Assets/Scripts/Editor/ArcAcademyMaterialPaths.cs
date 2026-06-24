@@ -13,6 +13,8 @@ public static class ArcAcademyMaterialPaths
     public const string MetalMat = MaterialsFolder + "/ArcAcademyMetal.mat";
     public const string GlassMat = MaterialsFolder + "/ArcAcademyGlass.mat";
     public const string RubberMat = MaterialsFolder + "/ArcAcademyRubber.mat";
+    public const string RimMat = MaterialsFolder + "/ArcAcademyRim.mat";
+    public const string NetMat = MaterialsFolder + "/ArcAcademyNet.mat";
     public const string MountainBackdropMat = MaterialsFolder + "/ArcAcademyMountainBackdrop.mat";
 
     public const string GlossyFloorGraph = ShadersFolder + "/ArcAcademyGlossyFloor.shadergraph";

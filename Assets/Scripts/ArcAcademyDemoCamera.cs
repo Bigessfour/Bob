@@ -83,7 +83,7 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         {
             if (SimpleArcAcademyArena.IsLabViewActive)
             {
-                ResetToLabHero();
+                ToggleLabTrainingCameras();
             }
             else
             {
@@ -106,8 +106,8 @@ public class ArcAcademyDemoCamera : MonoBehaviour
     {
         mode = mode switch
         {
+            CameraMode.LabHero => CameraMode.Hero,
             CameraMode.Hero => CameraMode.Orbit,
-            CameraMode.LabHero => CameraMode.Orbit,
             CameraMode.Orbit => CameraMode.FreeFly,
             _ => SimpleArcAcademyArena.IsLabViewActive ? CameraMode.LabHero : CameraMode.Hero,
         };
@@ -122,7 +122,10 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         }
         else if (mode == CameraMode.Orbit)
         {
-            Vector3 toCam = transform.position - ArcAcademyLayout.CameraLookAt;
+            Vector3 orbitLookAt = SimpleArcAcademyArena.IsLabViewActive
+                ? SimpleArcAcademyArena.LabCameraLookAt
+                : ArcAcademyLayout.CameraLookAt;
+            Vector3 toCam = transform.position - orbitLookAt;
             orbitDistance = toCam.magnitude;
             orbitYaw = Mathf.Atan2(toCam.x, toCam.z) * Mathf.Rad2Deg;
             orbitPitch = Mathf.Asin(toCam.y / Mathf.Max(0.01f, orbitDistance)) * Mathf.Rad2Deg;
@@ -165,14 +168,26 @@ public class ArcAcademyDemoCamera : MonoBehaviour
         }
 
         mode = CameraMode.Hero;
-        transform.position = ArcAcademyLayout.CameraPosition;
-        transform.rotation = Quaternion.LookRotation(
-            ArcAcademyLayout.CameraLookAt - ArcAcademyLayout.CameraPosition,
-            Vector3.up);
+        Vector3 heroPosition = SimpleArcAcademyArena.GetHeroCameraPosition;
+        Vector3 heroLookAt = SimpleArcAcademyArena.GetHeroCameraLookAt;
+        transform.position = heroPosition;
+        transform.rotation = Quaternion.LookRotation(heroLookAt - heroPosition, Vector3.up);
 
         if (TryGetComponent(out Camera cam))
         {
-            cam.fieldOfView = ArcAcademyLayout.CameraFieldOfView;
+            cam.fieldOfView = SimpleArcAcademyArena.GetHeroCameraFieldOfView;
+        }
+    }
+
+    private void ToggleLabTrainingCameras()
+    {
+        if (mode == CameraMode.LabHero)
+        {
+            ResetToHero();
+        }
+        else
+        {
+            ResetToLabHero();
         }
     }
 

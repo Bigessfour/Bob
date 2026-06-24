@@ -6,6 +6,15 @@ using UnityEngine;
 /// </summary>
 public static class ArcAcademyLayout
 {
+    /// <summary>LabShowcase = portfolio clean lab (default). Warehouse = legacy 8-bay shell.</summary>
+    public enum VisualMode
+    {
+        LabShowcase,
+        Warehouse,
+    }
+
+    public static VisualMode CurrentMode = VisualMode.LabShowcase;
+
     public const string ArenaName = "TrainingArena";
     public const string WarehouseShellName = "WarehouseShell";
     public const string CourtFloorName = "CourtFloor";
@@ -18,7 +27,10 @@ public static class ArcAcademyLayout
     public const string TrainingScoreboardName = "TrainingScoreboard";
     public const string HoopName = "Hoop";
     public const string RimName = "Rim";
-    public const string ScoreZoneName = "ScoreZone";
+    public const string HoopSuccessName = "HoopSuccess";
+    public const string HoopSuccessTag = "HoopSuccess";
+    /// <summary>Legacy alias — scoring trigger child under Rim.</summary>
+    public const string ScoreZoneName = HoopSuccessName;
     public const string MountainWindowName = "MountainWindow";
     public const string TrajectoryVisualsName = "TrajectoryVisuals";
     public const string DecorativeHoopsName = "DecorativeHoops";
@@ -37,7 +49,7 @@ public static class ArcAcademyLayout
     /// <summary>Bay indices sampled for portfolio trajectory arcs (Example.jpg).</summary>
     public static readonly int[] TrajectoryBaySampleIndices = { 0, 2, 4, 6 };
 
-    public const float CourtHalfWidth = 7f;
+    public const float CourtHalfWidth = 7.62f;
     public const float CourtNearZ = 10f;
     public const float CourtFarZ = -14f;
     public const float ShellHalfWidth = 9f;
@@ -45,11 +57,36 @@ public static class ArcAcademyLayout
     public const float ShellFarZ = -16f;
     public const float CeilingHeight = 9f;
 
+    /// <summary>Legacy warehouse absolute Z — prefer <see cref="FreeThrowLineWorldZ"/> for lab spawn/markings.</summary>
     public const float FreeThrowLineZ = 2f;
-    public const float KeyHalfWidth = 1.83f;
-    public const float KeyDepthFromBaseline = 5.8f;
+
+    /// <summary>Half of regulation 16 ft lane width (8 ft).</summary>
+    public const float KeyHalfWidth = 2.44f;
+
+    /// <summary>Baseline to free-throw line (19 ft).</summary>
+    public const float KeyDepthFromBaseline = 5.79f;
+
+    /// <summary>Free-throw circle radius (6 ft), independent of lane width.</summary>
+    public const float FreeThrowCircleRadius = 1.83f;
+
+    /// <summary>Restricted area under rim (4 ft radius).</summary>
+    public const float RestrictedAreaRadius = 1.22f;
+
     public const float ThreePointArcRadius = 6.75f;
     public const float CenterCircleRadius = 1.8f;
+
+    /// <summary>Half-court divider for visible hero zone (~7.5 m from baseline).</summary>
+    public static float HalfCourtLineWorldZ => HoopRootDefaultPosition.z + 7.5f;
+
+    /// <summary>Hoop baseline (under backboard) world Z.</summary>
+    public static float BaselineWorldZ => HoopRootDefaultPosition.z;
+
+    /// <summary>Regulation free-throw line / front of key (baseline + key depth).</summary>
+    public static float FreeThrowLineWorldZ => HoopRootDefaultPosition.z + KeyDepthFromBaseline;
+
+    public static float KeyFrontWorldZ => FreeThrowLineWorldZ;
+
+    public static float KeyCenterWorldZ => (BaselineWorldZ + KeyFrontWorldZ) * 0.5f;
 
     /// <summary>Distance hash marks measured from baseline toward spawn (meters).</summary>
     public static readonly float[] DistanceMarkOffsetsFromBaseline = { 3f, 6f, 9f };
@@ -136,11 +173,12 @@ public static class ArcAcademyLayout
     public const float FloorGlossiness = 0.42f;
     public const float PlatformEmissiveIntensity = 0.65f;
     public const float ArcLineEmissiveIntensity = 0.45f;
-    public const float BobGlowIntensity = 0.55f;
+    public const float BobGlowIntensity = 0.24f;
     public const float LabelBobSize = 1.2f;
     public const float LabelAcademySize = 0.45f;
 
-    public const float RimScoreRadius = 0.45f;
+    public const float RimScoreRadius = 0.38f;
+    public const float RimScoreHeight = 0.12f;
     public const float SpawnLateralJitter = 0.35f;
     public const float SwishSpeedThreshold = 2.5f;
 
@@ -151,6 +189,36 @@ public static class ArcAcademyLayout
 
     public const float IdealArcApexRatio = 0.55f;
     public const float ArcQualityRewardScale = 0.1f;
+
+    /// <summary>Ideal upward weight when blending toward-hoop + up for launch-direction rewards.</summary>
+    public const float IdealLaunchUpRatio = 0.62f;
+
+    /// <summary>Reward when horizontal impulse aims toward the hoop (XZ plane).</summary>
+    public const float LaunchTowardHoopRewardScale = 0.25f;
+
+    /// <summary>Extra penalty scale when horizontal impulse points away from the hoop.</summary>
+    public const float LaunchAwayFromHoopPenaltyScale = 0.85f;
+
+    /// <summary>Flat launch penalty when horizontal aim is backward (horizDot &lt; 0).</summary>
+    public const float LaunchBackwardFlatPenalty = 0.08f;
+
+    /// <summary>Additional flat penalty when aim is radically away (horizDot &lt; -0.5).</summary>
+    public const float LaunchRadicallyWrongFlatPenalty = 0.15f;
+
+    /// <summary>Reward for positive vertical impulse (arching shot).</summary>
+    public const float LaunchUpwardRewardScale = 0.2f;
+
+    /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
+    public const float LaunchDownwardPenaltyScale = 0.6f;
+
+    /// <summary>Reward when full impulse aligns with ideal arc direction (toward hoop + up).</summary>
+    public const float LaunchArcAlignRewardScale = 0.3f;
+
+    /// <summary>Penalty scale when impulse opposes the ideal arc direction.</summary>
+    public const float LaunchArcMisalignPenaltyScale = 0.75f;
+
+    /// <summary>Per-step penalty when ball velocity points away from the hoop mid-flight.</summary>
+    public const float FlightAwayFromHoopPenaltyScale = 0.15f;
 
     public static Vector3 RimWorldPosition(Vector3 hoopRootPosition, Vector3 rimLocalPosition)
     {
