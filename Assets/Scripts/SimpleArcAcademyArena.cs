@@ -25,7 +25,7 @@ public static class SimpleArcAcademyArena
     /// <summary>Budget-flavor props are hidden in AI Warehouse lab polish mode.</summary>
     public static readonly bool ShowBudgetFlavorProps = false;
 
-    public static readonly Color FloorColor = new(0.18f, 0.18f, 0.2f);
+    public static readonly Color FloorColor = new(0.82f, 0.70f, 0.54f);
     public static readonly Color WallColor = new(0.92f, 0.92f, 0.92f);
     public static readonly Color TargetRed = new(1f, 0.15f, 0.15f);
     public static readonly Color TargetYellow = new(1f, 0.92f, 0.1f);
@@ -34,25 +34,51 @@ public static class SimpleArcAcademyArena
     public static readonly Vector3 FloorPosition = Vector3.zero;
     public static readonly Vector3 FloorScale = new(20f, 1f, 20f);
 
-    /// <summary>Free-throw spawn on simple arena floor (≈ legacy BobSpawnPosition).</summary>
-    public static readonly Vector3 BobSpawnLocalPosition = new(0f, 0.02f, -2f);
+    /// <summary>Free-throw line spawn — Bob stands on the hardwood (no pedestal).</summary>
+    public static readonly Vector3 BobSpawnLocalPosition =
+        new(0f, 0f, ArcAcademyLayout.FreeThrowLineWorldZ);
+
+    /// <summary>Lift Bob so the cube sits on the floor (scale 0.42 → half-height ≈ 0.21 m).</summary>
+    public static readonly Vector3 BobFloorSpawnOffset = new(0f, 0.21f, 0f);
 
     /// <summary>Ball release offset from Bob spawn (matches BasketballProjectileSetup.ReleaseOffset).</summary>
     public static readonly Vector3 BallReleaseLocalOffset = BasketballProjectileSetup.ReleaseOffset;
 
-    public const string LabHudWallName = WallWestName;
-public const string LabHudRootName = BobWallTrainingHud.RootName;
+    public const string LabHudWallName = WallSouthName;
+    public const string LabHudRootName = BobWallTrainingHud.RootName;
     public const string PowerPathPulseName = "PowerPathPulse";
 
-    public static readonly Vector3 LabHudLocalPosition = new(0.52f, 0.35f, 0f);
-    public static readonly Vector3 LabHudLocalRotation = new(0f, 90f, 0f);
-    public static readonly Vector2 LabHudCanvasSize = new(380f, 320f);
-    public static readonly Vector3 LabHudCanvasScale = new(0.004f, 0.004f, 0.004f);
+    /// <summary>World-space HUD on Wall_South inner face — lower-left of hoop (back wall).</summary>
+    public const float LabHudWallInsetZ = 0.12f;
+    public const float LabHudWorldX = -2.8f;
+    public const float LabHudWorldY = 2.35f;
+    public const float LabHudWorldZ = -9.88f;
+
+    /// <summary>Inner padding (px) between the black panel edge and HUD text.</summary>
+    public const float LabHudPanelPadding = 14f;
+
+    /// <summary>Canvas px — sized for full headline + RL detail strings (~0.84 × 0.92 m at scale).</summary>
+    public static readonly Vector2 LabHudCanvasSize = new(420f, 460f);
+    public static readonly Vector3 LabHudCanvasScale = new(0.002f, 0.002f, 0.002f);
 
     /// <summary>East sideline camera — level side view across spawn → hoop (AI Warehouse readability).</summary>
     public static readonly Vector3 LabCameraPosition = new(13f, 3.2f, -3.5f);
     public static readonly Vector3 LabCameraLookAt = new(0f, 2f, -4.5f);
     public const float LabCameraFieldOfView = 52f;
+
+    /// <summary>Behind Bob at the line — level down-court view toward hoop (Hero alternate in lab).</summary>
+    public static readonly Vector3 LabBehindBobCameraPosition = new(0.5f, 2.35f, 1.2f);
+    public static readonly Vector3 LabBehindBobCameraLookAt = new(0f, 2.3f, -5.5f);
+    public const float LabBehindBobCameraFieldOfView = 50f;
+
+    public static Vector3 GetHeroCameraPosition =>
+        HasArenaFloor() ? LabBehindBobCameraPosition : ArcAcademyLayout.CameraPosition;
+
+    public static Vector3 GetHeroCameraLookAt =>
+        HasArenaFloor() ? LabBehindBobCameraLookAt : ArcAcademyLayout.CameraLookAt;
+
+    public static float GetHeroCameraFieldOfView =>
+        HasArenaFloor() ? LabBehindBobCameraFieldOfView : ArcAcademyLayout.CameraFieldOfView;
 
     public static bool IsLabViewActive => HasArenaFloor();
 
@@ -60,6 +86,30 @@ public const string LabHudRootName = BobWallTrainingHud.RootName;
     {
         var arena = GameObject.Find(RootName);
         return arena != null && arena.transform.Find(FloorName) != null;
+    }
+
+    public static Vector3 GetLabBobSpawnPosition(Transform spawnPoint)
+    {
+        return spawnPoint != null
+            ? spawnPoint.position + BobFloorSpawnOffset
+            : new Vector3(0f, BobFloorSpawnOffset.y, ArcAcademyLayout.FreeThrowLineWorldZ);
+    }
+
+    public static Quaternion GetSpawnFacingRotation(Vector3 spawnPosition, Transform hoopTransform)
+    {
+        if (hoopTransform == null)
+        {
+            return Quaternion.identity;
+        }
+
+        Vector3 toHoop = hoopTransform.position - spawnPosition;
+        toHoop.y = 0f;
+        if (toHoop.sqrMagnitude < 0.001f)
+        {
+            return Quaternion.identity;
+        }
+
+        return Quaternion.LookRotation(toHoop.normalized, Vector3.up);
     }
 
     public static readonly Vector3 WallNorthScale = new(22f, 4f, 1f);

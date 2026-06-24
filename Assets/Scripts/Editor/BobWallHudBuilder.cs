@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Editor helper: mounts world-space lab HUD on SimpleArcAcademyArena wall.
+/// Editor helper: mounts compact world-space lab HUD on SimpleArcAcademyArena south wall.
 /// </summary>
 public static class BobWallHudBuilder
 {
@@ -25,8 +25,6 @@ public static class BobWallHudBuilder
 
         var hudRoot = new GameObject(BobWallTrainingHud.RootName);
         hudRoot.transform.SetParent(wall, false);
-        hudRoot.transform.localPosition = SimpleArcAcademyArena.LabHudLocalPosition;
-        hudRoot.transform.localRotation = Quaternion.Euler(SimpleArcAcademyArena.LabHudLocalRotation);
         hudRoot.transform.localScale = Vector3.one;
         BobPhysicsLayers.SetLayerRecursively(hudRoot, BobPhysicsLayers.DecorationLayer);
 
@@ -34,7 +32,7 @@ public static class BobWallHudBuilder
         canvasGo.transform.SetParent(hudRoot.transform, false);
         var canvas = canvasGo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
-        canvasGo.AddComponent<CanvasScaler>().dynamicPixelsPerUnit = 10f;
+        BobScoreboardDisplay.ConfigureCanvasScaler(canvasGo.AddComponent<CanvasScaler>());
         canvasGo.AddComponent<GraphicRaycaster>();
 
         var canvasRect = canvasGo.GetComponent<RectTransform>();
@@ -49,48 +47,102 @@ public static class BobWallHudBuilder
         panel.offsetMin = Vector2.zero;
         panel.offsetMax = Vector2.zero;
 
-        CreateLabel(panel.transform, "TitleText", "Arc Academy Lab", 22, FontStyle.Bold,
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-            new Vector2(0f, -12f), new Vector2(360f, 32f), new Color(0.92f, 0.94f, 1f));
+        float pad = SimpleArcAcademyArena.LabHudPanelPadding;
+        float contentWidth = SimpleArcAcademyArena.LabHudCanvasSize.x - (pad * 2f);
+        float halfGap = 6f;
+        float halfWidth = (contentWidth - halfGap) * 0.5f;
+        float y = -pad;
 
-        CreateLabel(panel.transform, "IterationsText", "Iterations: 0", 16, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -44f), new Vector2(320f, 24f), Color.white);
-        CreateLabel(panel.transform, "ScoreText", "Score: 0", 18, FontStyle.Bold,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -68f), new Vector2(320f, 26f), new Color(1f, 0.82f, 0.35f));
-        CreateLabel(panel.transform, "SuccessText", "Success: 0%", 15, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -92f), new Vector2(320f, 22f), Color.white);
-        CreateLabel(panel.transform, "StatusText", "Play mode", 14, FontStyle.Italic,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -114f), new Vector2(320f, 20f), new Color(1f, 0.55f, 0.45f));
-        CreateLabel(panel.transform, "RewardsText", "Rewards: +0", 14, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -138f), new Vector2(320f, 20f), Color.white);
-        CreateLabel(panel.transform, "PenaltiesText", "Penalties: -0", 14, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -158f), new Vector2(320f, 20f), Color.white);
-        CreateLabel(panel.transform, "NetRlText", "Net RL: 0", 14, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -178f), new Vector2(320f, 20f), Color.white);
-        CreateLabel(panel.transform, "LastEpisodeText", "Last shot RL: 0", 13, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -198f), new Vector2(320f, 20f), new Color(0.85f, 0.88f, 0.95f));
-        CreateLabel(panel.transform, "GraphLegendText", "Success · Arc quality", 12, FontStyle.Normal,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(14f, -222f), new Vector2(320f, 18f), new Color(0.75f, 0.8f, 0.88f));
+        y = PlaceTopRow(panel.transform, "TitleText", "Arc Academy Lab", BobScoreboardDisplay.TitleFontSize,
+            FontStyle.Bold, pad, y, contentWidth, 22f, new Color(0.92f, 0.94f, 1f), headline: false);
+        y -= 6f;
+
+        y = PlaceTopRow(panel.transform, "EpisodesText", $"{BobScoreboardDisplay.EpisodesLabel}: 0",
+            BobScoreboardDisplay.HeadlineFontSize, FontStyle.Bold, pad, y, contentWidth, 28f,
+            BobScoreboardDisplay.HeadlineColor, headline: true);
+        y -= 4f;
+
+        y = PlaceTopRow(panel.transform, "SuccessText",
+            $"{BobScoreboardDisplay.SuccessLabel}: 0%  ·  Rolling: 0%",
+            BobScoreboardDisplay.HeadlineFontSize, FontStyle.Bold, pad, y, contentWidth, 28f,
+            BobScoreboardDisplay.HeadlineColor, headline: true);
+        y -= 4f;
+
+        y = PlaceTopRow(panel.transform, "ArcText",
+            $"{BobScoreboardDisplay.ArcLabel}: 0%  ·  Avg: 0%",
+            BobScoreboardDisplay.HeadlineFontSize, FontStyle.Bold, pad, y, contentWidth, 28f,
+            BobScoreboardDisplay.HeadlineColor, headline: true);
+        y -= 4f;
+
+        y = PlaceTopRow(panel.transform, "ScoreText", $"{BobScoreboardDisplay.ScoreLabel}: 0",
+            BobScoreboardDisplay.BodyFontSize, FontStyle.Bold, pad, y, contentWidth, 22f,
+            BobScoreboardDisplay.ScoreAccentColor, headline: false);
+        y -= 4f;
+
+        y = PlaceTopRow(panel.transform, "StatusText", "Play mode", BobScoreboardDisplay.DetailFontSize,
+            FontStyle.Italic, pad, y, contentWidth, 18f, new Color(1f, 0.55f, 0.45f), headline: false,
+            useDetailStyle: true);
+        y -= 4f;
+
+        PlaceTopRow(panel.transform, "RewardsText", "Rewards: +0.0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 18f,
+            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+        PlaceTopRow(panel.transform, "PenaltiesText", "Penalties: -0.0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 18f,
+            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+        y -= 18f;
+        y -= 4f;
+
+        y = PlaceTopRow(panel.transform, "NetRlText", "Net RL: 0.0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 18f,
+            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+        y -= 4f;
+
+        y = PlaceTopRow(panel.transform, "LastEpisodeText", "Last shot RL: 0.0  ·  Arc: 0%",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 18f,
+            new Color(0.85f, 0.88f, 0.95f), headline: false, useDetailStyle: true);
+        y -= 4f;
+
+        PlaceTopRow(panel.transform, "GraphLegendText", "Success · Arc quality (avg 0%)",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 16f,
+            new Color(0.75f, 0.8f, 0.88f), headline: false, useDetailStyle: true);
 
         var graphRect = CreateUiObject<RectTransform>("GraphImage", panel.transform);
         graphRect.anchorMin = new Vector2(0f, 0f);
         graphRect.anchorMax = new Vector2(1f, 0f);
         graphRect.pivot = new Vector2(0.5f, 0f);
-        graphRect.anchoredPosition = new Vector2(0f, 12f);
-        graphRect.sizeDelta = new Vector2(-28f, 72f);
+        graphRect.anchoredPosition = new Vector2(0f, pad);
+        graphRect.sizeDelta = new Vector2(-(pad * 2f), 48f);
         graphRect.gameObject.AddComponent<RawImage>().color = Color.white;
 
         hudRoot.AddComponent<BobWallTrainingHud>();
+        if (hudRoot.GetComponent<CameraFacingBillboard>() == null)
+        {
+            hudRoot.AddComponent<CameraFacingBillboard>();
+        }
+
+        BobWallHudLayout.ApplyLabHudLayout(arenaRoot);
         EditorUtility.SetDirty(hudRoot);
+    }
+
+    private static float PlaceTopRow(
+        Transform parent,
+        string name,
+        string defaultText,
+        int fontSize,
+        FontStyle style,
+        float x,
+        float y,
+        float width,
+        float height,
+        Color color,
+        bool headline,
+        bool useDetailStyle = false)
+    {
+        CreateLabel(parent, name, defaultText, fontSize, style,
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+            new Vector2(x, y), new Vector2(width, height), color, headline, useDetailStyle);
+        return y - height;
     }
 
     private static T CreateUiObject<T>(string name, Transform parent) where T : Component
@@ -111,7 +163,9 @@ public static class BobWallHudBuilder
         Vector2 pivot,
         Vector2 anchoredPosition,
         Vector2 sizeDelta,
-        Color color)
+        Color color,
+        bool headline,
+        bool useDetailStyle = false)
     {
         var rect = CreateUiObject<RectTransform>(name, parent);
         rect.anchorMin = anchorMin;
@@ -128,7 +182,20 @@ public static class BobWallHudBuilder
         text.color = color;
         text.alignment = TextAnchor.MiddleLeft;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
-        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+
+        if (useDetailStyle)
+        {
+            BobScoreboardDisplay.ApplyDetailTextStyle(text);
+        }
+        else if (headline)
+        {
+            BobScoreboardDisplay.ApplyReadableTextStyle(text, headline: true);
+        }
+        else
+        {
+            BobScoreboardDisplay.ApplyReadableTextStyle(text, headline: false);
+        }
     }
 }
 #endif

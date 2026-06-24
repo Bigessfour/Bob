@@ -8,8 +8,8 @@ public static class BasketballProjectileSetup
 {
     public const string BasketballName = "Basketball";
 
-    /// <summary>Offset from Bob spawn to ball release (matches BobAgent.ResetProjectile).</summary>
-    public static readonly Vector3 ReleaseOffset = new(0f, 0.15f, 0.2f);
+    /// <summary>Offset from Bob spawn in Bob-local space (Y up, +Z toward hoop).</summary>
+    public static readonly Vector3 ReleaseOffset = new(0f, 0.75f, 0.18f);
 
     public const float BallScale = 0.24f;
     public const float BallMass = 0.6f;
@@ -87,6 +87,11 @@ public static class BasketballProjectileSetup
         {
             preview.Bind(agent);
         }
+    }
+
+    public static Vector3 GetReleasePosition(Vector3 bobSpawnWorld, Quaternion bobRotation)
+    {
+        return bobSpawnWorld + bobRotation * ReleaseOffset;
     }
 
     public static Vector3 GetReleasePosition(Vector3 bobSpawnWorld)

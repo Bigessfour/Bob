@@ -45,12 +45,19 @@ public class SimpleArcArenaManager : MonoBehaviour
 
     public Vector3 GetBobSpawnPosition()
     {
-        if (PrimarySpawnPoint == null)
+        if (PrimarySpawnPoint != null)
         {
-            return ArcAcademyLayout.BobSpawnPosition;
+            return ResolveSpawnPosition(
+                SimpleArcAcademyArena.GetLabBobSpawnPosition(PrimarySpawnPoint));
         }
 
-        return ResolveSpawnPosition(PrimarySpawnPoint.position + bobSpawnOffset);
+        return ResolveSpawnPosition(ArcAcademyLayout.BobSpawnPosition);
+    }
+
+    public Quaternion GetBobSpawnRotation()
+    {
+        Transform hoop = agent != null ? agent.hoop : null;
+        return SimpleArcAcademyArena.GetSpawnFacingRotation(GetBobSpawnPosition(), hoop);
     }
 
     /// <summary>Manual/orchestrator episode reset — ML-Agents also resets via OnEpisodeBegin.</summary>
@@ -59,7 +66,7 @@ public class SimpleArcArenaManager : MonoBehaviour
         ArcAcademyManager.Instance?.PrepareEpisode();
         if (agent != null)
         {
-            agent.ApplySpawn(GetBobSpawnPosition());
+            agent.ApplySpawn(GetBobSpawnPosition(), GetBobSpawnRotation());
         }
     }
 
@@ -71,6 +78,12 @@ public class SimpleArcArenaManager : MonoBehaviour
         {
             agentPrefab = prefab;
         }
+    }
+
+    /// <summary>Lab mode: Bob stands on the hardwood at the free-throw line (no pedestal).</summary>
+    public void ConfigureLabFloorSpawn(Vector3 floorOffset)
+    {
+        bobSpawnOffset = floorOffset;
     }
 
     private void ResolveAgent()

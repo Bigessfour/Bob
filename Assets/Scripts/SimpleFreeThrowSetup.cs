@@ -90,6 +90,10 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         int built = Step2_EnsureCourtHoopAndBall(arena);
         bool wired = Step4_WireBobLauncher();
 
+        // Ensure core MVP components so that ValidateMinimal (and runtime scoreboard / success rate / BOB_TRAINING_OK)
+        // pass and function for the documented minimal trainer path. This closes the robustness gap.
+        EnsureCoreMvpComponents(arena);
+
         IsConfigured = true;
         Debug.Log(
             $"✅ SIMPLE FREE THROW SETUP COMPLETE — disabled {disabled} roots, " +
@@ -331,27 +335,7 @@ public class SimpleFreeThrowSetup : MonoBehaviour
 
     private static void EnsureScoreZone(Transform rim)
     {
-        var zone = rim.Find(ArcAcademyLayout.ScoreZoneName);
-        if (zone == null)
-        {
-            var go = new GameObject(ArcAcademyLayout.ScoreZoneName);
-            go.transform.SetParent(rim, false);
-            go.transform.localPosition = Vector3.zero;
-            zone = go.transform;
-        }
-
-        if (!zone.TryGetComponent(out SphereCollider sphere))
-        {
-            sphere = zone.gameObject.AddComponent<SphereCollider>();
-        }
-
-        sphere.isTrigger = true;
-        sphere.radius = ArcAcademyLayout.RimScoreRadius;
-
-        if (!zone.TryGetComponent(out HoopScoreZone _))
-        {
-            zone.gameObject.AddComponent<HoopScoreZone>();
-        }
+        TrainingHoopDetail.EnsureScoreTrigger(rim);
     }
 
     private static bool EnsureBasketball(Transform arena)
@@ -604,5 +588,46 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         }
 
         return mat;
+    }
+
+    /// <summary>
+    /// Idempotent ensure for the minimal set of singletons required by VerifyMinimal() and
+    /// full MVP scoreboard / training UX (stats for BasketballPoints + success rate,
+    /// connection monitor for BOB_TRAINING_OK + timescale, ArcAcademyManager per contract,
+    /// legacy scoreboard for OnGUI fallback in stripped scenes).
+    ///
+    /// Called from ApplyAll() and the editor/CLI paths. Mirrors patterns in BobTrainingSceneBuilder,
+    /// EnsureSpawnAndManager, EnsureScoreZone, BobWallHudBuilder, etc.
+    /// </summary>
+    private static void EnsureCoreMvpComponents(Transform arena)
+    {
+        if (Object.FindAnyObjectByType<BobTrainingStats>() == null)
+        {
+            arena.gameObject.AddComponent<BobTrainingStats>();
+        }
+
+        if (Object.FindAnyObjectByType<BobTrainingConnectionMonitor>() == null)
+        {
+            arena.gameObject.AddComponent<BobTrainingConnectionMonitor>();
+        }
+
+        if (Object.FindAnyObjectByType<ArcAcademyManager>() == null)
+        {
+            arena.gameObject.AddComponent<ArcAcademyManager>();
+        }
+
+        var cam = Camera.main;
+        if (cam != null && cam.GetComponent<BobTrainingScoreboard>() == null)
+        {
+            cam.gameObject.AddComponent<BobTrainingScoreboard>();
+        }
+
+        if (cam != null && cam.GetComponent<BobTrainingSuccessGraph>() == null)
+        {
+            cam.gameObject.AddComponent<BobTrainingSuccessGraph>();
+        }
+
+        // Note: wall HUDs added by SimpleArc builder; this ensures legacy + graph for full MVP UI even in minimal trainer path.
+        // Matches validator expectations in other paths and what-finished success graph requirement.
     }
 }

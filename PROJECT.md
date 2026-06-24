@@ -19,28 +19,30 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 
 **Product definition:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md)
 
-## Build Status (2026-06-22)
+## Build Status (2026-06-23)
 
-| Area               | Status                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| Unity scene        | `BobTraining.unity` — Simple Arc Academy Lab (sideline camera, wall HUD)                  |
-| Visual north star  | [`docs/design/visual-vision.md`](docs/design/visual-vision.md) — Phase 2 largely complete  |
-| Render pipeline    | HDRP 17 — flat/lab materials in default mode; **no WebGL** (portfolio Week 3)              |
-| Scene validation   | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                          |
-| Offline regression | `pytest tests/test_unity_alignment.py` — **32/32**                                         |
-| Primary reference  | [`docs/design/ai-warehouse-lab-reference.png`](docs/design/ai-warehouse-lab-reference.png) |
-| Stretch reference  | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)           |
-| Training runtime   | 1 Bob launcher + 1 basketball; wall HUD + session CSV log                                  |
-| First training run | **Gate remaining** — `./scripts/train.sh` → Play → `BOB_TRAINING_OK` in console            |
-| Hoop + ball physics | Segmented rim colliders, visual net, single-shot impulse — `TrainingHoopDetail`            |
-| Progress gallery   | [`docs/progress/`](docs/progress/) — through `017-arc-academy-lab-ux-v1`                   |
+| Area                | Status                                                                                              |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| Unity scene         | `BobTraining.unity` — Simple Arc Academy Lab (sideline camera, wall HUD)                            |
+| Scene rebuild       | **Bob → Rebuild Arc Academy (HDRP)** defaults to **LabShowcase** via `SimpleArcAcademyArenaBuilder` |
+| Visual north star   | [`docs/design/visual-vision.md`](docs/design/visual-vision.md) — Phase 2 largely complete           |
+| Render pipeline     | HDRP 17 — flat/lab materials in default mode; **no WebGL** (portfolio Week 3)                       |
+| Scene validation    | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                                   |
+| Offline regression  | `pytest tests/test_unity_alignment.py` — **33/33** (excl. optional asset refs)                      |
+| Primary reference   | [`docs/design/ai-warehouse-lab-reference.png`](docs/design/ai-warehouse-lab-reference.png)          |
+| Stretch reference   | [`docs/design/arc-academy-reference.jpg`](docs/design/arc-academy-reference.jpg)                    |
+| Training runtime    | 1 Bob launcher + 1 basketball; wall HUD + session CSV log                                           |
+| First training run  | **Verified** 2026-06-23 — `BOB_TRAINING_OK`, trainer Step lines, Episodes/CSV advancing             |
+| Hoop + ball physics | Segmented rim colliders, visual net, single-shot impulse — `TrainingHoopDetail`                     |
+| Progress gallery    | [`docs/progress/`](docs/progress/) — through `017-arc-academy-lab-ux-v1`                            |
 
 ## Next Actions
 
-1. **Week 1 gate** — `./scripts/train.sh`, Play; confirm `BOB_TRAINING_OK` and wall HUD updates
-2. **Merge PR #7** — Simple Arc Academy + basketball + lab UX polish
-3. **Phase 3** — extended training run; `plot_training_progress.py` → `docs/results/`
-4. **Phase 4** — Terraform apply + sync `docs/portfolio-site/`
+**Live checklist:** [docs/bob-done-tracker.md](docs/bob-done-tracker.md) — pin in Cursor to track Week 1 gate and Done Detector status.
+
+1. **Phase 3** — `RUN_ID=bob-v2 ./scripts/train.sh --force` (5+ min) → refresh plot + training GIF
+2. **Follow-up PR** — reward shaping, validator/pytest fixes, uncommitted lab work → `main`
+3. **Phase 4** — Terraform apply + sync `docs/portfolio-site/`
 
 ## Links
 
@@ -78,18 +80,18 @@ Foundations on **`main`** plus **Arc Academy Lab** visual direction (AI Warehous
 
 ## Update Log
 
-| Date       | Update                                                                                                     |
-| ---------- | ---------------------------------------------------------------------------------------------------------- |
-| 2026-06-18 | Initial repo scaffold pushed to `main`                                                                     |
-| 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                                            |
-| 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                                          |
-| 2026-06-18 | Baseline testing strategy + pytest suite added                                                             |
-| 2026-06-18 | Unity project + BobAgent + training scene builder added                                                    |
-| 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`                            |
-| 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                               |
-| 2026-06-22 | **PR #7** — Simple Arc Academy, basketball projectile, wall HUD, Bob charisma, power pulse |
-| 2026-06-22 | Session CSV log + `plot_training_progress.py`; portfolio site scaffold                     |
-| 2026-06-18 | Unity MCP — agent consultation rules, bob-rag integration                                                  |
-| 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan                       |
-| 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)                          |
-| 2026-06-19 | Product north star — `docs/what-finished-looks-like.md`; success graph + scoreboard metrics                |
+| Date       | Update                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| 2026-06-18 | Initial repo scaffold pushed to `main`                                                      |
+| 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                             |
+| 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                           |
+| 2026-06-18 | Baseline testing strategy + pytest suite added                                              |
+| 2026-06-18 | Unity project + BobAgent + training scene builder added                                     |
+| 2026-06-18 | Progress screenshot workflow — `docs/progress/` gallery + `capture-progress.sh`             |
+| 2026-06-18 | Repository RAG — ChromaDB index, `bob-rag` MCP, Cursor hooks                                |
+| 2026-06-22 | **PR #7** — Simple Arc Academy, basketball projectile, wall HUD, Bob charisma, power pulse  |
+| 2026-06-22 | Session CSV log + `plot_training_progress.py`; portfolio site scaffold                      |
+| 2026-06-18 | Unity MCP — agent consultation rules, bob-rag integration                                   |
+| 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan        |
+| 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)           |
+| 2026-06-19 | Product north star — `docs/what-finished-looks-like.md`; success graph + scoreboard metrics |

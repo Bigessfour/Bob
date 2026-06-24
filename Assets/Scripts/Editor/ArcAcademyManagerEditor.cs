@@ -12,7 +12,8 @@ public class ArcAcademyManagerEditor : Editor
         EditorGUILayout.Space(8f);
         EditorGUILayout.LabelField("Scene & HDRP Tools", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
-            "For minimal training court: Bob → Setup → Simple Free Throw Trainer.\n" +
+            "Portfolio rebuild: Bob → Rebuild Arc Academy (HDRP) — clean Simple Arc lab (default).\n" +
+            "Legacy warehouse: Bob → Rebuild Arc Academy (Warehouse Legacy).\n" +
             "Fix White Blowout is for the full warehouse scene only.",
             MessageType.Info);
 

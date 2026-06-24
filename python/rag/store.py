@@ -3,24 +3,50 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import datetime, timezone
 from typing import Any
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
-from rag.settings import CHROMA_PATH, COLLECTION_NAME, MANIFEST_PATH, RAG_DATA_DIR
+from rag.settings import COLLECTION_NAME, get_chroma_path, get_manifest_path, get_rag_data_dir
+
+_client: chromadb.PersistentClient | None = None
+_client_path: str | None = None
 
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def reset_chroma_store() -> None:
+    """Remove on-disk Chroma data so full rebuilds do not leave stale HNSW segments."""
+    global _client, _client_path
+    _client = None
+    _client_path = None
+
+    chroma_path = get_chroma_path()
+    if chroma_path.exists():
+        shutil.rmtree(chroma_path)
+    chroma_path.mkdir(parents=True, exist_ok=True)
+
+
 def get_client() -> chromadb.PersistentClient:
-    RAG_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    return chromadb.PersistentClient(
-        path=str(CHROMA_PATH),
-        settings=ChromaSettings(anonymized_telemetry=False),
-    )
+    global _client, _client_path
+
+    chroma_path = str(get_chroma_path())
+    if _client is not None and _client_path != chroma_path:
+        _client = None
+
+    if _client is None:
+        get_rag_data_dir().mkdir(parents=True, exist_ok=True)
+        _client = chromadb.PersistentClient(
+            path=chroma_path,
+            settings=ChromaSettings(anonymized_telemetry=False),
+        )
+        _client_path = chroma_path
+
+    return _client
 
 
 def get_collection(client: chromadb.PersistentClient | None = None):
@@ -32,14 +58,15 @@ def get_collection(client: chromadb.PersistentClient | None = None):
 
 
 def write_manifest(payload: dict[str, Any]) -> None:
-    RAG_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    MANIFEST_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    get_rag_data_dir().mkdir(parents=True, exist_ok=True)
+    get_manifest_path().write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def read_manifest() -> dict[str, Any]:
-    if not MANIFEST_PATH.exists():
+    manifest_path = get_manifest_path()
+    if not manifest_path.exists():
         return {}
-    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    return json.loads(manifest_path.read_text(encoding="utf-8"))
 
 
 def collection_stats() -> dict[str, Any]:
@@ -51,7 +78,7 @@ def collection_stats() -> dict[str, Any]:
         count = 0
     return {
         "collection": COLLECTION_NAME,
-        "chroma_path": str(CHROMA_PATH),
+        "chroma_path": str(get_chroma_path()),
         "chunk_count": count,
         "last_indexed_at": manifest.get("last_indexed_at"),
         "indexed_files": manifest.get("indexed_files", 0),

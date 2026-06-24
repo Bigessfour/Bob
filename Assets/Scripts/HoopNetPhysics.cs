@@ -38,21 +38,17 @@ public class HoopNetPhysics : MonoBehaviour
     public void RebuildVisualOnly(Transform rim, Color strandColor)
     {
         ClearExistingStrands();
-        var mat = strandMaterialFromColor(strandColor);
-        BuildVisualNet(mat);
+        BuildVisualNet(HoopVisualMaterials.CreateOpaqueNet());
     }
 
     private Material strandMaterialFromColor(Color color)
     {
-        var shader = Shader.Find("HDRP/Lit") ?? Shader.Find("Standard");
-        var mat = new Material(shader);
+        var mat = HoopVisualMaterials.CreateOpaqueNet();
         if (mat.HasProperty("_BaseColor"))
         {
-            mat.SetColor("_BaseColor", color);
-        }
-        else
-        {
-            mat.color = color;
+            var tinted = color;
+            tinted.a = 1f;
+            mat.SetColor("_BaseColor", tinted);
         }
 
         return mat;
@@ -62,7 +58,10 @@ public class HoopNetPhysics : MonoBehaviour
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
-            Destroy(transform.GetChild(i).gameObject);
+            if (Application.isPlaying)
+                Destroy(transform.GetChild(i).gameObject);
+            else
+                DestroyImmediate(transform.GetChild(i).gameObject);
         }
     }
 
@@ -85,7 +84,10 @@ public class HoopNetPhysics : MonoBehaviour
                 segment.GetComponent<Renderer>().sharedMaterial = strandMaterial;
             }
 
-            Destroy(segment.GetComponent<Collider>());
+            if (Application.isPlaying)
+                Destroy(segment.GetComponent<Collider>());
+            else
+                DestroyImmediate(segment.GetComponent<Collider>());
         }
     }
 

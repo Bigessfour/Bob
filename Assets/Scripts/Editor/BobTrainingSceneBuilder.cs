@@ -34,17 +34,29 @@ public static class BobTrainingSceneBuilder
     [MenuItem("Bob/Create Training Scene")]
     public static void CreateTrainingSceneMenu()
     {
+        ArcAcademyLayout.CurrentMode = ArcAcademyLayout.VisualMode.LabShowcase;
         CreateTrainingScene();
     }
 
     [MenuItem("Bob/Rebuild Arc Academy (HDRP)")]
     public static void RebuildArcAcademyHdrpMenu()
     {
+        ArcAcademyLayout.CurrentMode = ArcAcademyLayout.VisualMode.LabShowcase;
         CreateTrainingScene();
+    }
+
+    [MenuItem("Bob/Rebuild Arc Academy (Warehouse Legacy)")]
+    public static void RebuildArcAcademyWarehouseMenu()
+    {
+        var previous = ArcAcademyLayout.CurrentMode;
+        ArcAcademyLayout.CurrentMode = ArcAcademyLayout.VisualMode.Warehouse;
+        CreateTrainingScene();
+        ArcAcademyLayout.CurrentMode = previous;
     }
 
     public static void CreateTrainingSceneFromCli()
     {
+        ArcAcademyLayout.CurrentMode = ArcAcademyLayout.VisualMode.LabShowcase;
         CreateTrainingScene();
         EditorApplication.Exit(0);
     }
@@ -69,23 +81,41 @@ public static class BobTrainingSceneBuilder
         CreateAdaptiveProbeVolume(arena.transform);
         CreateHdrpSkyAndSun(arena.transform);
         CreateCamera();
-        CreateWarehouseShell(arena.transform);
-        CreateCourt(arena.transform);
-        CreateTrainingBays(arena.transform);
-        Transform spawnPad = CreateSpawnPad(arena.transform);
+
+        bool labShowcase = ArcAcademyLayout.CurrentMode == ArcAcademyLayout.VisualMode.LabShowcase;
+
+        if (!labShowcase)
+        {
+            CreateWarehouseShell(arena.transform);
+            CreateCourt(arena.transform);
+            CreateTrainingBays(arena.transform);
+        }
+
+        Transform spawnPad = labShowcase
+            ? CreateMinimalSpawnAnchor(arena.transform)
+            : CreateSpawnPad(arena.transform);
         (Transform rim, MovableHoop movableHoop) = CreateHoop(arena.transform);
         ArcAcademyScorePopup scorePopup = CreateScorePopup(arena.transform, rim);
         Transform ballSpawn = spawnPad.Find(ArcAcademyLayout.BallSpawnPointName);
         CreateBob(rim, ballSpawn);
-        CreateBoundaries(arena.transform);
-        CreateFloorDecals(arena.transform);
-        CreateLightingRig(arena.transform);
-        CreateReflectionProbes(arena.transform);
-        CreateTrajectoryVisuals(arena.transform, spawnPad, rim);
+
+        if (!labShowcase)
+        {
+            CreateBoundaries(arena.transform);
+            CreateFloorDecals(arena.transform);
+            CreateLightingRig(arena.transform);
+            CreateReflectionProbes(arena.transform);
+            CreateTrajectoryVisuals(arena.transform, spawnPad, rim);
+        }
 
         manager.WireReferences(movableHoop, spawnPad, ballSpawn, scorePopup);
         manager.SetupForTraining();
         ApplyTrainingPhysicsLayers(arena.transform);
+
+        if (labShowcase)
+        {
+            SimpleArcAcademyArenaBuilder.ApplyAll();
+        }
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddSceneToBuildSettings(ScenePath);
@@ -137,21 +167,34 @@ public static class BobTrainingSceneBuilder
 
     private static void CreateCamera()
     {
-        var cameraGo = new GameObject("Main Camera");
-        cameraGo.tag = "MainCamera";
-        var camera = cameraGo.AddComponent<Camera>();
-        var hdCamera = cameraGo.AddComponent<HDAdditionalCameraData>();
-        hdCamera.antialiasing = HDAdditionalCameraData.AntialiasingMode.None;
-        cameraGo.transform.position = ArcAcademyLayout.CameraPosition;
-        cameraGo.transform.rotation = Quaternion.LookRotation(
-            ArcAcademyLayout.CameraLookAt - ArcAcademyLayout.CameraPosition,
+        // Rational default for BobTraining (simple arc training view): sideline lab camera.
+        // CameraRig (parent) is created at the exact requested position/look-at with FOV 52.
+        // "Main Camera" child carries the Camera component (local identity) so Camera.main works
+        // and existing readers see the documented world pose.
+        var rig = new GameObject("CameraRig");
+        rig.transform.position = SimpleArcAcademyArena.LabCameraPosition;
+        rig.transform.rotation = Quaternion.LookRotation(
+            SimpleArcAcademyArena.LabCameraLookAt - SimpleArcAcademyArena.LabCameraPosition,
             Vector3.up);
-        camera.fieldOfView = ArcAcademyLayout.CameraFieldOfView;
-        cameraGo.AddComponent<AudioListener>();
-        cameraGo.AddComponent<ArcAcademyDemoCamera>();
-        cameraGo.AddComponent<ArcAcademyDemoUi>();
-        cameraGo.AddComponent<BobTrainingScoreboard>();
-        cameraGo.AddComponent<BobTrainingSuccessGraph>();
+
+        var camGo = new GameObject("Main Camera");
+        camGo.transform.SetParent(rig.transform, false);
+        camGo.transform.localPosition = Vector3.zero;
+        camGo.transform.localRotation = Quaternion.identity;
+        camGo.tag = "MainCamera";
+
+        var camera = camGo.AddComponent<Camera>();
+        var hdCamera = camGo.AddComponent<HDAdditionalCameraData>();
+        hdCamera.antialiasing = HDAdditionalCameraData.AntialiasingMode.None;
+        camera.fieldOfView = SimpleArcAcademyArena.LabCameraFieldOfView;
+
+        camGo.AddComponent<AudioListener>();
+        camGo.AddComponent<ArcAcademyDemoUi>();
+        camGo.AddComponent<BobTrainingScoreboard>();
+        camGo.AddComponent<BobTrainingSuccessGraph>();
+
+        // Simple dedicated orbit (F1 reset + mouse drag). Not ArcAcademyDemoCamera (avoids F1 conflict).
+        rig.AddComponent<CameraOrbit>();
     }
 
     private static void CreateWarehouseShell(Transform parent)
@@ -606,6 +649,20 @@ public static class BobTrainingSceneBuilder
         }
     }
 
+    /// <summary>Invisible spawn anchor for LabShowcase — Bob lands on hardwood via Simple Arc wiring.</summary>
+    private static Transform CreateMinimalSpawnAnchor(Transform parent)
+    {
+        var anchor = new GameObject(ArcAcademyLayout.SpawnPadName);
+        anchor.transform.SetParent(parent);
+        anchor.transform.position = SimpleArcAcademyArena.BobSpawnLocalPosition;
+
+        var spawnPoint = new GameObject(ArcAcademyLayout.BallSpawnPointName);
+        spawnPoint.transform.SetParent(anchor.transform);
+        spawnPoint.transform.localPosition = SimpleArcAcademyArena.BobFloorSpawnOffset;
+
+        return anchor.transform;
+    }
+
     private static Transform CreateSpawnPad(Transform parent)
     {
         // Central black elevated "Bob" platform — dominant in Example.jpg with strong purple glow + branding.
@@ -938,7 +995,7 @@ public static class BobTrainingSceneBuilder
         rim.transform.localPosition = ArcAcademyLayout.RimLocalOnHoopHead;
         rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
         rim.transform.localScale = new Vector3(0.9f, 0.04f, 0.9f);
-        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.GetRubber(RimOrange));
+        ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.GetRimOrange());
         Object.DestroyImmediate(rim.GetComponent<CapsuleCollider>());
         var rimRb = rim.AddComponent<Rigidbody>();
         rimRb.isKinematic = true;
@@ -950,27 +1007,26 @@ public static class BobTrainingSceneBuilder
         netRoot.transform.SetParent(rim.transform);
         netRoot.transform.localPosition = new Vector3(0f, -0.08f, 0f);
         var netPhysics = netRoot.AddComponent<HoopNetPhysics>();
-        var netMaterial = ArcAcademyMaterialFactory.GetMatteWall(Color.white);
+        var netMaterial = ArcAcademyMaterialFactory.GetOpaqueNet();
         netPhysics.BuildNet(rim.transform, netMaterial, HoopPhysicsMaterials.NetStrand, physicsColliders: false);
         netRoot.AddComponent<HoopSwishVfx>();
 
         movableHoop.SetRimTransform(rim.transform);
         movableHoop.WireArticulation(swivelLinkGo.transform, armLinkGo.transform, swivelBody, armBody);
 
-        var scoreZone = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        scoreZone.name = ArcAcademyLayout.ScoreZoneName;
-        scoreZone.transform.SetParent(rim.transform);
-        scoreZone.transform.localPosition = Vector3.zero;
-        scoreZone.transform.localScale = Vector3.one * (ArcAcademyLayout.RimScoreRadius * 2f / 0.9f);
-        var scoreRenderer = scoreZone.GetComponent<Renderer>();
-        if (scoreRenderer != null)
-        {
-            scoreRenderer.enabled = false;
-        }
+        var scoreTrigger = new GameObject(ArcAcademyLayout.HoopSuccessName);
+        scoreTrigger.transform.SetParent(rim.transform);
+        scoreTrigger.transform.localPosition = Vector3.zero;
+        scoreTrigger.transform.localRotation = Quaternion.identity;
+        scoreTrigger.transform.localScale = Vector3.one;
+        scoreTrigger.tag = ArcAcademyLayout.HoopSuccessTag;
 
-        var scoreCollider = scoreZone.GetComponent<SphereCollider>();
-        scoreCollider.isTrigger = true;
-        scoreZone.AddComponent<HoopScoreZone>();
+        var triggerCollider = scoreTrigger.AddComponent<CapsuleCollider>();
+        triggerCollider.isTrigger = true;
+        triggerCollider.direction = 1;
+        triggerCollider.radius = ArcAcademyLayout.RimScoreRadius;
+        triggerCollider.height = ArcAcademyLayout.RimScoreHeight;
+        scoreTrigger.AddComponent<HoopScoreZone>();
 
         movableHoop.ApplyDefaultPose();
         movableHoop.SetStationaryForTraining(true);
@@ -1041,7 +1097,14 @@ public static class BobTrainingSceneBuilder
         bob.transform.position = ballSpawn != null ? ballSpawn.position : ArcAcademyLayout.BobSpawnPosition;
         bob.transform.localScale = new Vector3(0.42f, 0.42f, 0.42f);
 
-        var bobMat = ArcAcademyMaterialFactory.CreateEmissive(BobOrange, ArcAcademyLayout.BobGlowIntensity);
+        var bobMat = ArcAcademyMaterialFactory.CreateEmissive(
+            BobVisualProfile.BodyOrange,
+            BobVisualProfile.BodyGlowIntensity);
+        if (bobMat.HasProperty("_Smoothness"))
+        {
+            bobMat.SetFloat("_Smoothness", BobVisualProfile.BodySmoothness);
+        }
+
         ArcAcademyMaterialFactory.ApplyMaterial(bob, bobMat);
 
         var rb = bob.AddComponent<Rigidbody>();
@@ -1055,6 +1118,7 @@ public static class BobTrainingSceneBuilder
         agent.hoop = rim;
 
         bob.AddComponent<BobEntranceController>();
+        bob.AddComponent<BobVisualApplier>();
         var idle = bob.AddComponent<BobIdleAnimation>();
         idle.Wire(ballSpawn);
 

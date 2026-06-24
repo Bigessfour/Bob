@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// World-space lab wall HUD — iterations, score, RL metrics, and dual-metric progress graph.
+/// World-space lab wall HUD — Episodes, Success, Arc headlines, RL metrics, and dual-metric graph.
 /// </summary>
 public class BobWallTrainingHud : MonoBehaviour
 {
@@ -14,9 +14,10 @@ public class BobWallTrainingHud : MonoBehaviour
     [SerializeField] private int graphWindow = BobTrainingStats.DefaultRollingWindow;
     [SerializeField] private RawImage graphImage;
     [SerializeField] private Text titleText;
-    [SerializeField] private Text iterationsText;
-    [SerializeField] private Text scoreText;
+    [SerializeField] private Text episodesText;
     [SerializeField] private Text successText;
+    [SerializeField] private Text arcText;
+    [SerializeField] private Text scoreText;
     [SerializeField] private Text statusText;
     [SerializeField] private Text rewardsText;
     [SerializeField] private Text penaltiesText;
@@ -37,6 +38,7 @@ public class BobWallTrainingHud : MonoBehaviour
 
         Instance = this;
         BindMissingReferences();
+        EnsureReadableStyles();
         EnsureGraphTexture(128, 48);
     }
 
@@ -71,20 +73,26 @@ public class BobWallTrainingHud : MonoBehaviour
             titleText.text = "Arc Academy Lab";
         }
 
-        if (iterationsText != null)
+        if (episodesText != null)
         {
-            iterationsText.text = $"Iterations: {stats.TotalIterations}";
-        }
-
-        if (scoreText != null)
-        {
-            scoreText.text = $"Score: {stats.BasketballPoints}";
+            episodesText.text = $"{BobScoreboardDisplay.EpisodesLabel}: {stats.TotalIterations}";
         }
 
         if (successText != null)
         {
             successText.text =
-                $"Success: {stats.SessionSuccessRate:P0}  ·  Rolling: {stats.RollingSuccessRate:P0}";
+                $"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P0}  ·  Rolling: {stats.RollingSuccessRate:P0}";
+        }
+
+        if (arcText != null)
+        {
+            arcText.text =
+                $"{BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}  ·  Avg: {stats.RollingAverageArcQuality:P0}";
+        }
+
+        if (scoreText != null)
+        {
+            scoreText.text = $"{BobScoreboardDisplay.ScoreLabel}: {stats.BasketballPoints}";
         }
 
         var monitor = BobTrainingConnectionMonitor.Instance;
@@ -114,13 +122,13 @@ public class BobWallTrainingHud : MonoBehaviour
         if (lastEpisodeText != null)
         {
             lastEpisodeText.text =
-                $"Last shot RL: {stats.LastEpisodeNetReward:+0.0;-0.0}  ·  Arc: {stats.LastEpisodePeakArcQuality:P0}";
+                $"Last shot RL: {stats.LastEpisodeNetReward:+0.0;-0.0}  ·  {BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}";
         }
 
         if (graphLegendText != null)
         {
             graphLegendText.text =
-                $"Success · Arc quality (avg {stats.RollingAverageArcQuality:P0})";
+                $"{BobScoreboardDisplay.SuccessLabel} · {BobScoreboardDisplay.ArcLabel} quality (avg {stats.RollingAverageArcQuality:P0})";
         }
 
         DrawGraph(stats);
@@ -135,9 +143,11 @@ public class BobWallTrainingHud : MonoBehaviour
         }
 
         titleText ??= panel.Find("TitleText")?.GetComponent<Text>();
-        iterationsText ??= panel.Find("IterationsText")?.GetComponent<Text>();
-        scoreText ??= panel.Find("ScoreText")?.GetComponent<Text>();
+        episodesText ??= panel.Find("EpisodesText")?.GetComponent<Text>();
+        episodesText ??= panel.Find("IterationsText")?.GetComponent<Text>();
         successText ??= panel.Find("SuccessText")?.GetComponent<Text>();
+        arcText ??= panel.Find("ArcText")?.GetComponent<Text>();
+        scoreText ??= panel.Find("ScoreText")?.GetComponent<Text>();
         statusText ??= panel.Find("StatusText")?.GetComponent<Text>();
         rewardsText ??= panel.Find("RewardsText")?.GetComponent<Text>();
         penaltiesText ??= panel.Find("PenaltiesText")?.GetComponent<Text>();
@@ -145,6 +155,37 @@ public class BobWallTrainingHud : MonoBehaviour
         lastEpisodeText ??= panel.Find("LastEpisodeText")?.GetComponent<Text>();
         graphLegendText ??= panel.Find("GraphLegendText")?.GetComponent<Text>();
         graphImage ??= panel.Find("GraphImage")?.GetComponent<RawImage>();
+    }
+
+    private void EnsureReadableStyles()
+    {
+        if (episodesText != null)
+        {
+            BobScoreboardDisplay.ApplyReadableTextStyle(episodesText, headline: true);
+        }
+
+        if (successText != null)
+        {
+            BobScoreboardDisplay.ApplyReadableTextStyle(successText, headline: true);
+        }
+
+        if (arcText != null)
+        {
+            BobScoreboardDisplay.ApplyReadableTextStyle(arcText, headline: true);
+        }
+
+        if (scoreText != null)
+        {
+            BobScoreboardDisplay.ApplyReadableTextStyle(scoreText, headline: false);
+        }
+
+        foreach (var detail in new[] { statusText, rewardsText, penaltiesText, netRlText, lastEpisodeText, graphLegendText })
+        {
+            if (detail != null)
+            {
+                BobScoreboardDisplay.ApplyDetailTextStyle(detail);
+            }
+        }
     }
 
     private void EnsureGraphTexture(int width, int height)

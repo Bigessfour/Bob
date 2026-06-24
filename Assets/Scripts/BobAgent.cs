@@ -16,6 +16,9 @@ using UnityEngine;
 ///
 /// Actions (3 continuous):
 ///   - X force, Y force (lift), Z force (toward hoop)
+///
+/// Reward shaping at launch penalizes sideways/backward/downward impulses and rewards
+/// upward arc toward the hoop (see ApplyLaunchDirectionRewards).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class BobAgent : Agent
@@ -94,7 +97,9 @@ public class BobAgent : Agent
 
         scorePulseTimer -= Time.deltaTime;
         float pulse = 1f + Mathf.Sin(scorePulseTimer * 20f) * 0.35f;
-        bobRenderer.material.SetColor(EmissiveColorId, baseEmissive * pulse * ArcAcademyLayout.BobGlowIntensity);
+        bobRenderer.material.SetColor(
+            EmissiveColorId,
+            baseEmissive * pulse * ArcAcademyLayout.BobGlowIntensity * BobVisualProfile.ScorePulseGlowMultiplier);
     }
 
     public override void OnEpisodeBegin()
@@ -123,20 +128,36 @@ public class BobAgent : Agent
 
     public void ApplySpawn(Vector3 position)
     {
-        transform.position = position;
+        ApplySpawn(position, ResolveSpawnRotation(position));
+    }
+
+    public void ApplySpawn(Vector3 position, Quaternion rotation)
+    {
+        transform.SetPositionAndRotation(position, rotation);
         BobPhysicsUtility.ClearVelocitiesIfDynamic(rb);
-        ResetProjectile(position);
+        ResetProjectile(position, rotation);
     }
 
     public void ResetProjectile(Vector3 bobSpawn)
+    {
+        ResetProjectile(bobSpawn, transform.rotation);
+    }
+
+    public void ResetProjectile(Vector3 bobSpawn, Quaternion bobRotation)
     {
         if (projectileBody == null)
         {
             return;
         }
 
-        projectileBody.transform.position = bobSpawn + new Vector3(0f, 0.15f, 0.2f);
+        projectileBody.transform.position =
+            BasketballProjectileSetup.GetReleasePosition(bobSpawn, bobRotation);
         BobPhysicsUtility.ClearVelocitiesIfDynamic(projectileBody);
+    }
+
+    private Quaternion ResolveSpawnRotation(Vector3 spawnPosition)
+    {
+        return SimpleArcAcademyArena.GetSpawnFacingRotation(spawnPosition, hoop);
     }
 
     private void CompleteEpisodeBegin()
@@ -219,8 +240,11 @@ public class BobAgent : Agent
             float fy = c[1] * verticalForceScale + verticalBias;
             float fz = c[2] * forwardForceScale + forwardBias;
 
-            ActionRigidbody.AddForce(new Vector3(fx, fy, fz), ForceMode.Impulse);
+            Vector3 impulse = new Vector3(fx, fy, fz);
+            ActionRigidbody.AddForce(impulse, ForceMode.Impulse);
             shotImpulseThisEpisode = true;
+
+            ApplyLaunchDirectionRewards(impulse);
 
             GetComponent<BobProceduralAnimator>()?.NotifyShotImpulse();
             GetComponent<BobFaceExpression>()?.SetFocus();
@@ -231,6 +255,8 @@ public class BobAgent : Agent
 
             GiveReward(-0.005f);
         }
+
+        ApplyFlightDirectionPenalties();
 
         Vector3 toHoop = hoop.position - ObservationTransform.position;
         float xzDist = new Vector2(toHoop.x, toHoop.z).magnitude;
@@ -285,6 +311,97 @@ public class BobAgent : Agent
         return (apexScore * 0.6f) + (alignmentScore * 0.4f);
     }
 
+    /// <summary>
+    /// Shapes the first shot each episode: reward upward arc toward the hoop, punish sideways/backward/downward launch.
+    /// </summary>
+    private void ApplyLaunchDirectionRewards(Vector3 impulse)
+    {
+        if (hoop == null)
+        {
+            return;
+        }
+
+        Vector3 toHoop = hoop.position - ObservationTransform.position;
+        Vector3 toHoopFlat = new Vector3(toHoop.x, 0f, toHoop.z);
+        float horizontalDist = toHoopFlat.magnitude;
+        if (horizontalDist < 0.05f)
+        {
+            return;
+        }
+
+        Vector3 towardHoop = toHoopFlat / horizontalDist;
+
+        Vector3 impulseFlat = new Vector3(impulse.x, 0f, impulse.z);
+        float flatMag = impulseFlat.magnitude;
+        if (flatMag > 0.01f)
+        {
+            float horizDot = Vector3.Dot(impulseFlat / flatMag, towardHoop);
+            if (horizDot >= 0f)
+            {
+                GiveReward(horizDot * ArcAcademyLayout.LaunchTowardHoopRewardScale);
+            }
+            else
+            {
+                GiveReward(horizDot * ArcAcademyLayout.LaunchAwayFromHoopPenaltyScale);
+                if (horizDot < -0.5f)
+                {
+                    GiveReward(-ArcAcademyLayout.LaunchRadicallyWrongFlatPenalty);
+                }
+                else if (horizDot < 0f)
+                {
+                    GiveReward(-ArcAcademyLayout.LaunchBackwardFlatPenalty);
+                }
+            }
+        }
+
+        if (impulse.y < 0f)
+        {
+            GiveReward(impulse.y * ArcAcademyLayout.LaunchDownwardPenaltyScale);
+        }
+        else
+        {
+            float normalizedUp = Mathf.Clamp01(impulse.y / Mathf.Max(verticalForceScale + verticalBias, 0.01f));
+            GiveReward(normalizedUp * ArcAcademyLayout.LaunchUpwardRewardScale);
+        }
+
+        Vector3 idealArcDir = (towardHoop + Vector3.up * ArcAcademyLayout.IdealLaunchUpRatio).normalized;
+        float impulseMag = impulse.magnitude;
+        if (impulseMag > 0.01f)
+        {
+            float arcDot = Vector3.Dot(impulse / impulseMag, idealArcDir);
+            if (arcDot >= 0f)
+            {
+                GiveReward(arcDot * ArcAcademyLayout.LaunchArcAlignRewardScale);
+            }
+            else
+            {
+                GiveReward(arcDot * ArcAcademyLayout.LaunchArcMisalignPenaltyScale);
+            }
+        }
+    }
+
+    /// <summary>Penalizes mid-flight velocity that points away from the hoop.</summary>
+    private void ApplyFlightDirectionPenalties()
+    {
+        if (!shotImpulseThisEpisode || hoop == null || ActionRigidbody == null)
+        {
+            return;
+        }
+
+        Vector3 toHoop = hoop.position - ObservationTransform.position;
+        Vector3 velocity = ActionRigidbody.linearVelocity;
+        if (velocity.sqrMagnitude < 0.25f || toHoop.sqrMagnitude < 0.01f)
+        {
+            return;
+        }
+
+        float alignment = Vector3.Dot(velocity.normalized, toHoop.normalized);
+        if (alignment < 0f)
+        {
+            GiveReward(alignment * ArcAcademyLayout.FlightAwayFromHoopPenaltyScale);
+        }
+    }
+
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var continuous = actionsOut.ContinuousActions;
@@ -305,6 +422,6 @@ public class BobAgent : Agent
         }
 
         float zInput = Input.GetAxis("Vertical");
-        continuous[2] = zInput == 0f ? 0.75f : zInput;
+        continuous[2] = zInput == 0f ? -0.5f : zInput;
     }
 }

@@ -17,10 +17,12 @@ from plot_rewards import find_training_log, load_rewards
 
 
 def default_summaries_path() -> Path:
-    return Path(__file__).resolve().parent.parent.parent / "summaries" / "bob_session.csv"
+    return (
+        Path(__file__).resolve().parent.parent.parent / "summaries" / "bob_session.csv"
+    )
 
 
-def load_session_log(csv_path: Path) -> dict[str, list[float | int]]:
+def load_session_log(csv_path: Path, since: str | None = None) -> dict[str, list[float | int]]:
     """Parse summaries/bob_session.csv into column lists."""
     columns: dict[str, list[float | int]] = {
         "iteration": [],
@@ -33,6 +35,8 @@ def load_session_log(csv_path: Path) -> dict[str, list[float | int]]:
     with csv_path.open(newline="") as handle:
         reader = csv.DictReader(handle)
         for row in reader:
+            if since is not None and row["timestamp"] < since:
+                continue
             columns["iteration"].append(int(row["iteration"]))
             columns["session_success_pct"].append(float(row["session_success_pct"]))
             columns["rolling_success_pct"].append(float(row["rolling_success_pct"]))
@@ -52,19 +56,28 @@ def plot_training_progress(
     import matplotlib.pyplot as plt
 
     has_session = session is not None and bool(session["iteration"])
-    has_rewards = reward_steps is not None and reward_values is not None and bool(reward_steps)
+    has_rewards = (
+        reward_steps is not None and reward_values is not None and bool(reward_steps)
+    )
 
     if not has_session and not has_rewards:
         raise ValueError("No session log or reward data to plot")
 
     panel_count = int(has_session) + int(has_rewards)
-    fig, axes = plt.subplots(panel_count, 1, figsize=(10, 4 * panel_count), squeeze=False)
+    fig, axes = plt.subplots(
+        panel_count, 1, figsize=(10, 4 * panel_count), squeeze=False
+    )
     axis_index = 0
 
     if has_session:
         ax = axes[axis_index, 0]
         iterations = session["iteration"]
-        ax.plot(iterations, session["session_success_pct"], label="Session success %", linewidth=1.5)
+        ax.plot(
+            iterations,
+            session["session_success_pct"],
+            label="Session success %",
+            linewidth=1.5,
+        )
         ax.plot(
             iterations,
             session["rolling_success_pct"],
@@ -113,7 +126,15 @@ def main() -> int:
         default=Path(__file__).resolve().parent.parent.parent / "results",
         help="Path to ML-Agents results/ directory",
     )
-    parser.add_argument("--run-id", type=str, default=None, help="Filter rewards by run ID")
+    parser.add_argument(
+        "--run-id", type=str, default=None, help="Filter rewards by run ID"
+    )
+    parser.add_argument(
+        "--since",
+        type=str,
+        default=None,
+        help="Include session rows at or after this ISO timestamp (bob-v2 segment filter)",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -124,7 +145,7 @@ def main() -> int:
 
     session = None
     if args.session_log.is_file():
-        session = load_session_log(args.session_log)
+        session = load_session_log(args.session_log, since=args.since)
 
     reward_steps: list[int] | None = None
     reward_values: list[float] | None = None

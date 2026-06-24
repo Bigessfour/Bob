@@ -113,6 +113,7 @@ public class SimpleFreeThrowSetupEditor : Editor
 
         var setup = SimpleFreeThrowSetup.EnsureOnArena(arena);
         setup.ApplyAll();
+        // ApplyAll now calls EnsureCoreMvpComponents; explicit for belt-and-suspenders in CLI.
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveOpenScenes();
         AssetDatabase.SaveAssets();

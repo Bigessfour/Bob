@@ -21,6 +21,7 @@ public class BobTrainingConnectionMonitor : MonoBehaviour
     private BehaviorParameters bobBehavior;
     private float nextCheckTime;
     private bool loggedFallback;
+    private bool hadTrainingConnection;
     private float defaultTimeScale = 1f;
 
     private void Awake()
@@ -82,12 +83,24 @@ public class BobTrainingConnectionMonitor : MonoBehaviour
         if (connected)
         {
             Time.timeScale = trainingTimeScale;
+            hadTrainingConnection = true;
+            BobTrainingSessionFlags.MarkTrainerConnected();
             Debug.Log($"BOB_TRAINING_OK: Python trainer connected. Time scale = {trainingTimeScale}x");
             loggedFallback = false;
             return;
         }
 
         Time.timeScale = defaultTimeScale;
+        if (hadTrainingConnection)
+        {
+            Debug.LogWarning(
+                "BOB_TRAINING_LOST: Python trainer disconnected (Play stopped, domain reload, or compile). " +
+                "Trainer terminal may show 'Communicator has exited'. Wait for 'Listening on port 5004', then press Play once — " +
+                "do not toggle Play repeatedly or edit scripts during training.");
+            hadTrainingConnection = false;
+            return;
+        }
+
         if (!loggedFallback)
         {
             Debug.LogWarning(

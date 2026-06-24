@@ -32,5 +32,6 @@ See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.
 | 017 | 2026-06-22 | arc-academy-lab-ux-v1 | play | ![arc-academy-lab-ux-v1](017-2026-06-22-arc-academy-lab-ux-v1/capture.png) |
 | 018 | 2026-06-22 | arc-academy-lab-v1 | play | ![arc-academy-lab-v1](018-2026-06-22-arc-academy-lab-v1/capture.png) |
 | 019 | 2026-06-22 | arc-academy-train-gate-v1 | play | ![arc-academy-train-gate-v1](019-2026-06-22-arc-academy-train-gate-v1/capture.png) |
-| 019 | 2026-06-22 | arc-academy-train-gate-v1 | play | ![arc-academy-train-gate-v1](019-2026-06-22-arc-academy-train-gate-v1/capture.png) |
+| 020 | 2026-06-23 | lab-hud-south-v1 | play | ![lab-hud-south-v1](020-2026-06-23-lab-hud-south-v1/capture.png) |
+| 021 | 2026-06-23 | bob-visual-v1 | play | ![bob-visual-v1](021-2026-06-23-bob-visual-v1/capture.png) |
 

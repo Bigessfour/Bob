@@ -31,9 +31,9 @@ public static class ArcAcademyLabRenderPreset
         {
             bloom.active = true;
             bloom.intensity.overrideState = true;
-            bloom.intensity.value = 0.12f;
+            bloom.intensity.value = ArcAcademyLabLightingValues.MinimalTrainerBloomIntensity;
             bloom.threshold.overrideState = true;
-            bloom.threshold.value = 1f;
+            bloom.threshold.value = ArcAcademyLabLightingValues.LabBloomThreshold;
         }
 
         if (profile.TryGet(out ScreenSpaceReflection ssr))
@@ -66,9 +66,24 @@ public static class ArcAcademyLabRenderPreset
         var volume = Object.FindAnyObjectByType<Volume>();
         if (volume != null && volume.profile != null)
         {
+            // Clone for safety (same destroy race as lab view preset, used in trainer setups).
+            if (volume.profile == volume.sharedProfile || Application.isPlaying)
+            {
+                volume.profile = Object.Instantiate(volume.profile);
+            }
             ApplyMinimalTrainerVolume(volume.profile);
         }
 
+        EnforceSingleDirectionalShadow();
+    }
+
+    /// <summary>
+    /// HDRP allows only one directional light to cast cascade shadows at a time.
+    /// Early call on scene load / play to suppress cascade spam before first render.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    public static void EarlyShadowEnforcement()
+    {
         EnforceSingleDirectionalShadow();
     }
 
@@ -269,6 +284,12 @@ public static class ArcAcademyLabRenderPreset
             {
                 SetLightIntensity(light, ArcAcademyLabLightingValues.BobSpotLumen, LightUnit.Lumen);
             }
+            else if (IsLabGymFillLight(light))
+            {
+                light.enabled = true;
+                SetLightIntensity(light, ArcAcademyLabLightingValues.LabGymFillLumen, LightUnit.Lumen);
+                light.shadows = LightShadows.None;
+            }
             else
             {
                 float target = light.type switch
@@ -350,29 +371,70 @@ public static class ArcAcademyLabRenderPreset
             return;
         }
 
-        var volume = Object.FindAnyObjectByType<Volume>();
-        if (volume != null && volume.profile != null)
-        {
-            ApplyMinimalTrainerVolume(volume.profile);
+        // Call early to suppress cascade shadow spam as soon as possible in play/capture.
+        EnforceSingleDirectionalShadow();
 
-            if (volume.profile.TryGet(out Bloom bloom))
+        var volume = Object.FindAnyObjectByType<Volume>();
+        if (volume != null)
+        {
+            VolumeProfile activeProfile = null;
+            if (Application.isPlaying)
             {
-                bloom.active = true;
-                bloom.intensity.overrideState = true;
-                bloom.intensity.value = 0.08f;
+                if (volume.sharedProfile != null)
+                {
+                    try
+                    {
+                        activeProfile = Object.Instantiate(volume.sharedProfile);
+                        volume.profile = activeProfile;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning($"[ArcAcademyLabRenderPreset] Could not instantiate sharedProfile safely: {ex.Message}");
+                    }
+                }
             }
 
-            if (volume.profile.TryGet(out ScreenSpaceReflection ssr))
+            if (activeProfile == null)
             {
-                ssr.active = true;
-                ssr.enabled.overrideState = true;
-                ssr.enabled.value = false;
+                try
+                {
+                    activeProfile = volume.profile;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"[ArcAcademyLabRenderPreset] Could not get volume.profile: {ex.Message}");
+                    activeProfile = volume.sharedProfile;
+                }
+            }
+
+            if (activeProfile != null)
+            {
+                ApplyMinimalTrainerVolume(activeProfile);
+
+                if (activeProfile.TryGet(out Bloom bloom))
+                {
+                    bloom.active = true;
+                    bloom.intensity.overrideState = true;
+                    bloom.intensity.value = ArcAcademyLabLightingValues.LabBloomIntensity;
+                }
+
+                if (activeProfile.TryGet(out ScreenSpaceReflection ssr))
+                {
+                    ssr.active = true;
+                    ssr.enabled.overrideState = true;
+                    ssr.enabled.value = false;
+                }
             }
         }
 
         DisableNonSunLights();
         EnforceSingleDirectionalShadow();
-        Debug.Log("ARC_LAB_VIEW_OK: AI Warehouse lab preset applied (Sun only, flat volume).");
+        Debug.Log("ARC_LAB_VIEW_OK: AI Warehouse lab preset applied (Sun + gym fill, flat volume).");
+    }
+
+    private static bool IsLabGymFillLight(Light light)
+    {
+        return light != null && light.gameObject.name.StartsWith("LabGymFill");
     }
 
     private static void DisableNonSunLights()
@@ -390,6 +452,21 @@ public static class ArcAcademyLabRenderPreset
                 SetLightIntensity(light, ArcAcademyLabLightingValues.SunLux, LightUnit.Lux);
                 light.shadows = LightShadows.Soft;
                 SyncHdrpLight(light);
+                continue;
+            }
+
+            if (IsLabGymFillLight(light))
+            {
+                light.enabled = true;
+                light.shadows = LightShadows.None;
+                SetLightIntensity(light, ArcAcademyLabLightingValues.LabGymFillLumen, LightUnit.Lumen);
+                SyncHdrpLight(light);
+                if (light.TryGetComponent(out HDAdditionalLightData hdFill))
+                {
+                    hdFill.EnableShadows(false);
+                    hdFill.UpdateAllLightValues();
+                }
+
                 continue;
             }
 

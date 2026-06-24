@@ -31,17 +31,17 @@ flowchart TD
 
 ## Finished components
 
-| Component         | Finished behavior                                                                                        | Current status                                                                                    |
-| ----------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                                          |
-| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | Implemented — `BasketballProjectileSetup` + single `Basketball` in simple arena                   |
-| **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                                           |
-| **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                                        |
-| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse                       |
-| **Success graph** | Rolling **success rate %** + **arc quality** over recent iterations                                    | Wall HUD dual graph + `BobTrainingSuccessGraph` fallback                                          |
-| **Feedback**      | Speech bubble / popup on made basket                                                                     | Implemented (`BobSpeechBubble` + `ArcAcademyScorePopup`)                                          |
-| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Week 1 gate** — manual verify `BOB_TRAINING_OK` in Editor console                               |
-| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Scaffold at `docs/portfolio-site/`; Terraform Week 3                                              |
+| Component         | Finished behavior                                                                                        | Current status                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                        |
+| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | Implemented — `BasketballProjectileSetup` + single `Basketball` in simple arena |
+| **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                         |
+| **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                      |
+| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse     |
+| **Success graph** | Rolling **success rate %** + **arc quality** over recent iterations                                      | Wall HUD dual graph + `BobTrainingSuccessGraph` fallback                        |
+| **Feedback**      | Speech bubble / popup on made basket                                                                     | Implemented (`BobSpeechBubble` + `ArcAcademyScorePopup`)                        |
+| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Verified** 2026-06-23 — `BOB_TRAINING_OK`, trainer Step lines, session CSV    |
+| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Scaffold at `docs/portfolio-site/`; Terraform Week 3                            |
 
 ---
 
@@ -73,30 +73,31 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 ### Phase 1 — Training loop
 
 - [x] `./scripts/validate-scene.sh` → `VALIDATE_PASS`
-- [ ] `./scripts/train.sh` → Play → training steps in console (`BOB_TRAINING_OK`)
+- [x] `./scripts/train.sh` → Play → training steps in console (`BOB_TRAINING_OK`)
 - [x] Scoreboard + success graph update in Play
-- [ ] PR #7 merge to `main`
+- [x] PR #7 merge to `main`
 
 ### Phase 1.5 — Basketball projectile
 
 - [x] `Basketball` at spawn release point (orange sphere, `Rigidbody`, `SimpleBasketball`)
 - [x] `BobAgent` applies force to ball; launcher cube kinematic at pad (`BasketballProjectileSetup`)
 - [x] `./scripts/validate-scene.sh` → `VALIDATE_PASS` with projectile wired
-- [ ] `./scripts/train.sh` + Play → single-shot training loop verified
+- [x] `./scripts/train.sh` + Play → single-shot training loop verified
 - [x] `HoopScoreZone` detects ball via `SimpleBasketball` (8 obs / 3 actions unchanged)
 - [x] Validator + alignment tests (32/32)
 
 ### Phase 2 — Arc Academy Lab visuals
 
 - [x] Lab room builder (grid floor, white walls, sideline `LabHero` camera)
-- [x] Wall-mounted training HUD (`BobWallTrainingHud` on `Wall_West`)
+- [x] Wall-mounted training HUD (`BobWallTrainingHud` on `Wall_South`, back wall behind hoop)
 - [x] Bob eyes + speech bubble + squash/stretch + power-path pulse
 - [x] `--play` captures: `arc-academy-lab-incremental-v1`, `arc-academy-ball-v1`, `arc-academy-lab-ux-v1`
 
 ### Phase 3 — Learning demo
 
 - [x] Session CSV export + `python/scripts/plot_training_progress.py`
-- [ ] Extended training run + copy plot to `docs/results/`
+- [x] Plot copied to `docs/results/training_progress.png` (326-iteration session; pre–bob-v2 shaping)
+- [ ] Extended **bob-v2** training run after launch-direction rewards + refresh plot
 - [ ] Training GIF for portfolio
 - [ ] Optional inference `.onnx` demo
 

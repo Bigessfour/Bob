@@ -8,7 +8,9 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 COPY python/requirements.txt python/
 RUN pip install --no-cache-dir --upgrade pip setuptools==65.5.0 wheel \
-    && pip install --no-cache-dir -r python/requirements.txt
+    && pip install --no-cache-dir "torch>=2.1.1,<=2.8.0" \
+    && pip install --no-cache-dir -r python/requirements.txt \
+    && python -c "import torch; print('TORCH_VERSION:', torch.__version__)"
 
 COPY config/ config/
 COPY python/ python/

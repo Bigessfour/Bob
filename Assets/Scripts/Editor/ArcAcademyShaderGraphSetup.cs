@@ -53,6 +53,8 @@ public static class ArcAcademyShaderGraphSetup
 
         EnsureGlassMaterial();
         EnsureRubberMaterial();
+        EnsureRimMaterial();
+        EnsureNetMaterial();
         EnsureMountainBackdropMaterial();
     }
 
@@ -110,6 +112,30 @@ public static class ArcAcademyShaderGraphSetup
         var mat = ArcAcademyMaterialFactory.CreateHdrpLit(new Color(0.12f, 0.1f, 0.08f), 0.25f, 0f);
         mat.name = "ArcAcademyRubber";
         AssetDatabase.CreateAsset(mat, ArcAcademyMaterialPaths.RubberMat);
+    }
+
+    private static void EnsureRimMaterial()
+    {
+        if (AssetDatabase.LoadAssetAtPath<Material>(ArcAcademyMaterialPaths.RimMat) != null)
+        {
+            return;
+        }
+
+        var mat = ArcAcademyMaterialFactory.CreateRimOrangeMaterial();
+        mat.name = "ArcAcademyRim";
+        AssetDatabase.CreateAsset(mat, ArcAcademyMaterialPaths.RimMat);
+    }
+
+    private static void EnsureNetMaterial()
+    {
+        if (AssetDatabase.LoadAssetAtPath<Material>(ArcAcademyMaterialPaths.NetMat) != null)
+        {
+            return;
+        }
+
+        var mat = ArcAcademyMaterialFactory.CreateOpaqueNetMaterial();
+        mat.name = "ArcAcademyNet";
+        AssetDatabase.CreateAsset(mat, ArcAcademyMaterialPaths.NetMat);
     }
 
     private static void EnsureMountainBackdropMaterial()

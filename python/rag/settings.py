@@ -7,10 +7,20 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _default_rag_dir = REPO_ROOT / "python" / ".rag"
-RAG_DATA_DIR = Path(os.environ.get("BOB_RAG_DATA_DIR", str(_default_rag_dir)))
-CHROMA_PATH = RAG_DATA_DIR / "chroma"
 COLLECTION_NAME = "bob_repo"
-MANIFEST_PATH = RAG_DATA_DIR / "manifest.json"
+
+
+def get_rag_data_dir() -> Path:
+    """Resolve RAG data dir from env on each call (tests set BOB_RAG_DATA_DIR per case)."""
+    return Path(os.environ.get("BOB_RAG_DATA_DIR", str(_default_rag_dir)))
+
+
+def get_chroma_path() -> Path:
+    return get_rag_data_dir() / "chroma"
+
+
+def get_manifest_path() -> Path:
+    return get_rag_data_dir() / "manifest.json"
 
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 150

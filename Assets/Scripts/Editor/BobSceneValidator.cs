@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.UI;
 using System.Linq;
 
 public static class BobSceneValidator
@@ -339,9 +340,21 @@ public static class BobSceneValidator
             return;
         }
 
-        if (rim.Find(ArcAcademyLayout.ScoreZoneName)?.GetComponent<HoopScoreZone>() == null)
+        if (rim.Find(ArcAcademyLayout.HoopSuccessName)?.GetComponent<HoopScoreZone>() == null)
         {
-            Debug.LogError("VALIDATE_FAIL: ScoreZone trigger missing on Rim");
+            Debug.LogError("VALIDATE_FAIL: HoopSuccess trigger missing on Rim");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!VerifyHoopSuccessTrigger(rim))
+        {
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!VerifyRimVisuals(rim))
+        {
             EditorApplication.Exit(1);
             return;
         }
@@ -506,9 +519,11 @@ public static class BobSceneValidator
         }
 
         var mainCamera = Camera.main;
-        if (mainCamera == null || mainCamera.GetComponent<ArcAcademyDemoCamera>() == null)
+        bool hasOrbit = mainCamera != null && (mainCamera.GetComponentInParent<CameraOrbit>() != null || mainCamera.GetComponent<CameraOrbit>() != null);
+        bool hasDemo = mainCamera != null && mainCamera.GetComponent<ArcAcademyDemoCamera>() != null;
+        if (mainCamera == null || (!hasOrbit && !hasDemo))
         {
-            Debug.LogError("VALIDATE_FAIL: ArcAcademyDemoCamera missing on Main Camera");
+            Debug.LogError("VALIDATE_FAIL: CameraOrbit (preferred) or ArcAcademyDemoCamera missing on Main Camera / rig");
             EditorApplication.Exit(1);
             return;
         }
@@ -707,6 +722,8 @@ public static class BobSceneValidator
             return;
         }
 
+        VerifyHalfCourtMarkings(arenaRoot.transform);
+
         if (AssetDatabase.LoadAssetAtPath<GameObject>(SimpleArcAcademyArena.BobPrefabPath) == null)
         {
             Debug.LogError("VALIDATE_FAIL: Prefab_Bob missing at " + SimpleArcAcademyArena.BobPrefabPath);
@@ -760,6 +777,50 @@ public static class BobSceneValidator
             return;
         }
 
+        if (agent.transform.Find(BobFaceLayout.LeftEyeName) == null
+            || agent.transform.Find(BobFaceLayout.RightEyeName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob must have LeftEye and RightEye — rerun arena builder");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.transform.Find("Eye_Left") != null || agent.transform.Find("Eye_Right") != null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Legacy Eye_Left/Eye_Right quads must be removed from Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.GetComponent<BobEyeFollow>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobEyeFollow missing on Bob");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.GetComponent<BobVisualApplier>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: BobVisualApplier missing on Bob — rerun arena builder");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!agent.TryGetComponent(out Renderer bobRenderer)
+            || BobVisualProfile.IsLikelyMissingBodyMaterial(bobRenderer.sharedMaterial))
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob body material must be orange lab material — rerun arena builder");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (agent.transform.Find(BobFaceLayout.MouthName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Bob must have HappyMouth line renderer");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         if (agent.transform.parent != arenaRoot.transform)
         {
             Debug.LogError("VALIDATE_FAIL: Bob must be parented under SimpleArcAcademyArena");
@@ -794,6 +855,18 @@ public static class BobSceneValidator
         if (rimColliders == null || rimColliders.childCount < TrainingHoopDetail.RimSegmentCount)
         {
             Debug.LogError("VALIDATE_FAIL: Rim must use segmented RimColliders — rerun arena builder");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!VerifyHoopSuccessTrigger(agent.hoop))
+        {
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!VerifyRimVisuals(agent.hoop))
+        {
             EditorApplication.Exit(1);
             return;
         }
@@ -833,6 +906,19 @@ public static class BobSceneValidator
             return;
         }
 
+        // Enforce no background decorative hoops taking room on the clean court (Prompt 6 / visual north star)
+        var mainHoop = GameObject.Find(ArcAcademyLayout.HoopName);
+        var extraDecorative = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include)
+            .Count(t => t.name == ArcAcademyLayout.PortableHoopStandName
+                        && t.gameObject.activeSelf
+                        && (mainHoop == null || !t.IsChildOf(mainHoop.transform)));
+        if (extraDecorative > 0)
+        {
+            Debug.LogError($"VALIDATE_FAIL: {extraDecorative} background decorative hoop stands still active and taking up room on the court. Run Bob → Polish → Fix Training View or simple arena apply.");
+            EditorApplication.Exit(1);
+            return;
+        }
+
         if (agent.ProjectileBody == null)
         {
             Debug.LogError("VALIDATE_FAIL: BobAgent projectileBody must reference Basketball rigidbody");
@@ -868,6 +954,109 @@ public static class BobSceneValidator
         if (worldHudCount != 1)
         {
             Debug.LogError("VALIDATE_FAIL: Exactly one world-space lab HUD canvas is required");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var labHud = Object.FindAnyObjectByType<BobWallTrainingHud>();
+        if (labHud == null || labHud.transform.parent == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: LabTrainingHud must be parented under Wall_South");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (labHud.transform.parent.name != SimpleArcAcademyArena.LabHudWallName)
+        {
+            Debug.LogError("VALIDATE_FAIL: LabTrainingHud must be parented under Wall_South");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        float hudWorldX = labHud.transform.position.x;
+        if (Mathf.Abs(hudWorldX - SimpleArcAcademyArena.LabHudWorldX) > BobWallHudLayout.HudWorldPositionTolerance)
+        {
+            Debug.LogError(
+                $"VALIDATE_FAIL: LabTrainingHud world X must be near back-wall anchor ({SimpleArcAcademyArena.LabHudWorldX}), got {hudWorldX:F2}");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        float hudWorldZ = labHud.transform.position.z;
+        if (Mathf.Abs(hudWorldZ - SimpleArcAcademyArena.LabHudWorldZ) > BobWallHudLayout.HudWorldPositionTolerance)
+        {
+            Debug.LogError(
+                $"VALIDATE_FAIL: LabTrainingHud world Z must be near back wall ({SimpleArcAcademyArena.LabHudWorldZ}), got {hudWorldZ:F2}");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var westWall = arenaRoot.transform.Find(SimpleArcAcademyArena.WallWestName);
+        if (westWall != null && westWall.Find(BobWallTrainingHud.RootName) != null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Wall_West must not contain LabTrainingHud");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var northWall = arenaRoot.transform.Find(SimpleArcAcademyArena.WallNorthName);
+        if (northWall != null && northWall.Find(BobWallTrainingHud.RootName) != null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Wall_North must not contain LabTrainingHud");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (northWall != null && northWall.childCount > 0)
+        {
+            Debug.LogError("VALIDATE_FAIL: Wall_North must be a solid wall with no HUD children");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (!BobWallHudLayout.IsFacingCamera(labHud.transform, SimpleArcAcademyArena.LabCameraPosition)
+            || !BobWallHudLayout.IsFacingCamera(labHud.transform, SimpleArcAcademyArena.GetHeroCameraPosition))
+        {
+            Debug.LogError("VALIDATE_FAIL: LabTrainingHud must face both LabHero and Hero cameras");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var hudCanvas = labHud.GetComponentInChildren<Canvas>();
+        if (hudCanvas == null || hudCanvas.GetComponent<CanvasScaler>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: LabTrainingHud canvas must have CanvasScaler");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var episodesHeadline = labHud.transform.Find("Canvas/Panel/EpisodesText")?.GetComponent<Text>();
+        if (episodesHeadline == null || episodesHeadline.GetComponent<Outline>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: LabTrainingHud headline text must use Outline for readability");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (labHud.GetComponent<CameraFacingBillboard>() == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: LabTrainingHud must use CameraFacingBillboard for orbit readability");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var arenaPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SimpleArcAcademyArena.PrefabPath);
+        if (arenaPrefab == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Prefab_SimpleArena missing at " + SimpleArcAcademyArena.PrefabPath);
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var prefabSouthWall = arenaPrefab.transform.Find(SimpleArcAcademyArena.LabHudWallName);
+        if (prefabSouthWall == null || prefabSouthWall.Find(BobWallTrainingHud.RootName) == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Prefab_SimpleArena must bake LabTrainingHud under Wall_South");
             EditorApplication.Exit(1);
             return;
         }
@@ -924,9 +1113,21 @@ public static class BobSceneValidator
             return;
         }
 
-        if (mainCamera.GetComponent<ArcAcademyDemoCamera>() == null)
+        bool hasOrbit = mainCamera.GetComponentInParent<CameraOrbit>() != null || mainCamera.GetComponent<CameraOrbit>() != null;
+        bool hasDemo = mainCamera.GetComponent<ArcAcademyDemoCamera>() != null;
+        if (!hasOrbit && !hasDemo)
         {
-            Debug.LogError("VALIDATE_FAIL: ArcAcademyDemoCamera missing on Main Camera");
+            Debug.LogError("VALIDATE_FAIL: CameraOrbit (on rig) or ArcAcademyDemoCamera missing on Main Camera");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        // Permanent guard against cascade shadow spam (HDRP: only 1 directional may cast shadows).
+        var shadowCasters = Object.FindObjectsByType<Light>()
+            .Count(l => l != null && l.type == LightType.Directional && l.shadows != LightShadows.None && l.enabled && l.gameObject.activeInHierarchy);
+        if (shadowCasters > 1)
+        {
+            Debug.LogError($"VALIDATE_FAIL: {shadowCasters} directional lights have shadows enabled (only Sun should). Re-apply lab preset or fix light creation.");
             EditorApplication.Exit(1);
             return;
         }
@@ -949,6 +1150,54 @@ public static class BobSceneValidator
         return count;
     }
 
+    private static bool VerifyHoopSuccessTrigger(Transform rim)
+    {
+        var trigger = rim.Find(ArcAcademyLayout.HoopSuccessName);
+        if (trigger == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopSuccess child missing under active Rim");
+            return false;
+        }
+
+        if (!trigger.CompareTag(ArcAcademyLayout.HoopSuccessTag))
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopSuccess trigger must use HoopSuccess tag");
+            return false;
+        }
+
+        if (trigger.GetComponent<SphereCollider>() != null)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopSuccess must use CapsuleCollider, not SphereCollider");
+            return false;
+        }
+
+        if (!trigger.TryGetComponent(out CapsuleCollider capsule) || !capsule.isTrigger)
+        {
+            Debug.LogError("VALIDATE_FAIL: HoopSuccess must have trigger CapsuleCollider");
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool VerifyRimVisuals(Transform rim)
+    {
+        if (!rim.TryGetComponent(out Renderer rimRenderer) || !rimRenderer.enabled)
+        {
+            Debug.LogError("VALIDATE_FAIL: Active Rim MeshRenderer must be enabled");
+            return false;
+        }
+
+        var shaderName = rimRenderer.sharedMaterial != null ? rimRenderer.sharedMaterial.shader.name : string.Empty;
+        if (string.IsNullOrEmpty(shaderName) || (!shaderName.Contains("HDRP/Lit") && !shaderName.Contains("Standard")))
+        {
+            Debug.LogError("VALIDATE_FAIL: Active Rim must use HDRP/Lit material");
+            return false;
+        }
+
+        return true;
+    }
+
     private static Transform FindDeepChild(Transform parent, string name)
     {
         if (parent.name == name)
@@ -966,6 +1215,56 @@ public static class BobSceneValidator
         }
 
         return null;
+    }
+
+    private static void VerifyHalfCourtMarkings(Transform arenaRoot)
+    {
+        const float tolerance = 0.15f;
+        var markings = arenaRoot.Find(SimpleArcCourtMarkingsBuilder.CourtMarkingsName);
+        if (markings == null || !markings.gameObject.activeInHierarchy)
+        {
+            Debug.LogError("VALIDATE_FAIL: CourtMarkings missing or inactive on SimpleArcAcademyArena");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (markings.parent != arenaRoot)
+        {
+            Debug.LogError("VALIDATE_FAIL: CourtMarkings must be parented to SimpleArcAcademyArena root");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var floor = arenaRoot.Find(SimpleArcAcademyArena.FloorName);
+        if (floor != null && floor.Find(SimpleArcCourtMarkingsBuilder.CourtMarkingsName) != null)
+        {
+            Debug.LogError("VALIDATE_FAIL: CourtMarkings nested under scaled Floor");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        if (markings.Find("KeyPaint") == null || markings.Find("ThreePointArc") == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: Half-court hero markings incomplete (KeyPaint / ThreePointArc)");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        var ftLine = markings.Find("FreeThrowLine");
+        if (ftLine == null)
+        {
+            Debug.LogError("VALIDATE_FAIL: FreeThrowLine missing from court markings");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        float ftWorldZ = arenaRoot.TransformPoint(ftLine.localPosition).z;
+        if (Mathf.Abs(ftWorldZ - ArcAcademyLayout.FreeThrowLineWorldZ) > tolerance)
+        {
+            Debug.LogError(
+                $"VALIDATE_FAIL: FreeThrowLine world Z expected {ArcAcademyLayout.FreeThrowLineWorldZ:F2}, got {ftWorldZ:F2}");
+            EditorApplication.Exit(1);
+        }
     }
 }
 #endif

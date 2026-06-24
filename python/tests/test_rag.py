@@ -6,6 +6,24 @@ import pytest
 from rag.chunker import chunk_file, is_indexable_file
 from rag.settings import REPO_ROOT
 
+# Small, stable corpus for Chroma embed/search tests (avoids full-repo index_all in CI).
+MINI_CORPUS = [
+    "Assets/Scripts/BobAgent.cs",
+    "config/bob_free_throw.yaml",
+    "AGENTS.md",
+]
+
+
+@pytest.fixture
+def isolated_rag_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Per-test Chroma store under tmp_path; respects dynamic BOB_RAG_DATA_DIR."""
+    rag_dir = tmp_path / "rag-data"
+    monkeypatch.setenv("BOB_RAG_DATA_DIR", str(rag_dir))
+    from rag.store import reset_chroma_store
+
+    reset_chroma_store()
+    return rag_dir
+
 
 def test_is_indexable_file_accepts_cs_and_md() -> None:
     assert is_indexable_file(REPO_ROOT / "Assets/Scripts/BobAgent.cs")
@@ -33,27 +51,18 @@ def test_iter_indexable_files_includes_agent_and_docs() -> None:
 
 
 @pytest.mark.rag
-def test_index_and_search_round_trip(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    from rag.indexer import index_all, index_paths
+def test_index_and_search_round_trip(isolated_rag_dir: Path) -> None:
+    from rag.indexer import index_paths
     from rag.search import search
-    from rag.store import COLLECTION_NAME, get_client
+    from rag.store import collection_stats
 
-    monkeypatch.setenv("BOB_RAG_DATA_DIR", str(tmp_path / "rag-data"))
-    result = index_all()
-    assert result["files"] > 0
+    result = index_paths(MINI_CORPUS)
+    assert result["files"] == len(MINI_CORPUS)
     assert result["chunks"] > 0
 
-    # Partial re-index leaves the full corpus in Chroma; top-k search can still
-    # rank MCP/docs above BobAgent. Rebuild a mini-index for deterministic retrieval.
-    client = get_client()
-    if any(c.name == COLLECTION_NAME for c in client.list_collections()):
-        client.delete_collection(COLLECTION_NAME)
-
-    targeted = index_paths(["Assets/Scripts/BobAgent.cs", "config/bob_free_throw.yaml"])
-    assert targeted["files"] == 2
-    assert targeted["chunks"] > 0
+    stats = collection_stats()
+    assert stats["chunk_count"] > 0
+    assert str(isolated_rag_dir) in stats["chroma_path"]
 
     hits = search("BobAgent class Agent behaviors Bob PPO free throw", top_k=5)
     assert hits
@@ -62,13 +71,42 @@ def test_index_and_search_round_trip(
 
 
 @pytest.mark.rag
-def test_partial_reindex_updates_single_file(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    from rag.indexer import index_all, index_paths
+def test_partial_reindex_updates_single_file(isolated_rag_dir: Path) -> None:
+    from rag.indexer import index_paths
+    from rag.search import search
+    from rag.store import get_collection, read_manifest
 
-    monkeypatch.setenv("BOB_RAG_DATA_DIR", str(tmp_path / "rag-data"))
-    index_all()
+    index_paths(["Assets/Scripts/BobAgent.cs", "AGENTS.md"])
+    assert get_collection().count() > 0
+
     result = index_paths(["AGENTS.md"])
     assert result["files"] == 1
     assert result["chunks"] > 0
+
+    manifest = read_manifest()
+    assert manifest.get("last_mode") == "partial"
+    assert "AGENTS.md" in manifest.get("last_paths", [])
+
+    hits = search("BobAgent ML-Agents Behavior Name", top_k=5)
+    assert any("BobAgent" in hit.path for hit in hits)
+    assert get_collection().count() > 0
+
+
+@pytest.mark.rag
+def test_index_all_mini_roots(isolated_rag_dir: Path) -> None:
+    """Full index pipeline on a tiny root list (reset + batch embed), not the whole repo."""
+    from rag.indexer import index_all
+    from rag.search import search
+    from rag.store import read_manifest
+
+    result = index_all(roots=["config", "AGENTS.md"])
+    assert result["files"] >= 2
+    assert result["chunks"] > 0
+
+    manifest = read_manifest()
+    assert manifest.get("last_mode") == "full"
+    assert manifest.get("chunk_count", 0) > 0
+
+    hits = search("behaviors Bob trainer yaml", top_k=3)
+    assert hits
+    assert any("bob_free_throw" in hit.path or "AGENTS" in hit.path for hit in hits)
