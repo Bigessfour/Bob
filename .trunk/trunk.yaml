@@ -17,12 +17,22 @@ runtimes:
     - python@3.14.4
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
+  definitions:
+    - name: bandit
+      direct_configs:
+        - bandit.yaml
   enabled:
+    - trivy@0.71.2
+    - codespell@2.4.2
+    - gitleaks@8.30.1
+    - terraform@1.1.0
+    - tfsec@1.28.14
+    - oxipng@10.1.1
     - taplo@0.10.0
     - actionlint@1.7.12
     - bandit@1.9.4
     - black@26.5.1
-    - checkov@3.3.1
+    - checkov@3.3.2
     - git-diff-check
     - grype@0.114.0
     - hadolint@2.14.0
@@ -31,17 +41,42 @@ lint:
     - osv-scanner@2.4.0
     - pinact@4.1.0
     - prettier@3.8.4
-    - ruff@0.15.17
+    - ruff@0.15.19
     - shellcheck@0.11.0
     - shfmt@3.6.0
     - tflint@0.63.1
     - trufflehog@3.95.6
     - yamllint@1.38.0
+  ignore:
+    - linters: [codespell]
+      paths:
+        - Assets/**
+        - ProjectSettings/**
+        - Packages/**
+        - docs/progress/**/capture.png
+    - linters: [markdownlint]
+      paths:
+        - Assets/Plans/**
+    - linters: [tfsec, trivy]
+      paths:
+        - terraform/**
+    - linters: [ALL]
+      paths:
+        - Assets/_Recovery/**
+        - Assets/AI Toolkit/**
+        - Assets/PlayModeTest_BobView.png
+    - linters: [bandit]
+      paths:
+        - python/tests/**
 actions:
   disabled:
     - trunk-announce
-    - trunk-check-pre-push
-    - trunk-fmt-pre-commit
+  definitions:
+    # Lint/format/secret checks on commits being pushed; skip advisory CVE scanners (see trunk check --all).
+    - id: trunk-check-pre-push
+      run: trunk check -n -t git-push --commit-ref-from-pre-push '${hook_stdin_path}' --exclude=osv-scanner,grype,trivy,tfsec,checkov
   enabled:
     - git-lfs
+    - trunk-fmt-pre-commit
+    - trunk-check-pre-push
     - trunk-upgrade-available

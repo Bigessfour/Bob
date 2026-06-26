@@ -800,11 +800,11 @@ public static class TrainingHoopDetail
             var child = parent.GetChild(i).gameObject;
             child.name = "DESTRUCT_PENDING";
             child.transform.SetParent(null);
-            if (Application.isPlaying) 
+            if (Application.isPlaying)
             {
-                Object.Destroy(child); 
-            } 
-            else 
+                Object.Destroy(child);
+            }
+            else
             {
                 Object.DestroyImmediate(child);
             }

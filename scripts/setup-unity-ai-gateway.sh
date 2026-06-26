@@ -8,7 +8,10 @@ ENV_FILE="${REPO_ROOT}/.env"
 ENV_EXAMPLE="${REPO_ROOT}/.env.example"
 CODEX_CONFIG_DIR="${REPO_ROOT}/.codex"
 CODEX_CONFIG="${CODEX_CONFIG_DIR}/config.toml"
+# Documented for manual Unity prefs / gateway relay setup (not read by this script yet).
+# shellcheck disable=SC2034
 UNITY_PREFS="${HOME}/Library/Preferences/com.unity3d.UnityEditor5.x.plist"
+# shellcheck disable=SC2034
 GATEWAY_PREFS_KEY="Unity.AI.Gateway.Relay.envVars.preferences"
 
 XAI_BASE_URL="${XAI_BASE_URL:-https://api.x.ai/v1}"

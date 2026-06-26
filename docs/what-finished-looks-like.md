@@ -96,16 +96,16 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 ### Phase 3 — Learning demo
 
 - [x] Session CSV export + `python/scripts/plot_training_progress.py`
-- [x] Plot copied to `docs/results/training_progress.png` (326-iteration session; pre–bob-v2 shaping)
-- [ ] Extended **bob-v2** training run after launch-direction rewards + refresh plot
+- [x] Plot copied to `docs/results/training_progress.png` (bob-v2 segment, 865 iterations @ 20×, 2026-06-24)
+- [x] Extended **bob-v2** training run after launch-direction rewards + refresh plot
 - [ ] Training GIF for portfolio
 - [ ] Optional inference `.onnx` demo
 
 ### Phase 4 — Publish
 
-- [ ] Terraform bootstrap + dev apply
-- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`)
-- [ ] CloudFront live demo URL in README
+- [ ] Terraform bootstrap + dev apply (**deferred** — not deployed to AICO AWS; use a separate portfolio AWS profile when ready)
+- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`) — hero `022` + training plot wired
+- [ ] CloudFront live demo URL in README (after non-AICO deploy)
 
 ---
 

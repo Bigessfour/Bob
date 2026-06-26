@@ -9,7 +9,12 @@ from typing import Any
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
-from rag.settings import COLLECTION_NAME, get_chroma_path, get_manifest_path, get_rag_data_dir
+from rag.settings import (
+    COLLECTION_NAME,
+    get_chroma_path,
+    get_manifest_path,
+    get_rag_data_dir,
+)
 
 _client: chromadb.PersistentClient | None = None
 _client_path: str | None = None

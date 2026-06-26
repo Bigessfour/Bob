@@ -17,6 +17,7 @@ has_resume_or_force=false
 for arg in "$@"; do
 	case "${arg}" in
 	--resume | --force) has_resume_or_force=true ;;
+	*) ;;
 	esac
 done
 

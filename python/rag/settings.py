@@ -22,6 +22,7 @@ def get_chroma_path() -> Path:
 def get_manifest_path() -> Path:
     return get_rag_data_dir() / "manifest.json"
 
+
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 150
 MAX_FILE_BYTES = 256_000

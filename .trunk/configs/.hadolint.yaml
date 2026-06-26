@@ -2,3 +2,4 @@
 ignored:
   - SC1090
   - SC1091
+  - DL3013 # torch wheel pin is intentional in training image

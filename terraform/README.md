@@ -13,9 +13,11 @@ terraform/
 
 ## Prerequisites
 
-- AWS CLI configured (`aws configure`)
+- AWS CLI configured (`aws configure`) with a **portfolio/personal** profile — **not** the AICO org account unless explicitly intended
 - Terraform >= 1.5
 - IAM permissions for S3, CloudFront, DynamoDB
+
+> **Bob repo policy:** Terraform code is validated in CI (`terraform fmt` / `validate`). `terraform apply` and `scripts/deploy-portfolio.sh` are manual, opt-in steps on whatever AWS account you choose.
 
 ## Apply Order
 

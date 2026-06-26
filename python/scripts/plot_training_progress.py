@@ -22,7 +22,9 @@ def default_summaries_path() -> Path:
     )
 
 
-def load_session_log(csv_path: Path, since: str | None = None) -> dict[str, list[float | int]]:
+def load_session_log(
+    csv_path: Path, since: str | None = None
+) -> dict[str, list[float | int]]:
     """Parse summaries/bob_session.csv into column lists."""
     columns: dict[str, list[float | int]] = {
         "iteration": [],

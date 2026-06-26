@@ -74,11 +74,11 @@ When adding play-mode screenshot capture, index new Editor methods immediately v
 
 ## Troubleshooting
 
-| Issue                      | Fix                                                                |
-| -------------------------- | ------------------------------------------------------------------ |
-| Empty query results        | Run `./scripts/rag-index.sh`                                       |
-| Query hangs or MCP `Connection closed` | Corrupt Chroma index — full rebuild: `./scripts/rag-index.sh` (wipes `python/.rag/chroma/`). If rebuild hangs, `mv python/.rag/chroma python/.rag/chroma.bak && mkdir python/.rag/chroma` then re-run. |
-| MCP server fails to start  | `./scripts/rag-setup.sh`; confirm `python/.venv/bin/python` exists |
-| Hooks warn RAG unavailable | Install jq (`brew install jq`) for pre-code injection              |
-| Stale context after edits  | `./scripts/rag-index.sh --paths <files>` or wait for stop hook     |
-| `Failed to send telemetry event` stderr noise | Harmless Chroma/posthog version mismatch; queries still work       |
+| Issue                                         | Fix                                                                                                                                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Empty query results                           | Run `./scripts/rag-index.sh`                                                                                                                                                                           |
+| Query hangs or MCP `Connection closed`        | Corrupt Chroma index — full rebuild: `./scripts/rag-index.sh` (wipes `python/.rag/chroma/`). If rebuild hangs, `mv python/.rag/chroma python/.rag/chroma.bak && mkdir python/.rag/chroma` then re-run. |
+| MCP server fails to start                     | `./scripts/rag-setup.sh`; confirm `python/.venv/bin/python` exists                                                                                                                                     |
+| Hooks warn RAG unavailable                    | Install jq (`brew install jq`) for pre-code injection                                                                                                                                                  |
+| Stale context after edits                     | `./scripts/rag-index.sh --paths <files>` or wait for stop hook                                                                                                                                         |
+| `Failed to send telemetry event` stderr noise | Harmless Chroma/posthog version mismatch; queries still work                                                                                                                                           |

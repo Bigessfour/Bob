@@ -17,7 +17,7 @@ Usage: ./scripts/capture-progress.sh [--play] <milestone-label>
   default  Edit-mode Main Camera capture
 
 Environment:
-  BOB_CAPTURE_PLAY_FRAMES  Physics frames to wait in play mode (default: 120)
+  BOB_CAPTURE_PLAY_FRAMES  Physics frames to wait in play mode (default: 180)
   BOB_CAPTURE_WIDTH        Override width (default: 1280)
   BOB_CAPTURE_HEIGHT       Override height (default: 720)
 

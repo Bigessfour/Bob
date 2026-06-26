@@ -1,10 +1,10 @@
 ﻿{
-    "sequence": "021",
-    "label": "bob-visual-v1",
-    "capturedAt": "2026-06-23T19:04:32.8433520Z",
-    "mode": "play",
-    "scene": "Assets/Scenes/BobTraining.unity",
-    "unityVersion": "6000.5.0f1",
-    "gitCommit": "364c4a5",
-    "resolution": "1280x720"
+  "sequence": "021",
+  "label": "bob-visual-v1",
+  "capturedAt": "2026-06-23T19:04:32.8433520Z",
+  "mode": "play",
+  "scene": "Assets/Scenes/BobTraining.unity",
+  "unityVersion": "6000.5.0f1",
+  "gitCommit": "364c4a5",
+  "resolution": "1280x720"
 }

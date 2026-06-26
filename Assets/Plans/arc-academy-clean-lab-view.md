@@ -146,3 +146,5 @@ Validation: `Assets/Scripts/BobSceneValidator.cs` (`VerifyFromCli`) — must sti
 - No second scoring hoop; Behavior Name stays `Bob`.
 - Photoreal warehouse remains a stretch (kept only in `_Backup`).
 - Wall-panel visual restyling beyond what exists is Phase 2 polish, not required for this clean-up pass.
+
+**Verification status (2026-06-24):** Steps 1–7 confirmed — `VALIDATE_PASS`, play capture `022-lab-hero-v2`, `docs/TrainingView_Success.png`; HUD on **Wall_South** (not Wall_West).

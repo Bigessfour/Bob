@@ -1,10 +1,10 @@
 ﻿{
-    "sequence": "002",
-    "label": "restart-test",
-    "capturedAt": "2026-06-18T17:45:29.6613640Z",
-    "mode": "edit",
-    "scene": "Assets/Scenes/BobTraining.unity",
-    "unityVersion": "6000.5.0f1",
-    "gitCommit": "0612918",
-    "resolution": "1280x720"
+  "sequence": "002",
+  "label": "restart-test",
+  "capturedAt": "2026-06-18T17:45:29.6613640Z",
+  "mode": "edit",
+  "scene": "Assets/Scenes/BobTraining.unity",
+  "unityVersion": "6000.5.0f1",
+  "gitCommit": "0612918",
+  "resolution": "1280x720"
 }
