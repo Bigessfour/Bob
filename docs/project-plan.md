@@ -45,17 +45,18 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 - [x] Success-rate graph (`BobTrainingSuccessGraph`)
 - [x] Product north star — [`docs/what-finished-looks-like.md`](what-finished-looks-like.md)
 - [x] Visual vision — [`docs/design/visual-vision.md`](design/visual-vision.md)
-- [ ] **First training run completes without errors** ← **current gate** (`BOB_TRAINING_OK`)
+- [x] **First training run completes without errors** (`BOB_TRAINING_OK` verified 2026-06-23)
 
 ### Week 2 — Training & Iteration
 
-- [ ] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; wall HUD updates each episode
+- [x] **Prove training loop** — `./scripts/train.sh`, Play after trainer listens; HUD updates each episode
 - [x] **Phase 1.5** — separate basketball projectile (launcher cube + ball)
-- [x] **Arc Academy Lab visuals** — corner room, wall HUD, Bob charisma ([visual-vision.md](design/visual-vision.md) Phase 2)
+- [x] **Arc Academy Lab visuals** — corner room, dual HUD, Bob charisma
 - [x] Progress screenshot history in `docs/progress/`
-- [ ] Record training progress GIFs (play-mode capture + Recorder/ffmpeg)
 - [x] Document hyperparameters in `config/`
 - [x] Session metrics export + `plot_training_progress.py`
+- [x] Training GIF scaffold (`docs/progress/023-training-gif/`)
+- [ ] **Visible learning** — implement [ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + **bob-v4** train (rolling success >5%)
 
 ### Week 3 — Polish + Deployment + Documentation
 

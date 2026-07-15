@@ -15,7 +15,8 @@ Supplement to [`.cursor/rules/bob.mdc`](rules/bob.mdc) and [`AGENTS.md`](../AGEN
 
 - Document every major step in `docs/` for the portfolio write-up
 - Update [`PROJECT.md`](../PROJECT.md) status when milestones complete
-- Capture training progress (GIFs, TensorBoard screenshots, reward plots) in Week 2
+- Capture training progress (GIFs, success plots) — re-capture after **bob-v4** policy lands
+- **ML changes:** follow [ml-training-recommendations.md](../docs/design/ml-training-recommendations.md); update [bob-done-tracker.md](../docs/bob-done-tracker.md) when gates move
 
 ## Reproducibility
 

@@ -169,7 +169,8 @@ Before calling the visual pivot “done” (Phase 2 complete):
 - [x] `./scripts/validate-scene.sh` → `VALIDATE_PASS`
 - [x] `./scripts/capture-progress.sh --play arc-academy-lab-ux-v1` → gallery still `017`
 - [x] CI pytest unity alignment tests green (32/32)
-- [ ] `./scripts/train.sh` + Play → `BOB_TRAINING_OK` (Week 1 gate — blocks “project complete”)
+- [x] `./scripts/train.sh` + Play → `BOB_TRAINING_OK` (Week 1 gate — verified 2026-06-23)
+- [ ] Visible learning — **bob-v4** after [ml-training-recommendations.md](ml-training-recommendations.md) Tier 1 (rolling success >5%)
 
 ---
 

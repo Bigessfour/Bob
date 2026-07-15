@@ -1,220 +1,141 @@
 # Bob — Done Tracker
 
-**Last updated:** 2026-07-14 · **Branch:** `feature/dual-hud-scoreboard`  
+**Last updated:** 2026-07-14 · **Branch:** `feature/dual-hud-scoreboard` · **PR:** [#10](https://github.com/Bigessfour/Bob/pull/10)
 **Pin:** open this file in Cursor → right-click tab → **Pin Tab** (split beside Unity).
 
-North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md)
+North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md)
 
 ---
 
 ## MVP verdict
 
-**Demo-ready path in progress** — dual HUD + audio + PlayMode score test + inference menus shipped on `feature/dual-hud-scoreboard`. bob-v3 extended train + GIF + CloudFront URL remain the last demo gates.
+**Infrastructure + polish: Done** — training handshake, dual HUD, audio, PlayMode score test, inference menus, hero + GIF artifacts on `feature/dual-hud-scoreboard`.
 
-**Open** — bob-v3 rising success curve; training GIF; Terraform apply needs `aws login` on portfolio profile (`steve` session expired).
+**Learning demo: Blocked on ML reward redesign** — bob-v2/v3 show **high arc (~67–74%)**, **0% makes**, **net RL negative**. Extended PPO alone will not fix this; implement **Tier 1** in [ml-training-recommendations.md](design/ml-training-recommendations.md), then **`RUN_ID=bob-v4`**.
+
+**Publish: Deferred** — Terraform apply needs `aws login` on portfolio profile (`steve` session expired); not AICO.
+
+---
+
+## ML process evaluation (2026-07-14)
+
+Full analysis: **[design/ml-training-recommendations.md](design/ml-training-recommendations.md)**
+
+| Finding                                                 | Impact                                                             |
+| ------------------------------------------------------- | ------------------------------------------------------------------ |
+| Episodes run until OOB (ball bounces hundreds of steps) | Per-step `-0.002×dist` dominates; net RL ~−163                     |
+| Sparse make (+3) almost never seen                      | PPO cannot credit launch action                                    |
+| Arc quality ≠ makes                                     | Policy optimizes apex, not rim entry                               |
+| World-space impulse + spawn rotation                    | Breaks “toward hoop” prior under jitter                            |
+| No BC / expert demos                                    | Random policy has no free-throw prior                              |
+| bob-v3 trainer crashes                                  | `Communicator has exited` when Play toggles / recompile during run |
+
+**bob-v3 partial artifacts:** `results/bob-v3/Bob/` (~9k–41k steps, `.onnx` checkpoints). **Do not claim learning from bob-v3** — resume only after bob-v4 code lands.
 
 ---
 
 ## Week 1 gate (blocks "project complete")
 
 - [x] `bash ./scripts/validate-scene.sh` → `VALIDATE_PASS`
-- [x] `pytest tests/test_unity_alignment.py` → 33/33
+- [x] `pytest tests/test_unity_alignment.py` → **35/35**
 - [x] `./scripts/train.sh` → terminal shows **Listening on port 5004**
 - [x] Unity **Play** → console **`BOB_TRAINING_OK`**
-- [x] Wall HUD **Episodes** increments each shot (CSV iteration 99→103 during run)
-- [x] Wall HUD status green: **Training (PPO)** (communicator connected; trainer Step lines)
-- [x] PR #7 merged to `main` + CI green ([PR #7](https://github.com/Bigessfour/Bob/pull/7))
+- [x] HUD **Episodes** increments each shot
+- [x] PR #7 merged to `main` + CI green
 
 ### Handshake checklist (copy each run)
 
-1. **Stop Play** if already running.
+1. **Stop Play** if already running; wait for compile idle.
 2. `./scripts/train.sh` — wait for **Listening on port 5004**.
-3. Unity → `BobTraining.unity` → **Play**.
+3. Unity → `BobTraining.unity` → **Play once**.
 4. Confirm console: `BOB_TRAINING_OK: Python trainer connected. Time scale = 20x`.
-5. Watch wall HUD **Episodes** for 5–10 shots; trainer terminal should show **Step** lines.
+5. **Do not edit C# or MCP-bake during training** — causes `Communicator has exited`.
 
-**If inference fallback:** Stop Play → confirm trainer listening → Play again.  
-**Port busy:** `docker compose down && docker container prune -f`  
-**Trainer crash (`Communicator has exited` / worker restarts):** see [ai-warehouse-ops.md](design/ai-warehouse-ops.md#training-stability-prevent-crashes) — no script edits during Play; Play once after compile idle.
+**If inference fallback:** Stop Play → confirm trainer listening → Play again.
+**Port busy:** `docker compose down && docker container prune -f`
+**Trainer crash:** [ai-warehouse-ops.md](design/ai-warehouse-ops.md#training-stability-prevent-crashes)
 
 ---
 
-## Done Detector (current MVP scope)
+## Done Detector (demo-ready scope)
 
-- [x] End-to-end manual test recorded (Last run log below)
-- [x] Meets [what-finished-looks-like.md](what-finished-looks-like.md) core loop in code (scene + agent + HUD)
-- [x] No open blockers in this file → MVP verdict **Done**
+- [x] End-to-end manual test recorded
+- [x] Core loop in code (scene + agent + HUD + scoring)
+- [x] Dual HUD + audio + portfolio artifacts (hero `023`, GIF `023-training-gif`)
+- [x] PlayMode test: make → +1 `BasketballPoints` (`BobScoreIncrementPlayModeTest`)
+- [ ] **Visible learning** — rolling success **>5%**, rising plot ([ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + bob-v4)
+- [ ] Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main` on green CI
+- [ ] CloudFront live URL (portfolio AWS profile)
 
 ---
 
 ## Arc Training view (6 prompts)
 
-| #   | Item                                | Code                              | Play verified |
-| --- | ----------------------------------- | --------------------------------- | ------------- |
-| 1   | Bob eyes + follow                   | done                              | [x]           |
-| 2   | CameraRig + orbit (F1 reset)        | done                              | [x]           |
-| 3   | Wall HUD (Episodes / Success / Arc) | done                              | [x]           |
-| 4   | HDRP silver rim + translucent net   | done                              | [x]           |
-| 5   | `Bob → Polish → Fix Training View`  | done (`ArcTrainingViewValidator`) | —             |
-| 6   | Play Single Shot + screenshot       | done (`BobProgressCapture`)       | [x]           |
-
-Prompts 5–6 are **vNext polish** — do not block Week 1 gate.
+| #   | Item                               | Code                              | Play verified |
+| --- | ---------------------------------- | --------------------------------- | ------------- |
+| 1   | Bob eyes + follow                  | done                              | [x]           |
+| 2   | CameraRig + orbit (F1 reset)       | done                              | [x]           |
+| 3   | Wall HUD + near-Bob float          | done                              | [x]           |
+| 4   | HDRP silver rim + translucent net  | done                              | [x]           |
+| 5   | `Bob → Polish → Fix Training View` | done (`ArcTrainingViewValidator`) | —             |
+| 6   | Play capture + screenshot          | done (`023-dual-hud-hero`)        | [x]           |
 
 ---
 
-## vNext (after MVP Done)
+## vNext — implementation backlog (future agents)
 
-- [x] Session plot → `docs/results/training_progress.png` (bob-v2 segment, 2026-06-24)
-- [x] **Phase 3 — extended bob-v2 training run** (5+ min @ 20×) + refresh plot
-- [x] Dual HUD — near-Bob float + wall RL console (2026-07-14)
-- [x] Audio juice — bounce / swish / score / miss (`BobAudioFeedback`)
-- [x] PlayMode score increment test (`BobScoreIncrementPlayModeTest`)
+### Phase 3 — Learning (priority)
+
+- [ ] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md))
+- [ ] **`RUN_ID=bob-v4`** extended train (30+ min @ 20×, uninterrupted Play) + refresh `docs/results/training_progress.png`
+- [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), Bob-local impulse, optional curriculum
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
-- [ ] **bob-v3** extended train + refreshed plot showing rising success
-- [ ] **Training GIF** for portfolio (`./scripts/capture-progress.sh --play`)
-- [ ] Follow-up PR — merge `feature/dual-hud-scoreboard` → `main`
-- [ ] Terraform dev apply + CloudFront URL (**deferred** — portfolio AWS profile only; not AICO)
+- [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4 policy)
+
+### Phase 4 — Publish
+
+- [ ] Merge **PR #10** → `main`
+- [ ] Terraform bootstrap + dev apply (**portfolio AWS profile only**; `aws login` required)
+- [ ] CloudFront URL in README + PROJECT.md
+
+### Code / test debt
+
+- [ ] EditMode tests for reward calculation (`BobAgentTests.cs`) — see [testing-strategy.md](testing-strategy.md)
+- [ ] PlayMode test: full make via `HoopScoreZone` trigger (beyond `RecordBasketballPoint` unit path)
+- [ ] Minimal trainer path: wire `ArcAcademyScorePopup` in `EnsureCoreMvpComponents`
 
 ---
 
 ## Last run log
 
-| Date       | train.sh listening | BOB_TRAINING_OK | Episodes moved    | Notes                                                                                                       |
-| ---------- | ------------------ | --------------- | ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| 2026-06-23 | yes                | yes             | yes (iter 99→103) | Step 5000/10000; score #1; pre–launch-shaping policy                                                        |
-| 2026-06-23 | —                  | —               | —                 | `training_progress.png` generated from 326-row session CSV                                                  |
-| 2026-06-23 | —                  | —               | —                 | validate fixed (TextMesh batch creation in speech builder) + 32/32 + VALIDATE_PASS re-confirmed             |
-| 2026-06-24 | yes (bob-v2)       | yes             | yes (iter→865)    | `BobTrainingSessionRunner` 300s batchmode; play capture fix; `022-lab-hero-v2` + `TrainingView_Success.png` |
+| Date       | Run ID | train.sh | BOB_TRAINING_OK | Makes | Notes                                                                          |
+| ---------- | ------ | -------- | --------------- | ----- | ------------------------------------------------------------------------------ |
+| 2026-06-23 | bob-v0 | yes      | yes             | low   | Step 5000/10000; pre–launch-shaping                                            |
+| 2026-06-24 | bob-v2 | yes      | yes             | low   | 865 iter batchmode; plot refreshed                                             |
+| 2026-07-14 | bob-v3 | yes      | yes (brief)     | **0** | ~40k trainer steps; arc ~74%, net RL −163; **crashed** on communicator timeout |
 
 ---
-
-## MVP Element Review — Granular Status (Done Detector cross-check, 2026-06-23)
-
-**Basis**: `docs/what-finished-looks-like.md` finished components table + core loop + scoreboard vars + phases; `visual-vision.md` non-negotiables + lab definition; tracker Week 1 gate + Arc prompts; `BobAgent`, arena builders, validators, stats/HUD, layers, scripts, `test_unity_alignment.py` (32), CSV. Full details + remediation steps in the accompanying plan session file.
-
-### Bob Agent
-
-- Orange cube + free-throw line + shoot each iter to 1 hoop: **Done** (BobAgent.cs + spawn + impulse).
-- Behavior `Bob` + 8 obs/3 act match yaml: **Done** (enforced in validator + tests + config).
-- Reward shaping (launch dir + arc + flight + made + oob): **Code done** (ApplyLaunch... etc.); **Gap**: pre-shaping artifacts only (see below).
-- Episode flow + End: **Done**.
-
-### Projectile (1.5)
-
-- Separate basketball rigidbody + launcher cube kinematic: **Done** (BasketballProjectileSetup + SimpleBasketball + wiring in builders/validator asserts exactly 1 + wired).
-
-### Goal/Hoop
-
-- Exactly 1 active HoopScoreZone + scoring hoop: **Done** (enforced ==1 in both validator paths; Movable stationary; rim segs + swish).
-- Decor hoops stripped/hidden: **Done** (builder StripBackground + HideExtra + cleanup + validator extraDecorative==0 FAIL).
-
-### Decoration/Physics
-
-- No collision decor vs Bob/ball: **Done** (Bob/TrainingArena/Decoration layers + Ignore matrix + SetLayer in builders + validator asserts).
-
-### Scoreboard + Stats (canonical)
-
-- All fields (Iterations/Total, Score/BasketballPoints, Rewards, Penalties, Net, Session+Rolling Success, Arc last+avg): **Done** (BobTrainingStats is single source; wall HUD + fallback display all; CSV logs all).
-- Note: UI label="Episodes"; some docs say "Iterations" (cosmetic).
-- **Robustness hardened (2026-06-23)**: HoopScoreZone now always records BasketballPoints on make (decoupled from ArcAcademyManager); SimpleFreeThrowSetup ensures required MVP singletons (Stats/Monitor/Manager/Scoreboard) so minimal trainer path + VerifyMinimal are fully functional. No regression for lab path. See HoopScoreZone.RecordBasketballPointAndNotify + EnsureCoreMvpComponents.
-
-### Success Graph
-
-- Rolling success + arc quality visible: **Done** (wall HUD raster dual-graph in lab; legacy BobTrainingSuccessGraph OnGUI fallback hidden in lab; Stats rolling compute).
-
-### Feedback
-
-- +1 score + speech/popup/face/pulse on make: **Done** (Manager.Notify + Agent.Register + BobSpeech + Popup + expressions).
-
-### Training + Audience UI
-
-- train.sh + Play → BOB_OK + wall updates + 20x + not-TB-primary: **Scripts+monitors+UI done**; handshake works (per last run log).
-- Episodes/CSV advance + score: verified in recent runs.
-
-### Arc Academy Lab (visual MVP)
-
-- Corner lab + 1 hoop + grid + wall HUD south + sideline cam + no clutter: **Done** (SimpleArc builder + cleanup + preset + captures 015-020).
-- Bob eyes/face/speech/pulse + char: **Done**.
-- Camera orbit + LabHero: **Done**.
-
-### Repro / CI / Validation
-
-- validate.sh → PASS, pytest 32/32, yaml↔code match: **Done** (per claims + file assertions).
-- TF/CI/Docker: scaffolded + passing (deploy pending).
-
-### Artifacts / Demo
-
-- Plot/CSV: present but pre-shaping (326 iter example + recent low-score runs).
-- GIF + live demo: scaffold only.
-
-**Open Gaps for Finalization** (consolidated from bob-done-tracker, what-finished-looks-like, project-plan, Unity AI fallback inspection + previous Done Detector):
-
-1. **Primary (Learning Demo - Phase 3)**: No extended `RUN_ID=bob-v2` (or v3) training run post launch-direction shaping + refreshed `docs/results/training_progress.png` showing clear rising success/arc quality (current CSV has makes but low % rates and resets; high arc but needs PPO improvement visible).
-2. **Training Portfolio Artifact**: No GIF from good policy via `./scripts/capture-progress.sh --play` (hero for docs/portfolio-site).
-3. **Branch/Merge Hygiene**: Feature work (incl. recent HoopScoreZone scoring robustness + EnsureCoreMvp + shaping) not on `main` (main may have prefab drift causing validate fail).
-4. **Visual Play Verifications** (Arc Training prompts): 1 (Bob eyes+follow), 2 (CameraRig+orbit F1), 4 (HDRP silver rim + net) unchecked. + hero screenshot.
-5. **Phase 4 Publish**: Terraform bootstrap + dev apply, CloudFront live URL, full `docs/portfolio-site/` sync + README update.
-6. **Minimal Trainer Full E2E**: Post-Ensure, pure stripped minimal path needs live Play verification (scoring works via new helper, but manager wiring/feedback/popup incomplete; spawn via fallback). Suggestion from Unity proxy: enhance Ensure to wire minimal popup.
-7. **Testing Gaps**: Limited runtime tests (EditMode for agent scoring/rewards/obs, PlayMode make→+1 points, training integration). See testing-strategy.md.
-8. **Success Graph in Minimal**: Not ensured in EnsureCoreMvpComponents (legacy scoreboard present, but full rolling graph for MVP UI missing in stripped path).
-9. **Doc/Artifact Freshness + Drift**: Stale plot vs latest CSV; PROJECT.md / plans "Build Status" / "Next Actions" may need refresh post recent changes.
-10. **Bob Function Suggestion (from inspection)**: Add inference helper on BobAgent for easy .onnx/BehaviorType.Inference demo (optional Phase 3). Consider PlayMode test asserting BasketballPoints increments.
-
-**Unity AI proxy note**: All enforced invariants (Behavior "Bob", 1x HoopScoreZone, 1x wired Basketball, Stats, layers, projectile) PASS via validator. No new critical code gaps in core function. Remaining are demonstration, publish, and polish for "Bob MVP + demo-ready".
-
-**Next to close MVP**: Focus 1+2 (run + GIF), then merge (3), then publish (5). Use unity-mcp live once Editor+bridge active for final hierarchy confirmation before any scene tweaks.
-
-**Review-time discovery/fix (2026-06-23)**: validate-scene.sh initially aborted in SimpleArcAcademyArenaBuilder.EnsureSpeechBubbleText (MissingComponent on TextMesh set during batch creation of "BubbleText"; no font + possible missing-script state from prior saves). Added defensive RemoveMonoBehavioursWithMissingScript + font builtin fallback + explicit Get/Add in builder. Re-ran → **VALIDATE_PASS**. (This was blocking full MVP repro; now closed. No behavior change for runtime.)
-
-**Verdict update proposal**: Core code loop MVP-complete. "Full functionality" requires the run+artifact+merge steps above before claiming "Bob learns" demo-ready.
-
-## Unity AI Assistant Collaboration (MCP target: unity-mcp)
-
-**Attempted direct consultation**: unity-mcp configured in `.cursor/mcp.json` and `scripts/unity-mcp.sh` (stdio relay to ~/.unity/relay → Unity Editor bridge). Per user guidance, targeted as primary for live Editor state.
-
-**MCP wiring fixes applied (2026-06-23)**:
-
-- Fixed `.cursor/mcp.json` from absolute user paths (`/Users/.../scripts/...`) to relative `./scripts/...` (matches docs/unity-mcp.md examples and makes portable across clones/environments).
-- Ensured `chmod +x` on unity-mcp.sh and rag-mcp.sh.
-- Re-indexed RAG after changes.
-- This allows proper loading/visibility of `unity-mcp` (and bob-rag) tools in Cursor when relay/Unity active.
-- Added `BobTrainingSuccessGraph` to minimal ensure in `SimpleFreeThrowSetup.EnsureCoreMvpComponents` for full MVP success graph in stripped trainer path (consistent with what-finished and other validator paths).
-- Health: validate PASS + 32/32 post changes.
-
-**Result**: unity-mcp tools (manage_scene, find_gameobjects, manage_components, read_console, bob_open_training_scene, bob_setup_simple_arena) not active in current session (relay/bridge requires running Unity Editor with "Running" status and Cursor approved in Project Settings → AI → Unity MCP). Per AGENTS.md and docs/unity-mcp.md, fell back to equivalent batch CLI inspection (`./scripts/validate-scene.sh`, pytest alignment) + static code "hierarchy" query (grep/read for invariants the MCP would return via get_hierarchy / find_gameobjects / manage_components).
-
-**"Unity AI" findings (batch + code proxy for live state)**:
-
-- Active scene: BobTraining.unity (Simple Arc Academy or minimal path).
-- Bob: BehaviorParameters.BehaviorName == "Bob", VectorObservationSize=8, NumContinuousActions=3 (enforced).
-- Goal: Exactly 1 HoopScoreZone on active rim (multiple validator paths).
-- Projectile (1.5): Exactly 1 SimpleBasketball, wired to BobAgent.ProjectileBody (validator + BasketballProjectileSetup).
-- Stats/Scoreboard: BobTrainingStats present; RecordBasketballPoint now unconditionally called from HoopScoreZone.RecordBasketballPointAndNotify on every make (decoupled robustness fix). Legacy BobTrainingScoreboard ensured in minimal.
-- Layers/Physics: Configured, ignore matrix for Decoration, Bob on correct layer.
-- Manager/Connection: ArcAcademyManager + BobTrainingConnectionMonitor + BobTrainingScoreboard now ensured in SimpleFreeThrowSetup.ApplyAll for minimal path (satisfies VerifyMinimal).
-- Validator: Full PASS (no FAILs on above).
-- Recent scoring fix confirmed in source (Hoop always records before Notify/Register).
-
-**Suggestions from inspection for Bob function**:
-
-- Minimal path: Manager is present but not fully wired (no scorePopup, spawn refs from stripped setup) → rich feedback (popup/speech) skips, but core point/RL/stats now work. Suggestion: Enhance EnsureCoreMvpComponents to instantiate minimal ArcAcademyScorePopup + wire to manager for complete MVP feedback in stripped trainer.
-- Add BobTrainingSuccessGraph ensure in minimal (for full rolling graph in legacy UI).
-- Bob function: Expose clean public method e.g. `SetInferenceOnly()` or BehaviorType toggle for easy portfolio .onnx demo without trainer (Phase 3 stretch).
-- To prove "learns": Current runs show high arc quality but low make rate — needs extended post-shaping PPO run to demonstrate rising SessionSuccessRate / Rolling in plot/HUD.
-- General: Add PlayMode test for make → +1 BasketballPoints (beyond alignment).
-
-**Further development required for live unity-mcp**: Open Unity Editor on Bob project, ensure bridge Running, approve client, restart Cursor/MCP. Then re-query with manage_scene:get_active + get_hierarchy, find_gameobjects("Bob"), manage_components on Behavior/HoopScoreZone/Stats for exact live snapshot.
-
----
-
-## Final Gaps for MVP Status Finalization (Updated Post-Inspection)
 
 ## Quick commands
 
 ```bash
-bash ./scripts/validate-scene.sh          # Unity closed
+bash ./scripts/validate-scene.sh
 cd python && pytest tests/test_unity_alignment.py -q
-lsof -i :5004                             # port check
-./scripts/train.sh                        # trainer (Play after listen)
-RUN_ID=bob-v3 ./scripts/train.sh --force  # after launch-direction penalty tune
+lsof -i :5004
+
+# After Tier 1 ML fixes land:
+RUN_ID=bob-v4 ./scripts/train.sh --force
+# Play ONCE after Listening on port 5004 — do not touch scripts until done
+
+python scripts/plot_training_progress.py --output ../docs/results/training_progress.png
 ```
+
+---
+
+## Agent handoff rules
+
+1. **Read** [ml-training-recommendations.md](design/ml-training-recommendations.md) before changing rewards, obs count, or YAML.
+2. **Do not** resume bob-v3 expecting visible learning — implement bob-v4 Tier 1 first.
+3. **Do not** run training and Unity MCP scene bakes in the same session.
+4. **Query** `bob-rag` before code; **Unity MCP** before scene edits.
+5. **Update this file** when bob-v4 train completes or ML tiers ship.

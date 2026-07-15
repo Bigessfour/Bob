@@ -14,8 +14,11 @@ Before planning, scoping, or suggesting changes, read:
 - [docs/what-finished-looks-like.md](../../docs/what-finished-looks-like.md) — **product** (agent, score, graph)
 - [docs/design/visual-vision.md](../../docs/design/visual-vision.md) — **visuals** (Arc Academy Lab)
 - [docs/what-right-looks-like.md](../../docs/what-right-looks-like.md) — **workflow** (weeks, PR, CI)
+- [docs/design/ml-training-recommendations.md](../../docs/design/ml-training-recommendations.md) — **ML learning** (bob-v4 Tier 1 before more training)
+- [docs/bob-done-tracker.md](../../docs/bob-done-tracker.md) — **live checklist**
+- [docs/instructions.md](../../docs/instructions.md) — **agent quick reference**
 
-Never propose direct commits to `main`. Reject scope that does not advance the current week in [PROJECT.md](../../PROJECT.md).
+Never propose direct commits to `main`. Reject scope that does not advance current milestone in [PROJECT.md](../../PROJECT.md).
 
 ## Project
 
@@ -43,10 +46,11 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 
 ## Development Priorities
 
-1. **MVP first:** Working training loop before polish or deployment
-2. **Reward shaping:** Start simple (made basket = +1), iterate in Week 2
-3. **Match behavior names:** Unity `Behavior Parameters` must match `behaviors: Bob:` in YAML
-4. **Configs in `config/`:** Do not hardcode hyperparameters in Python
+1. **ML Tier 1 learning fixes** — [ml-training-recommendations.md](../../docs/design/ml-training-recommendations.md); then `RUN_ID=bob-v4`
+2. **MVP loop** — training handshake verified; do not edit C# during active `./scripts/train.sh`
+3. **Reward shaping** — shot-resolved episodes + miss proximity; not unbounded per-step penalties
+4. **Match behavior names:** Unity `Behavior Parameters` must match `behaviors: Bob:` in YAML
+5. **Configs in `config/`:** Do not hardcode hyperparameters in Python
 
 ## Avoid
 
@@ -66,11 +70,12 @@ Never propose direct commits to `main`. Reject scope that does not advance the c
 ## Key Commands
 
 ```bash
-# Train (from python/ with venv active)
-mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
+# Train (Docker recommended)
+./scripts/train.sh
+# After ML Tier 1: RUN_ID=bob-v4 ./scripts/train.sh --force
 
-# TensorBoard
-tensorboard --logdir ../results
+# TensorBoard (dev only)
+tensorboard --logdir results
 ```
 
-See `docs/setup-checklist.md` for local setup, `docs/cursor-setup.md` for IDE config, `docs/project-plan.md` for milestones, and `docs/what-right-looks-like.md` for the North Star diagrams.
+See `docs/instructions.md`, `docs/setup-checklist.md`, `docs/cursor-setup.md`, `docs/project-plan.md`, and `docs/design/ml-training-recommendations.md`.

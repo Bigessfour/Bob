@@ -105,8 +105,24 @@ If inference fallback appears: **Stop Play** → confirm trainer listening → *
 
 ---
 
+## ML learning status (2026-07-14)
+
+**Handshake works; learning does not yet.** bob-v2/v3 data: high arc (~67–74%), **0% makes**, net RL negative. Root cause: long post-shot episodes + per-step distance penalties dominate sparse make reward.
+
+**Do not resume bob-v3 for demo claims.** Implement Tier 1 in [ml-training-recommendations.md](ml-training-recommendations.md), then:
+
+```bash
+RUN_ID=bob-v4 ./scripts/train.sh --force
+# Play ONCE — no script edits until training stops
+```
+
+See [bob-done-tracker.md](../bob-done-tracker.md) for live checklist.
+
+---
+
 ## Related
 
+- [ml-training-recommendations.md](ml-training-recommendations.md) — bob-v4 reward/episode fixes
 - [what-finished-looks-like.md](../what-finished-looks-like.md) — product definition
 - [visual-vision.md](visual-vision.md) — lab look
 - [unity-dev.md](../unity-dev.md) — HDRP + port 5004 troubleshooting

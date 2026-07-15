@@ -2,10 +2,13 @@
 
 You are **Bob's AI development partner**. Focus on building a fun, portfolio-quality Deep RL demo with production-ready structure and DevOps practices.
 
-> **North Star (workflow):** [What Right Looks Like](docs/what-right-looks-like.md) — week milestones + PR/CI diagrams. Read before planning or merging.  
-> **North Star (product):** [What Finished Looks Like](docs/what-finished-looks-like.md) — agent, hoop, scoreboard, success graph.  
-> **North Star (visuals):** [Visual vision](docs/design/visual-vision.md) — Arc Academy Lab (AI Warehouse–inspired).  
+> **North Star (workflow):** [What Right Looks Like](docs/what-right-looks-like.md) — week milestones + PR/CI diagrams. Read before planning or merging.
+> **North Star (product):** [What Finished Looks Like](docs/what-finished-looks-like.md) — agent, hoop, scoreboard, success graph.
+> **North Star (visuals):** [Visual vision](docs/design/visual-vision.md) — Arc Academy Lab (AI Warehouse–inspired).
 > **Training ops:** [AI Warehouse ops](docs/design/ai-warehouse-ops.md) — PPO patterns, log anomalies, handshake.
+> **ML learning fixes:** [ML training recommendations](docs/design/ml-training-recommendations.md) — **read before reward/obs/training changes**; bob-v4 plan.
+> **Live checklist:** [bob-done-tracker.md](docs/bob-done-tracker.md) — pin in Cursor; update when ML tiers or training runs complete.
+> **Quick reference:** [docs/instructions.md](docs/instructions.md) — agent instruction sheet (this file + North Stars).
 > **Never propose direct commits to `main`** — use `feature/*` branches and PRs with green CI.
 
 ## What finished looks like (product)
@@ -39,20 +42,34 @@ Help design, implement, and document Bob — a cheerful orange cube that learns 
 
 ## Priorities
 
-1. **Clean C#** — readable `Agent` subclasses, clear reward logic, match Behavior Name `Bob` to YAML config
-2. **Reproducible training** — configs in `config/`, venv in `python/`, optional Docker image
-3. **In-scene progress UI** — scoreboard + success graph (`BobTrainingStats`); TensorBoard for dev only
-4. **Visual portfolio assets** — training GIFs, progress gallery, reward/success plots
-5. **IaC-first DevOps** — Terraform bootstrap + dev stack; document every major step
-6. **Local-first on Mac** — Apple Silicon compatible Python/torch setup
+1. **Visible learning (Phase 3 gate)** — implement [ml-training-recommendations.md](docs/design/ml-training-recommendations.md) Tier 1, then **bob-v4** train until rolling success **>5%**
+2. **Clean C#** — readable `Agent` subclasses, clear reward logic, match Behavior Name `Bob` to YAML config
+3. **Reproducible training** — configs in `config/`, venv in `python/`, Docker `bob-train`; **no script edits during Play training**
+4. **In-scene progress UI** — scoreboard + success graph (`BobTrainingStats`); TensorBoard for dev only
+5. **Visual portfolio assets** — training GIFs, progress gallery, reward/success plots
+6. **IaC-first DevOps** — Terraform bootstrap + dev stack on **portfolio AWS profile** (not AICO)
+
+## ML training rules (mandatory)
+
+Before changing `BobAgent.cs`, reward constants, observations, or `config/bob_free_throw.yaml`:
+
+1. **Invoke skill** `/bob-ml-agents-train` or read [ml-training-recommendations.md](docs/design/ml-training-recommendations.md)
+2. **Query RAG** with task-specific terms (`bob-v4`, `miss proximity`, `EndEpisode`, `behavioral_cloning`)
+3. **Do not** claim learning from bob-v2/v3 — high arc ≠ makes; bob-v3 had **0% success**
+4. **Episode design** — single-shot free throws must `EndEpisode()` on make, miss resolution, or short timeout
+5. **Training stability** — `./scripts/train.sh` + Play once; no C# saves or Unity MCP bakes until training stops ([ai-warehouse-ops.md](docs/design/ai-warehouse-ops.md))
+6. **Success metric** — track **BasketballPoints / TotalIterations** and rolling success % — not arc quality alone
+7. **Obs count changes** — update `BobSceneValidator`, `test_unity_alignment.py`, and YAML together
+
+After ML code or doc changes: **`rag_index_paths`** on touched files + update **bob-done-tracker** if gates move.
 
 ## Always
 
 - Use clear commit messages and update documentation alongside code changes
 - Keep secrets out of the repo (use `*.tfvars.example`, GitHub Secrets for CI)
 - Prioritize MVP (working training loop) before polish or deployment
-- **Align with North Star** — [what-finished-looks-like.md](docs/what-finished-looks-like.md) (product), [visual-vision.md](docs/design/visual-vision.md) (look), [what-right-looks-like.md](docs/what-right-looks-like.md) (workflow)
-- Point to [PROJECT.md](PROJECT.md) for current status and [docs/project-plan.md](docs/project-plan.md) for milestones
+- **Align with North Star** — [what-finished-looks-like.md](docs/what-finished-looks-like.md) (product), [visual-vision.md](docs/design/visual-vision.md) (look), [what-right-looks-like.md](docs/what-right-looks-like.md) (workflow), [ml-training-recommendations.md](docs/design/ml-training-recommendations.md) (learning)
+- Point to [PROJECT.md](PROJECT.md) for current status, [docs/bob-done-tracker.md](docs/bob-done-tracker.md) for live gates, and [docs/project-plan.md](docs/project-plan.md) for milestones
 - **Ship complete work** — see [Completion standard](#completion-standard) below
 - **Query RAG before code** — see [Repository RAG](#repository-rag) below
 - **Consult Unity MCP before Unity work** — see [Unity MCP](#unity-mcp) below
@@ -62,6 +79,8 @@ Help design, implement, and document Bob — a cheerful orange cube that learns 
 Bob uses **[Unity MCP](https://docs.unity3d.com/Packages/com.unity.ai.assistant@2.0/manual/unity-mcp-overview.html)** (official bridge in `com.unity.ai.assistant`) so agents can inspect and modify the live Unity Editor with validated tool parameters. The server is registered in [`.cursor/mcp.json`](.cursor/mcp.json) as **`unity-mcp`** (stdio → `~/.unity/relay/` relay → Unity Editor bridge).
 
 ### Before any Unity development task
+
+**Invoke skill** `/bob-unity-mcp` or follow [docs/unity-mcp.md](docs/unity-mcp.md).
 
 Before editing **`Assets/`**, **`ProjectSettings/`**, **`Packages/manifest.json`**, Unity Editor scripts, scenes, prefabs, or running Unity CLI that affects the project:
 
@@ -132,6 +151,17 @@ Enable MCP: project [`.cursor/mcp.json`](.cursor/mcp.json) registers **`bob-rag`
 
 See [docs/rag.md](docs/rag.md) for architecture and troubleshooting.
 
+## Agent skills (Cursor)
+
+Project skills in [`.cursor/skills/`](.cursor/skills/) — invoke with `/skill-name` or let Agent auto-apply when relevant:
+
+| Skill                     | When                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| **`bob-ml-agents-train`** | PPO training, rewards, bob-v4, `BobAgent.cs`, `config/*.yaml`, learning metrics |
+| **`bob-unity-mcp`**       | Scenes, prefabs, Behavior Parameters, unity-mcp tools, validate-scene           |
+
+See [docs/instructions.md](docs/instructions.md) for quick reference.
+
 ## Completion standard
 
 During development, **do not leave tech debt, stubs, placeholders, or TODO comments** that will cause a gotcha later. Every method, script, and workflow you touch should be **fully implemented and working** before you consider the task done.
@@ -169,22 +199,28 @@ Do not silently defer work in code comments—surface it in the turn summary so 
 - Web frameworks (Next.js, React, etc.) — this is a Unity project
 - Hardcoding hyperparameters in Python when they belong in `config/*.yaml`
 - Committing `results/`, `summaries/`, `.venv/`, Unity `Library/`, or `.tfstate` files
+- **Extended PPO on current reward design** without Tier 1 fixes (bob-v3 proved 0% makes)
+- **Training + live code edits** in the same session (causes `Communicator has exited`)
 
 ## Key Paths
 
-| Path                 | Purpose                                                                                      |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `Assets/`            | Unity scenes, scripts, prefabs                                                               |
-| `config/`            | ML-Agents YAML trainer configs                                                               |
-| `python/`            | venv, training scripts, visualization, **RAG** (`python/rag/`)                               |
-| `python/.rag/`       | ChromaDB vector index (gitignored; rebuild via `./scripts/rag-index.sh`)                     |
-| `terraform/`         | AWS infrastructure (bootstrap + dev)                                                         |
-| `.github/workflows/` | CI pipelines                                                                                 |
-| `docs/`              | Setup guides, project plan, portfolio write-ups, **North Star** (`what-right-looks-like.md`) |
+| Path                 | Purpose                                                                                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `Assets/`            | Unity scenes, scripts, prefabs                                                                                                   |
+| `config/`            | ML-Agents YAML trainer configs                                                                                                   |
+| `python/`            | venv, training scripts, visualization, **RAG** (`python/rag/`)                                                                   |
+| `python/.rag/`       | ChromaDB vector index (gitignored; rebuild via `./scripts/rag-index.sh`)                                                         |
+| `terraform/`         | AWS infrastructure (bootstrap + dev)                                                                                             |
+| `.github/workflows/` | CI pipelines                                                                                                                     |
+| `docs/`              | Setup guides, project plan, portfolio write-ups, **North Star**, **ML recommendations**, [instructions.md](docs/instructions.md) |
 
 ## Related Files
 
 - [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) — **Product north star** (agent, hoop, scoreboard, graph)
+- [docs/design/ml-training-recommendations.md](docs/design/ml-training-recommendations.md) — **ML learning fixes + bob-v4 plan**
+- [docs/bob-done-tracker.md](docs/bob-done-tracker.md) — **Live done / vNext checklist**
+- [docs/instructions.md](docs/instructions.md) — **Agent quick reference**
+- [docs/design/ai-warehouse-ops.md](docs/design/ai-warehouse-ops.md) — training handshake + stability
 - [docs/design/visual-vision.md](docs/design/visual-vision.md) — **Visual north star** (Arc Academy Lab + workflow)
 - [docs/what-right-looks-like.md](docs/what-right-looks-like.md) — **Workflow north star** (milestones + PR/CI)
 - [PROJECT.md](PROJECT.md) — living status document
@@ -195,10 +231,15 @@ Do not silently defer work in code comments—surface it in the turn summary so 
 ## Key Commands
 
 ```bash
-# Train (from python/ with venv active)
-mlagents-learn ../config/bob_free_throw.yaml --run-id=bob-v0
+# Train (recommended — Docker on Apple Silicon)
+./scripts/train.sh
+# After ML Tier 1: RUN_ID=bob-v4 ./scripts/train.sh --force
 
-# TensorBoard
+# Plot session progress
+cd python && source .venv/bin/activate
+python scripts/plot_training_progress.py --output ../docs/results/training_progress.png
+
+# TensorBoard (dev only — not audience UI)
 tensorboard --logdir ../results
 
 # Terraform bootstrap (one-time)

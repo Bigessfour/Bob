@@ -1,7 +1,7 @@
 # What Finished Looks Like — Bob Product Definition
 
-**Audience:** Team, agents, reviewers — runtime behavior and training UX when the project is **done** (MVP + demo-ready).  
-**Visual style:** [docs/design/visual-vision.md](design/visual-vision.md) (Arc Academy Lab, AI Warehouse–inspired).  
+**Audience:** Team, agents, reviewers — runtime behavior and training UX when the project is **done** (MVP + demo-ready).
+**Visual style:** [docs/design/visual-vision.md](design/visual-vision.md) (Arc Academy Lab, AI Warehouse–inspired).
 **Dev workflow:** [what-right-looks-like.md](what-right-looks-like.md) (PRs, CI, weeks).
 
 ---
@@ -21,9 +21,11 @@ flowchart TD
   act --> flight[Ball travels toward hoop]
   flight --> score{Through hoop?}
   score -->|Yes| point[+1 basketball point + RL reward + EndEpisode]
-  score -->|No / OOB| miss[RL penalties + EndEpisode]
+  score -->|No| miss[Terminal miss proximity + EndEpisode]
+  miss -->|OOB / timeout| end[EndEpisode]
   point --> boards[Update scoreboards + success graph]
   miss --> boards
+  end --> boards
   boards --> start
 ```
 
@@ -31,17 +33,17 @@ flowchart TD
 
 ## Finished components
 
-| Component         | Finished behavior                                                                                        | Current status                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                        |
-| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | Implemented — `BasketballProjectileSetup` + single `Basketball` in simple arena |
-| **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                         |
-| **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                      |
-| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse     |
-| **Success graph** | Rolling **success rate %** + **arc quality** over recent iterations                                      | Wall HUD dual graph + `BobTrainingSuccessGraph` fallback                        |
-| **Feedback**      | Speech bubble / popup on made basket                                                                     | Implemented (`BobSpeechBubble` + `ArcAcademyScorePopup`)                        |
-| **Training**      | `./scripts/train.sh` + Play; steps in console                                                            | **Verified** 2026-06-23 — `BOB_TRAINING_OK`, trainer Step lines, session CSV    |
-| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Scaffold at `docs/portfolio-site/`; Terraform Week 3                            |
+| Component         | Finished behavior                                                                                        | Current status                                                                                                         |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Agent**         | Orange cube launcher; Behavior Name `Bob`; learns via PPO                                                | Implemented (`BobAgent`)                                                                                               |
+| **Projectile**    | Basketball rigidbody shot from spawn toward hoop                                                         | Implemented — `BasketballProjectileSetup` + single `Basketball` in simple arena                                        |
+| **Goal**          | Exactly **one** active `HoopScoreZone`                                                                   | Implemented + validated                                                                                                |
+| **Decoration**    | Bays/walls optional; **no collision** with Bob/ball                                                      | Physics layers implemented                                                                                             |
+| **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse                                            |
+| **Success graph** | Rolling **success rate %** + **arc quality** over recent iterations                                      | Wall HUD dual graph + `BobTrainingSuccessGraph` fallback                                                               |
+| **Feedback**      | Speech bubble / popup on made basket                                                                     | Implemented (`BobSpeechBubble` + `ArcAcademyScorePopup`)                                                               |
+| **Training**      | `./scripts/train.sh` + Play; visible **rising success rate**                                             | Handshake verified; **learning blocked** — see [ml-training-recommendations.md](design/ml-training-recommendations.md) |
+| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Scaffold at `docs/portfolio-site/`; Terraform Week 3                                                                   |
 
 ---
 
@@ -98,11 +100,13 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 ### Phase 3 — Learning demo
 
 - [x] Session CSV export + `python/scripts/plot_training_progress.py`
-- [x] Plot copied to `docs/results/training_progress.png` (bob-v2 segment, 865 iterations @ 20×, 2026-06-24)
+- [x] Plot copied to `docs/results/training_progress.png` (bob-v2 segment, 2026-06-24)
 - [x] Extended **bob-v2** training run after launch-direction rewards + refresh plot
-- [ ] Extended **bob-v3** run (MadeBasket=3.0 + stronger toward-hoop shaping) + refresh plot
-- [ ] Training GIF for portfolio
-- [x] Inference demo menus (`Bob → Demo → Enable Inference Only`) — assign exported `.onnx` under `Assets/Models/`
+- [x] Inference demo menus (`Bob → Demo → Enable Inference Only`)
+- [x] Training GIF scaffold — `docs/progress/023-training-gif/` (re-capture after bob-v4)
+- [ ] **ML Tier 1** — shot-resolved episodes, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md))
+- [ ] **`RUN_ID=bob-v4`** extended train + plot showing **rolling success >5%**
+- [ ] **ML Tier 2** (optional) — BC demos, Bob-local impulse, curriculum
 
 ### Phase 4 — Publish
 
@@ -117,13 +121,14 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 1. **Do not** scope photoreal warehouse as default — [visual-vision.md](design/visual-vision.md) Lab is primary.
 2. **Do not** add second scoring hoop or change Behavior Name from `Bob` without YAML + validator updates.
 3. **Do** keep scoreboard metrics in sync with `BobTrainingStats` — single source of truth.
-4. **Do** advance Week 1 gate (training loop) before Phase 2 visual polish.
+4. **Do** read [ml-training-recommendations.md](design/ml-training-recommendations.md) before reward/obs/training changes.
 5. **Query** `bob-rag` before code; **Unity MCP** before scene edits.
 
 ---
 
 ## Related
 
+- [**ML training recommendations**](design/ml-training-recommendations.md) — bob-v4 reward/episode fixes
 - [**AI Warehouse ops**](design/ai-warehouse-ops.md) — training patterns + log anomaly guide
 - [PROJECT.md](../PROJECT.md) — status
 - [docs/project-plan.md](project-plan.md) — milestones

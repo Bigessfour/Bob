@@ -88,16 +88,22 @@ Manual / batchmode (not in CI yet): `./scripts/validate-scene.sh` rebuilds the s
 
 ### EditMode tests (deferred)
 
-- [ ] Install `com.unity.test-framework` via Package Manager
-- [ ] Create `Assets/Tests/EditMode/BobAgentTests.cs`
-- [ ] Test reward calculation, observation collection, action application
+- [x] Install `com.unity.test-framework` via Package Manager
+- [ ] Create `Assets/Tests/EditMode/BobAgentTests.cs` — reward calculation, episode end, miss proximity
+- [ ] Test observation collection, action application (Bob-local impulse when implemented)
 - [ ] Add EditMode tests for `BobTrainingSceneBuilder` output and `BobSceneValidator` pass/fail paths
 - [ ] Run: `./scripts/unity.sh -batchmode -runTests -testPlatform editmode -quit`
 
+### PlayMode tests
+
+- [x] `BobScoreIncrementPlayModeTest` — `RecordBasketballPoint` increments score
+- [ ] Full make via `HoopScoreZone` trigger (integration)
+
 ## Phase 3 — Training & E2E (Week 2–3)
 
-- [ ] Short training integration run (check `results/` for checkpoints)
-- [ ] Post-run script: mean reward trend, success rate thresholds
+- [x] Short training integration run (bob-v2/v3 checkpoints in `results/`)
+- [ ] Post-run script: mean reward trend, **success rate thresholds** (see [ml-training-recommendations.md](design/ml-training-recommendations.md))
+- [ ] **bob-v4** train after ML Tier 1 lands; refresh `docs/results/training_progress.png`
 - [ ] Portfolio site smoke test (CloudFront URL loads)
 - [ ] Optional: game-ci Unity builder in GitHub Actions
 
