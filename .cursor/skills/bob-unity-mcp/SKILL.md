@@ -9,6 +9,7 @@ paths:
   - Assets/**
   - ProjectSettings/**
   - Packages/manifest.json
+  - docs/planning/next-14-days.md
   - docs/unity-mcp.md
 ---
 
@@ -18,10 +19,11 @@ Bob uses **official Unity MCP** (`com.unity.ai.assistant`) — server id **`unit
 
 ## Preflight
 
-1. Unity Editor open on this repo
-2. **Edit → Project Settings → AI → Unity MCP** — bridge **Running**
-3. Cursor approved under Connected Clients
-4. **Stop Play** before saving scripts (compile during Play kills training)
+1. Read [next-14-days.md](../../../docs/planning/next-14-days.md) — P2 builds/capture, P4 juice (do not skip P1 ML)
+2. Unity Editor open on this repo
+3. **Edit → Project Settings → AI → Unity MCP** — bridge **Running**
+4. Cursor approved under Connected Clients
+5. **Stop Play** before saving scripts (compile during Play kills training)
 
 ```bash
 .cursor/skills/bob-unity-mcp/scripts/preflight-unity-mcp.sh

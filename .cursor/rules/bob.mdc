@@ -15,6 +15,7 @@ Before planning, scoping, or suggesting changes, read:
 - [docs/design/visual-vision.md](../../docs/design/visual-vision.md) — **visuals** (Arc Academy Lab)
 - [docs/what-right-looks-like.md](../../docs/what-right-looks-like.md) — **workflow** (weeks, PR, CI)
 - [docs/design/ml-training-recommendations.md](../../docs/design/ml-training-recommendations.md) — **ML learning** (bob-v4 Tier 1 before more training)
+- [docs/planning/next-14-days.md](../../docs/planning/next-14-days.md) — **14-day priority stack** (P1–P6)
 - [docs/bob-done-tracker.md](../../docs/bob-done-tracker.md) — **live checklist**
 - [docs/instructions.md](../../docs/instructions.md) — **agent quick reference**
 
@@ -35,14 +36,14 @@ Never propose direct commits to `main`. Reject scope that does not advance curre
 
 ## Conventions
 
-| Path | Purpose |
-|------|---------|
-| `Assets/` | Unity scenes, scripts, prefabs |
-| `config/` | ML-Agents YAML trainer configs |
-| `python/` | venv, training scripts, **RAG** (`python/rag/`) |
-| `docs/` | Planning, diagrams, results, **North Star** (`what-right-looks-like.md`, `what-finished-looks-like.md`, `design/visual-vision.md`) |
-| `terraform/` | AWS infrastructure |
-| `.cursor/mcp.json` | `bob-rag` (repo context) + `unity-mcp` (official Unity relay → Editor bridge) |
+| Path               | Purpose                                                                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `Assets/`          | Unity scenes, scripts, prefabs                                                                                                     |
+| `config/`          | ML-Agents YAML trainer configs                                                                                                     |
+| `python/`          | venv, training scripts, **RAG** (`python/rag/`)                                                                                    |
+| `docs/`            | Planning, diagrams, results, **North Star** (`what-right-looks-like.md`, `what-finished-looks-like.md`, `design/visual-vision.md`) |
+| `terraform/`       | AWS infrastructure                                                                                                                 |
+| `.cursor/mcp.json` | `bob-rag` (repo context) + `unity-mcp` (official Unity relay → Editor bridge)                                                      |
 
 ## Development Priorities
 

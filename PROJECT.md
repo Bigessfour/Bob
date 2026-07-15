@@ -31,6 +31,16 @@ MVP loop + Arc Academy Lab + dual HUD are implemented. **bob-v2/v3** show high a
 ## Next Actions
 
 **Live checklist:** [docs/bob-done-tracker.md](docs/bob-done-tracker.md)
+**14-day priority stack:** [docs/planning/next-14-days.md](docs/planning/next-14-days.md)
+
+| P   | Action                                                | Status             |
+| --- | ----------------------------------------------------- | ------------------ |
+| 1   | ML Tier 1 in `BobAgent.cs` → `RUN_ID=bob-v4`          | Not started (code) |
+| 2   | `build-standalone.sh` + Recorder + hero video scripts | Not started        |
+| 3   | Terraform apply (portfolio profile + `aws login`)     | Blocked            |
+| 4   | `BobGameStateMachine.cs` + juice pass                 | Partial            |
+| 5   | `release-checklist.sh` + CI extension                 | Not started        |
+| 6   | Cursor workflow (rules, RAG, skills)                  | Partial            |
 
 1. Implement **ML Tier 1** in `BobAgent.cs` (shot-resolved episode, miss proximity)
 2. **`RUN_ID=bob-v4`** train + refresh `docs/results/training_progress.png`
@@ -88,3 +98,4 @@ MVP loop + Arc Academy Lab + dual HUD are implemented. **bob-v2/v3** show high a
 | 2026-06-18 | North Star — `docs/what-right-looks-like.md` pinned in PROJECT, AGENTS, project-plan                                       |
 | 2026-06-18 | **PR #3** — HDRP Arc Academy photoreal rebuild; WebGL removed (HDRP incompatible)                                          |
 | 2026-07-14 | ML evaluation — [ml-training-recommendations.md](docs/design/ml-training-recommendations.md); bob-v4 plan; dual HUD PR #10 |
+| 2026-07-14 | [next-14-days.md](docs/planning/next-14-days.md) — priority stack 1–6, missing agent capabilities, bar **I** backlog       |

@@ -52,4 +52,4 @@ SCOPE DISCIPLINE
 - No web frameworks; no second scoring hoop; no Behavior Name changes without YAML + validator updates.
 
 WHEN UNSURE
-- Read docs/instructions.md, docs/bob-done-tracker.md, docs/design/ml-training-recommendations.md, AGENTS.md, PROJECT.md.
+- Read docs/planning/next-14-days.md (14-day priority stack P1–P6), docs/instructions.md, docs/bob-done-tracker.md, docs/design/ml-training-recommendations.md, AGENTS.md, PROJECT.md.

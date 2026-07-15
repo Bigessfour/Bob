@@ -107,7 +107,7 @@ Before changing `BobAgent`, rewards, observations, or `config/bob_free_throw.yam
 
 Before suggesting or implementing changes, confirm:
 
-- [ ] Task maps to **current milestone** in [PROJECT.md](../PROJECT.md) and [bob-done-tracker.md](bob-done-tracker.md)
+- [ ] Task maps to **current milestone** in [PROJECT.md](../PROJECT.md), [bob-done-tracker.md](bob-done-tracker.md), and [planning/next-14-days.md](planning/next-14-days.md)
 - [ ] Change respects **repo layout** (Assets, config, python, terraform, docs — not ad-hoc paths)
 - [ ] Work happens on **`feature/*`** (or fix branch), not direct commits to `main`
 - [ ] **CI must pass** before merge (pytest, Terraform, Docker build)
@@ -126,6 +126,7 @@ Before suggesting or implementing changes, confirm:
 - [**What finished looks like**](what-finished-looks-like.md) — product definition (agent, hoop, scoreboard, success graph)
 - [**ML training recommendations**](design/ml-training-recommendations.md) — reward/episode fixes + bob-v4 plan
 - [**Agent skills**](../.cursor/skills/) — `/bob-ml-agents-train`, `/bob-unity-mcp` (see [instructions.md](instructions.md#agent-skills-cursor))
+- [**14-day priority stack**](planning/next-14-days.md) — P1–P6 backlog + missing agent capabilities
 - [**Visual vision**](design/visual-vision.md) — Arc Academy Lab look + visual workflow
 - [project-plan.md](project-plan.md) — week-by-week checklist
 - [testing-strategy.md](testing-strategy.md) — coverage targets toward 80%+

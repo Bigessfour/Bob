@@ -84,15 +84,23 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ## vNext — implementation backlog (future agents)
 
-### Phase 3 — Learning (priority)
+**Canonical 14-day stack:** [planning/next-14-days.md](planning/next-14-days.md) (priorities 1–6, status, missing agent capabilities).
 
-- [ ] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md))
+### Phase 3 — Learning (priority **1**)
+
+- [ ] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md)) — **NOT STARTED (code)**
 - [ ] **`RUN_ID=bob-v4`** extended train (30+ min @ 20×, uninterrupted Play) + refresh `docs/results/training_progress.png`
 - [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), Bob-local impulse, optional curriculum
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
 - [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4 policy)
 
-### Phase 4 — Publish
+### Phase 3–4 — Production bar **I** (priorities **2**, **4**, **5**)
+
+- [ ] Unity Recorder + `scripts/build-standalone.sh` + `scripts/capture-hero-video.sh`
+- [ ] `BobGameStateMachine.cs` + post-process / particle juice pass (after learning proves)
+- [ ] `scripts/release-checklist.sh` + optional CI build/capture step
+
+### Phase 4 — Publish (priority **3**)
 
 - [ ] Merge **PR #10** → `main`
 - [ ] Terraform bootstrap + dev apply (**portfolio AWS profile only**; `aws login` required)

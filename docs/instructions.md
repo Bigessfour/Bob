@@ -1,7 +1,7 @@
 # Bob — Agent Instructions (quick reference)
 
 **Audience:** Cursor agents, Unity AI Assistant, contributors
-**Full rules:** [AGENTS.md](../AGENTS.md) · **Live checklist:** [bob-done-tracker.md](bob-done-tracker.md)
+**Full rules:** [AGENTS.md](../AGENTS.md) · **Live checklist:** [bob-done-tracker.md](bob-done-tracker.md) · **14-day plan:** [planning/next-14-days.md](planning/next-14-days.md)
 
 ---
 
@@ -21,10 +21,21 @@ Never commit directly to `main`. Use `feature/*` → PR → green CI.
 
 ## Current priority (2026-07-14)
 
+**Full stack:** [planning/next-14-days.md](planning/next-14-days.md)
+
 **Infrastructure + polish: done** (dual HUD, audio, PlayMode score test, PR #10).
 **Learning demo: blocked** until ML Tier 1 ships in `BobAgent.cs`, then **`RUN_ID=bob-v4`**.
 
-### Do next (ML Tier 1)
+| P   | Next                             | Status             |
+| --- | -------------------------------- | ------------------ |
+| 1   | ML Tier 1 in `BobAgent.cs`       | Not started (code) |
+| 2   | `build-standalone.sh` + Recorder | Not started        |
+| 3   | Terraform (portfolio AWS)        | Blocked            |
+| 4   | `BobGameStateMachine` + juice    | Partial            |
+| 5   | `release-checklist.sh` + CI      | Not started        |
+| 6   | Cursor RAG/MCP/skills            | Partial            |
+
+### Do next (ML Tier 1 — Priority 1)
 
 1. **End episode when shot resolves** — rim pass, floor hit, or `MaxStep` ~60–90 (not OOB-only).
 2. **Terminal miss proximity reward** — distance-to-rim on episode end without make.

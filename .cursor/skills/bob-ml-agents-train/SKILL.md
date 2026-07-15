@@ -12,6 +12,7 @@ paths:
   - config/*.yaml
   - python/scripts/plot_training_progress.py
   - docs/design/ml-training-recommendations.md
+  - docs/planning/next-14-days.md
   - docs/bob-done-tracker.md
 ---
 
@@ -20,8 +21,9 @@ paths:
 ## Read first
 
 1. [docs/design/ml-training-recommendations.md](../../../docs/design/ml-training-recommendations.md)
-2. [docs/bob-done-tracker.md](../../../docs/bob-done-tracker.md)
-3. `rag_query` on **bob-rag** before editing reward/obs code
+2. [docs/planning/next-14-days.md](../../../docs/planning/next-14-days.md) — priority stack + status
+3. [docs/bob-done-tracker.md](../../../docs/bob-done-tracker.md)
+4. `rag_query` on **bob-rag** before editing reward/obs code
 
 ## Non-negotiables
 

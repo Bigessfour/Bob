@@ -60,7 +60,11 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 
 ### Week 3 — Polish + Deployment + Documentation
 
+- [ ] **Priority stack** — [planning/next-14-days.md](planning/next-14-days.md) (P1–P6; bar **I**)
 - [ ] Portfolio polish — lab hero GIF + optional warehouse stretch still
+- [ ] Standalone macOS build + Recorder (`scripts/build-standalone.sh`, `scripts/capture-hero-video.sh`)
+- [ ] `scripts/release-checklist.sh` + optional CI build/capture step
+- [ ] `BobGameStateMachine.cs` + juice pass (after bob-v4 learning proves)
 - [ ] Terraform bootstrap applied (`terraform/bootstrap`)
 - [ ] Terraform dev stack applied (`terraform/environments/dev`)
 - [ ] Portfolio site synced to S3 + CloudFront invalidation (`docs/portfolio-site/` static HTML)

@@ -63,6 +63,33 @@ Before changing `BobAgent.cs`, reward constants, observations, or `config/bob_fr
 
 After ML code or doc changes: **`rag_index_paths`** on touched files + update **bob-done-tracker** if gates move.
 
+## 14-day priority stack (2026-07-14)
+
+Canonical plan: **[docs/planning/next-14-days.md](docs/planning/next-14-days.md)** — do not lose scope across agent handoffs.
+
+| P   | Area                                             | Status                              |
+| --- | ------------------------------------------------ | ----------------------------------- |
+| 1   | ML Tier 1 → bob-v4                               | **Not started (code)** — #1 blocker |
+| 2   | Standalone build + Recorder + hero video scripts | Not started                         |
+| 3   | Terraform / CloudFront (portfolio profile)       | Blocked on `aws login`              |
+| 4   | State machine + Cuphead juice                    | Partial (audio/HUD only)            |
+| 5   | `release-checklist.sh` + CI extension            | Not started                         |
+| 6   | Cursor workflow (RAG, MCP, skills)               | Partial                             |
+
+Work top-down unless the user explicitly reprioritizes.
+
+## Missing agent capabilities
+
+Agents **cannot** reliably do the following — do not pretend otherwise; use workarounds in [next-14-days.md](docs/planning/next-14-days.md#missing-agent-capabilities-workarounds):
+
+1. **Unity Play mode / live Recorder capture** — user runs Play; use `unity-mcp` when bridge is up; batchmode `./scripts/validate-scene.sh` when Editor is closed.
+2. **AWS `terraform apply` on portfolio profile** — user runs `aws login` locally; agents review plans and docs only.
+3. **Headless Unity builds in CI** — host Mac build via future `build-standalone.sh`; no Linux Unity runner in CI today.
+4. **Live training session monitor** — use post-hoc CSV, plots, and in-scene HUD; not streaming TensorBoard in agent context.
+5. **Auto-merge PRs** — create/push PRs; merge only after green CI and user intent.
+
+Future optional: agent-callable validate hook in `scripts/` after code edits.
+
 ## Always
 
 - Use clear commit messages and update documentation alongside code changes
@@ -219,6 +246,7 @@ Do not silently defer work in code comments—surface it in the turn summary so 
 - [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) — **Product north star** (agent, hoop, scoreboard, graph)
 - [docs/design/ml-training-recommendations.md](docs/design/ml-training-recommendations.md) — **ML learning fixes + bob-v4 plan**
 - [docs/bob-done-tracker.md](docs/bob-done-tracker.md) — **Live done / vNext checklist**
+- [docs/planning/next-14-days.md](docs/planning/next-14-days.md) — **14-day priority stack + missing capabilities**
 - [docs/instructions.md](docs/instructions.md) — **Agent quick reference**
 - [docs/design/ai-warehouse-ops.md](docs/design/ai-warehouse-ops.md) — training handshake + stability
 - [docs/design/visual-vision.md](docs/design/visual-vision.md) — **Visual north star** (Arc Academy Lab + workflow)
