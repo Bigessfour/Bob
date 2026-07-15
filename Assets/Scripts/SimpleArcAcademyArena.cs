@@ -46,25 +46,42 @@ public static class SimpleArcAcademyArena
 
     public const string LabHudWallName = WallSouthName;
     public const string LabHudRootName = BobWallTrainingHud.RootName;
+    public const string NearBobHudRootName = BobNearBobTrainingHud.RootName;
     public const string PowerPathPulseName = "PowerPathPulse";
 
     /// <summary>World-space HUD on Wall_South inner face — lower-left of hoop (back wall).</summary>
     public const float LabHudWallInsetZ = 0.12f;
     public const float LabHudWorldX = -2.8f;
-    public const float LabHudWorldY = 2.35f;
+    public const float LabHudWorldY = 2.55f;
     public const float LabHudWorldZ = -9.88f;
 
     /// <summary>Inner padding (px) between the black panel edge and HUD text.</summary>
-    public const float LabHudPanelPadding = 14f;
+    public const float LabHudPanelPadding = 12f;
 
-    /// <summary>Canvas px — sized for full headline + RL detail strings (~0.84 × 0.92 m at scale).</summary>
-    public static readonly Vector2 LabHudCanvasSize = new(420f, 460f);
+    /// <summary>
+    /// World-space canvas px × <see cref="LabHudCanvasScale"/> → ~1.60 × 1.70 m
+    /// (visual-vision.md), after <see cref="BobWallHudLayout"/> cancels Wall_South scale.
+    /// Wall console holds graph + RL detail; hero metrics live on <see cref="NearBobHudRootName"/>.
+    /// </summary>
+    public static readonly Vector2 LabHudCanvasSize = new(800f, 850f);
     public static readonly Vector3 LabHudCanvasScale = new(0.002f, 0.002f, 0.002f);
 
-    /// <summary>East sideline camera — level side view across spawn → hoop (AI Warehouse readability).</summary>
-    public static readonly Vector3 LabCameraPosition = new(13f, 3.2f, -3.5f);
-    public static readonly Vector3 LabCameraLookAt = new(0f, 2f, -4.5f);
-    public const float LabCameraFieldOfView = 52f;
+    /// <summary>
+    /// Large floating board left of Bob at the free-throw line — primary readable metrics.
+    /// Parent is arena root (uniform scale), so canvas px × scale maps directly to meters (~3.6 × 2.2 m).
+    /// </summary>
+    public static readonly Vector3 NearBobHudWorldPosition = new(-2.4f, 2.15f, 0.55f);
+    public const float NearBobHudPanelPadding = 20f;
+    public static readonly Vector2 NearBobHudCanvasSize = new(900f, 560f);
+    public static readonly Vector3 NearBobHudCanvasScale = new(0.004f, 0.004f, 0.004f);
+
+    /// <summary>
+    /// 3/4 high view from hoop-side east — sees Bob's face (eyes on -Z), hoop, and Wall_South HUD.
+    /// Sideline-only framing hid Bob's face so the basketball sphere read as "orange circle Bob".
+    /// </summary>
+    public static readonly Vector3 LabCameraPosition = new(11f, 3.5f, -2.2f);
+    public static readonly Vector3 LabCameraLookAt = new(0f, 1.6f, -6.2f);
+    public const float LabCameraFieldOfView = 55f;
 
     /// <summary>Behind Bob at the line — level down-court view toward hoop (Hero alternate in lab).</summary>
     public static readonly Vector3 LabBehindBobCameraPosition = new(0.5f, 2.35f, 1.2f);

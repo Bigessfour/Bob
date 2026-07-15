@@ -1,7 +1,7 @@
 # Arc Academy Visual Vision — Team North Star (Merged Target)
 
-**Status:** Active as of 2026-06-19  
-**Audience:** Contributors, agents, reviewers — shared definition of what Bob should _look like_ and _how we get there_  
+**Status:** Active as of 2026-06-19
+**Audience:** Contributors, agents, reviewers — shared definition of what Bob should _look like_ and _how we get there_
 **Supersedes:** Photoreal-only targeting of [`arc-academy-reference.jpg`](arc-academy-reference.jpg) as the Week 1–2 **primary** goal (that image remains a **stretch** reference)
 
 **Pinned in:** [PROJECT.md](../../PROJECT.md) · [project-plan.md](../project-plan.md) · [what-finished-looks-like.md](../what-finished-looks-like.md) · [what-right-looks-like.md](../what-right-looks-like.md)
@@ -18,11 +18,11 @@
 
 We aim for the **middle band**: readable lab clarity + basketball theme + light Arc Academy polish.
 
-| Pole                       | Image                                                                                                                                            | Role                                                                                                                                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stretch (aspirational)** | [`arc-academy-reference.jpg`](arc-academy-reference.jpg)                                                                                         | Mood board: warehouse scale, orange court, purple Bob glow, mountain windows. **Week 3+ or optional branch** — not a blocker for training.                                                                 |
-| **Primary (achievable)**   | [`ai-warehouse-lab-reference.png`](ai-warehouse-lab-reference.png)                                                                               | **Default target:** white grid-tile walls, dark grid floor, corner room, wall-mounted counters, friendly agent feedback. Inspired by [AI Warehouse](https://www.youtube.com/@AIWarehouse) training videos. |
-| **Current baseline**       | [`docs/progress/012-2026-06-19-arc-academy-photoreal-rebuild/capture.png`](../progress/012-2026-06-19-arc-academy-photoreal-rebuild/capture.png) | Layout exists (Bob, hoop, arcs) but style is too busy/dark for training readability.                                                                                                                       |
+| Pole                       | Image                                                                                                                                            | Role                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stretch (aspirational)** | [`arc-academy-reference.jpg`](arc-academy-reference.jpg)                                                                                         | Mood board: warehouse scale, orange court, purple Bob glow, mountain windows. **Week 3+ or optional branch** — not a blocker for training.                                                                                                                                                                                                                       |
+| **Primary (achievable)**   | [`ai-warehouse-lab-reference.png`](ai-warehouse-lab-reference.png)                                                                               | **Default target:** white grid-tile walls, hardwood court floor (blue key paint), corner room, wall-mounted counters, friendly agent feedback. Inspired by [AI Warehouse](https://www.youtube.com/@AIWarehouse) (e.g. [AI Learns to Walk](https://www.youtube.com/watch?v=L_4BPjLBF4E) — orange cube agent “Albert”, flat lab lighting, readable wall counters). |
+| **Current baseline**       | [`docs/progress/012-2026-06-19-arc-academy-photoreal-rebuild/capture.png`](../progress/012-2026-06-19-arc-academy-photoreal-rebuild/capture.png) | Layout exists (Bob, hoop, arcs) but style is too busy/dark for training readability.                                                                                                                                                                                                                                                                             |
 
 ```mermaid
 flowchart LR
@@ -58,16 +58,18 @@ What the training area should look like when we're done with the visual pivot:
 ### Environment
 
 - **Corner lab room** (2–3 white walls), not a full industrial warehouse
-- **Dark grey floor** with a light **grid** (spatial readability)
+- **Hardwood basketball court floor** outside the painted **blue key**; white free-throw lines
 - **White walls** with subtle **square tile** grid
 - **Soft, even lighting** — one directional + ambient; minimal bloom
 - **Single free-throw lane** markings (simple white lines)
 
 ### Agent & feedback
 
-- **Orange cube Bob** with simple **eyes** on the front face (AI Warehouse personality)
+- **Orange cube Bob** with simple **eyes** on the front face (AI Warehouse personality) — **not** the basketball sphere
 - **Speech bubble** on made basket (“Great job, Bob!” / “Swish!”)
 - Optional: **1–3 white trajectory arcs** toward the hoop (keeps “learning paths” visible)
+
+**Identification tip:** Bob = cube mesh + eyes; the separate orange **sphere** at the free-throw line is the **basketball** projectile (Phase 1.5). From a pure side camera Bob’s eyes are hidden; the lab camera uses a **3/4 hoop-side** angle so the face reads. Refresh with **Bob → Polish → Fix Bob Lab Visuals (AI Warehouse)**.
 
 ### Goal
 
@@ -76,12 +78,9 @@ What the training area should look like when we're done with the visual pivot:
 
 ### Scoreboards (in-world, not TensorBoard)
 
-- **Compact wall-mounted panel** on **Wall_South** (back wall behind the hoop), lower-left of the rim — black face, white digits (~0.70 m × 0.75 m world size), fed by `BobTrainingStats`:
-  - **Iterations** — ML-Agents episodes (shots attempted)
-  - **Score** — made baskets (+1 each)
-  - **Rewards / penalties** — cumulative RL signal (separate from basketball score)
-  - **Success rate** — session % and rolling graph (`BobTrainingSuccessGraph`)
-- Keep screen HUD optional for debug; **walls are the hero** for recordings
+- **Near-Bob floating board** (primary readable) — large world-space panel beside Bob at the free-throw line (~3.6 m × 2.2 m), camera-facing: **Episodes**, **Score**, **Success %** (session + rolling), last shot RL/arc. Fed by `BobTrainingStats` via `BobNearBobTrainingHud`.
+- **Wall console** on **Wall_South** (back wall) — black lab panel (~1.60 m × 1.70 m) for **RL rewards / penalties / net**, arc average, and the rolling **success/arc graph** (`BobWallTrainingHud`).
+- Keep screen HUD optional for debug; **in-scene boards are the hero** for recordings (float for reading, wall for lab atmosphere)
 
 ### Camera
 

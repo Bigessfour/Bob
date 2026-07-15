@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// World-space lab wall HUD — Episodes, Success, Arc headlines, RL metrics, and dual-metric graph.
+/// World-space lab wall console — RL metrics + success/arc graph.
+/// Hero Episodes/Score/Success live on <see cref="BobNearBobTrainingHud"/>.
 /// </summary>
 public class BobWallTrainingHud : MonoBehaviour
 {
@@ -39,7 +40,7 @@ public class BobWallTrainingHud : MonoBehaviour
         Instance = this;
         BindMissingReferences();
         EnsureReadableStyles();
-        EnsureGraphTexture(128, 48);
+        EnsureGraphTexture(256, 128);
     }
 
     private void OnDestroy()
@@ -70,29 +71,13 @@ public class BobWallTrainingHud : MonoBehaviour
 
         if (titleText != null)
         {
-            titleText.text = "Arc Academy Lab";
-        }
-
-        if (episodesText != null)
-        {
-            episodesText.text = $"{BobScoreboardDisplay.EpisodesLabel}: {stats.TotalIterations}";
-        }
-
-        if (successText != null)
-        {
-            successText.text =
-                $"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P0}  ·  Rolling: {stats.RollingSuccessRate:P0}";
+            titleText.text = "Lab Console · RL";
         }
 
         if (arcText != null)
         {
             arcText.text =
-                $"{BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}  ·  Avg: {stats.RollingAverageArcQuality:P0}";
-        }
-
-        if (scoreText != null)
-        {
-            scoreText.text = $"{BobScoreboardDisplay.ScoreLabel}: {stats.BasketballPoints}";
+                $"{BobScoreboardDisplay.ArcLabel} avg: {stats.RollingAverageArcQuality:P0}";
         }
 
         var monitor = BobTrainingConnectionMonitor.Instance;

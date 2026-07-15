@@ -20,7 +20,9 @@ public static class SimpleArcAcademyArenaBuilder
     private const string MaterialsFolder = "Assets/Materials/SimpleArena";
     private const string PrefabsFolder = "Assets/Prefabs";
 
-    private const string FloorMatPath = MaterialsFolder + "/Mat_Floor_Grid.mat";
+    /// <summary>Wood court outside the blue key; KeyPaint overlay stays separate.</summary>
+    private const string FloorMatPath = MaterialsFolder + "/Mat_Floor_Hardwood.mat";
+    private const string FloorGridMatPath = MaterialsFolder + "/Mat_Floor_Grid.mat";
     private const string WallMatPath = MaterialsFolder + "/Mat_Wall_Tile_White.mat";
     private const string LegacyWallMatPath = MaterialsFolder + "/Mat_Wall_Blue.mat";
     private const string TargetRedMatPath = MaterialsFolder + "/Mat_Target_Red.mat";
@@ -40,6 +42,127 @@ public static class SimpleArcAcademyArenaBuilder
             "Simple Arc Academy Arena",
             "Arena built, prefab saved, and legacy court visuals hidden.\nPress Play to preview.",
             "OK");
+    }
+
+    /// <summary>
+    /// Non-destructive: re-applies orange cube body, eyes/mouth, wall HUD scale, and lab camera
+    /// so Bob reads as AI Warehouse Albert (cube + eyes) — not the basketball sphere.
+    /// </summary>
+    [MenuItem("Bob/Polish/Fix Bob Lab Visuals (AI Warehouse)")]
+    public static void MenuFixBobLabVisuals()
+    {
+        if (!EnsureScene())
+        {
+            return;
+        }
+
+        PolishBobLabVisuals();
+        BobGameViewScaleFix.ResetGameViewScaleToOne();
+        EditorUtility.DisplayDialog(
+            "Bob lab visuals",
+            "Refreshed orange cube + eyes/mouth, hardwood court floor, wall HUD scale, and 3/4 lab camera "
+            + "(face + hoop visible).\n\n"
+            + "Game view Scale reset to 1x (4x+ makes Game look pixelated while Scene stays fine).\n\n"
+            + "Tip: Bob is the cube; the round orange object is the basketball.\n"
+            + "Stop Play before running polish menus, wait for compile, then Play → Game tab.",
+            "OK");
+    }
+
+    public static void PolishBobLabVisuals()
+    {
+        var bob = Object.FindAnyObjectByType<BobAgent>();
+        if (bob == null)
+        {
+            Debug.LogError("BOB_LAB_VISUAL_FAIL: BobAgent not found in scene.");
+            return;
+        }
+
+        EnsureBobVisual(bob.gameObject);
+        EnsureBobFace(bob.gameObject);
+        if (bob.GetComponent<BobEyeFollow>() == null)
+        {
+            bob.gameObject.AddComponent<BobEyeFollow>();
+        }
+
+        var arena = GameObject.Find(SimpleArcAcademyArena.RootName);
+        if (arena != null)
+        {
+            BobWallHudBuilder.EnsureWallTrainingHud(arena.transform);
+            BobNearBobHudBuilder.EnsureNearBobTrainingHud(arena.transform);
+        }
+        else
+        {
+            BobWallHudLayout.ApplyActiveArenaLayout();
+        }
+
+        ApplyHardwoodCourtFloor();
+        ApplyLabScenePreset();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("BOB_LAB_VISUAL_OK: cube + face + hardwood floor + camera + HUD refreshed.");
+    }
+
+    /// <summary>
+    /// Assigns wood court material to Floor (outside blue KeyPaint). Safe without full arena rebuild.
+    /// </summary>
+    [MenuItem("Bob/Polish/Apply Hardwood Court Floor")]
+    public static void MenuApplyHardwoodCourtFloor()
+    {
+        if (!EnsureScene())
+        {
+            return;
+        }
+
+        ApplyHardwoodCourtFloor();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog(
+            "Hardwood court floor",
+            "Floor now uses Mat_Floor_Hardwood (wood outside the blue key).\n"
+            + "Blue key paint is unchanged.\n\n"
+            + "Stop Play before running menus, wait for compile, then Play again.",
+            "OK");
+    }
+
+    public static void ApplyHardwoodCourtFloor()
+    {
+        EnsureHardwoodFloorMaterialAsset();
+        var floorMat = AssetDatabase.LoadAssetAtPath<Material>(FloorMatPath);
+        if (floorMat == null)
+        {
+            Debug.LogError("BOB_FLOOR_FAIL: Mat_Floor_Hardwood.mat missing after ensure.");
+            return;
+        }
+
+        var floors = Object.FindObjectsByType<MeshRenderer>();
+        int applied = 0;
+        for (int i = 0; i < floors.Length; i++)
+        {
+            if (floors[i] == null || floors[i].gameObject.name != SimpleArcAcademyArena.FloorName)
+            {
+                continue;
+            }
+
+            floors[i].sharedMaterial = floorMat;
+            EditorUtility.SetDirty(floors[i]);
+            applied++;
+        }
+
+        Debug.Log(applied > 0
+            ? $"BOB_FLOOR_OK: hardwood applied to {applied} Floor renderer(s)."
+            : "BOB_FLOOR_WARN: no GameObject named Floor found — open BobTraining scene first.");
+    }
+
+    public static void PolishBobLabVisualsFromCli()
+    {
+        if (!EnsureScene())
+        {
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        PolishBobLabVisuals();
+        EditorSceneManager.SaveOpenScenes();
+        AssetDatabase.SaveAssets();
+        EditorApplication.Exit(0);
     }
 
     [MenuItem("Tools/Bob/Setup Simple Arc Academy Arena")]
@@ -111,6 +234,7 @@ public static class SimpleArcAcademyArenaBuilder
         SimpleArcCourtMarkingsBuilder.EnsureCourtMarkings(arenaRoot.transform);
         EnsureSpawnAndManager(arenaRoot);
         BobWallHudBuilder.EnsureWallTrainingHud(arenaRoot.transform);
+        BobNearBobHudBuilder.EnsureNearBobTrainingHud(arenaRoot.transform);
         SavePrefabFromInstance(arenaRoot);
         WireBobToArena(arenaRoot);
         EnsureSingleBasketball(arenaRoot);
@@ -119,6 +243,7 @@ public static class SimpleArcAcademyArenaBuilder
         HideLegacyCourtVisuals();
         ApplyLabScenePreset();
         BobWallHudLayout.ApplyLabHudLayout(arenaRoot.transform);
+        BobWallHudLayout.ApplyNearBobHudLayout(arenaRoot.transform);
         EnsurePowerPathPulse(arenaRoot.transform);
         StripBackgroundHoopDecorations();
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -1098,7 +1223,8 @@ public static class SimpleArcAcademyArenaBuilder
         var renderer = partGo.GetComponent<Renderer>();
         if (renderer != null)
         {
-            renderer.sharedMaterial = ArcAcademyMaterialFactory.CreateHdrpLit(color, 0.1f, 0f);
+            // Flat Unlit eyes read as AI Warehouse "cute cube" under HDRP lab lighting.
+            renderer.sharedMaterial = ArcAcademyMaterialFactory.CreateArcLineMaterial(color, 1f);
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
         }
@@ -1275,17 +1401,20 @@ public static class SimpleArcAcademyArenaBuilder
     {
         Directory.CreateDirectory(MaterialsFolder);
 
-        var floorTex = SimpleArenaTextureFactory.EnsureFloorGridTexture();
-        var wallTex = SimpleArenaTextureFactory.EnsureWallTileTexture();
+        EnsureHardwoodFloorMaterialAsset();
 
+        // Keep grid asset available for optional lab-mode swaps; not the default Floor.
+        var floorGridTex = SimpleArenaTextureFactory.EnsureFloorGridTexture();
         EnsureLitMaterialWithTexture(
-            FloorMatPath,
+            FloorGridMatPath,
             "Mat_Floor_Grid",
             new Color(0.18f, 0.18f, 0.20f),
-            floorTex,
+            floorGridTex,
             smoothness: 0.18f,
             metallic: 0f,
             textureScale: new Vector2(20f, 20f));
+
+        var wallTex = SimpleArenaTextureFactory.EnsureWallTileTexture();
 
         EnsureLitMaterialWithTexture(
             WallMatPath,
@@ -1300,6 +1429,21 @@ public static class SimpleArcAcademyArenaBuilder
         EnsureUnlitMaterial(TargetYellowMatPath, "Mat_Target_Yellow", SimpleArcAcademyArena.TargetYellow);
         EnsureUnlitMaterial(TargetGreenMatPath, "Mat_Target_Green", SimpleArcAcademyArena.TargetGreen);
         ArcAcademyMaterialFactory.RefreshHoopMaterialAssets();
+    }
+
+    private static void EnsureHardwoodFloorMaterialAsset()
+    {
+        var hardwoodTex = SimpleArenaTextureFactory.EnsureHardwoodFloorTexture();
+        var hardwoodNormal = SimpleArenaTextureFactory.EnsureHardwoodFloorNormalTexture();
+        EnsureLitMaterialWithTexture(
+            FloorMatPath,
+            "Mat_Floor_Hardwood",
+            SimpleArcAcademyArena.FloorColor,
+            hardwoodTex,
+            hardwoodNormal,
+            smoothness: 0.48f,
+            metallic: 0f,
+            textureScale: new Vector2(10f, 20f));
     }
 
     private static void EnsureLitMaterialWithTexture(

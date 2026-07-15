@@ -49,62 +49,46 @@ public static class BobWallHudBuilder
 
         float pad = SimpleArcAcademyArena.LabHudPanelPadding;
         float contentWidth = SimpleArcAcademyArena.LabHudCanvasSize.x - (pad * 2f);
-        float halfGap = 6f;
+        float halfGap = 10f;
         float halfWidth = (contentWidth - halfGap) * 0.5f;
         float y = -pad;
 
-        y = PlaceTopRow(panel.transform, "TitleText", "Arc Academy Lab", BobScoreboardDisplay.TitleFontSize,
-            FontStyle.Bold, pad, y, contentWidth, 22f, new Color(0.92f, 0.94f, 1f), headline: false);
-        y -= 6f;
-
-        y = PlaceTopRow(panel.transform, "EpisodesText", $"{BobScoreboardDisplay.EpisodesLabel}: 0",
-            BobScoreboardDisplay.HeadlineFontSize, FontStyle.Bold, pad, y, contentWidth, 28f,
-            BobScoreboardDisplay.HeadlineColor, headline: true);
-        y -= 4f;
-
-        y = PlaceTopRow(panel.transform, "SuccessText",
-            $"{BobScoreboardDisplay.SuccessLabel}: 0%  ·  Rolling: 0%",
-            BobScoreboardDisplay.HeadlineFontSize, FontStyle.Bold, pad, y, contentWidth, 28f,
-            BobScoreboardDisplay.HeadlineColor, headline: true);
-        y -= 4f;
-
-        y = PlaceTopRow(panel.transform, "ArcText",
-            $"{BobScoreboardDisplay.ArcLabel}: 0%  ·  Avg: 0%",
-            BobScoreboardDisplay.HeadlineFontSize, FontStyle.Bold, pad, y, contentWidth, 28f,
-            BobScoreboardDisplay.HeadlineColor, headline: true);
-        y -= 4f;
-
-        y = PlaceTopRow(panel.transform, "ScoreText", $"{BobScoreboardDisplay.ScoreLabel}: 0",
-            BobScoreboardDisplay.BodyFontSize, FontStyle.Bold, pad, y, contentWidth, 22f,
-            BobScoreboardDisplay.ScoreAccentColor, headline: false);
-        y -= 4f;
+        y = PlaceTopRow(panel.transform, "TitleText", "Lab Console · RL", BobScoreboardDisplay.TitleFontSize,
+            FontStyle.Bold, pad, y, contentWidth, 36f, new Color(0.92f, 0.94f, 1f), headline: false);
+        y -= 10f;
 
         y = PlaceTopRow(panel.transform, "StatusText", "Play mode", BobScoreboardDisplay.DetailFontSize,
-            FontStyle.Italic, pad, y, contentWidth, 18f, new Color(1f, 0.55f, 0.45f), headline: false,
+            FontStyle.Italic, pad, y, contentWidth, 28f, new Color(1f, 0.55f, 0.45f), headline: false,
             useDetailStyle: true);
-        y -= 4f;
+        y -= 8f;
 
         PlaceTopRow(panel.transform, "RewardsText", "Rewards: +0.0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 18f,
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 28f,
             BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
         PlaceTopRow(panel.transform, "PenaltiesText", "Penalties: -0.0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 18f,
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 28f,
             BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
-        y -= 18f;
-        y -= 4f;
+        y -= 28f;
+        y -= 8f;
 
         y = PlaceTopRow(panel.transform, "NetRlText", "Net RL: 0.0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 18f,
-            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
-        y -= 4f;
+            BobScoreboardDisplay.BodyFontSize, FontStyle.Bold, pad, y, contentWidth, 34f,
+            BobScoreboardDisplay.BodyColor, headline: false);
+        y -= 8f;
 
         y = PlaceTopRow(panel.transform, "LastEpisodeText", "Last shot RL: 0.0  ·  Arc: 0%",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 18f,
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 28f,
             new Color(0.85f, 0.88f, 0.95f), headline: false, useDetailStyle: true);
-        y -= 4f;
+        y -= 8f;
 
-        PlaceTopRow(panel.transform, "GraphLegendText", "Success · Arc quality (avg 0%)",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 16f,
+        y = PlaceTopRow(panel.transform, "ArcText",
+            $"{BobScoreboardDisplay.ArcLabel} avg: 0%",
+            BobScoreboardDisplay.BodyFontSize, FontStyle.Bold, pad, y, contentWidth, 34f,
+            BobScoreboardDisplay.HeadlineColor, headline: true);
+        y -= 8f;
+
+        PlaceTopRow(panel.transform, "GraphLegendText", "Success · Arc quality",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 24f,
             new Color(0.75f, 0.8f, 0.88f), headline: false, useDetailStyle: true);
 
         var graphRect = CreateUiObject<RectTransform>("GraphImage", panel.transform);
@@ -112,7 +96,7 @@ public static class BobWallHudBuilder
         graphRect.anchorMax = new Vector2(1f, 0f);
         graphRect.pivot = new Vector2(0.5f, 0f);
         graphRect.anchoredPosition = new Vector2(0f, pad);
-        graphRect.sizeDelta = new Vector2(-(pad * 2f), 48f);
+        graphRect.sizeDelta = new Vector2(-(pad * 2f), 220f);
         graphRect.gameObject.AddComponent<RawImage>().color = Color.white;
 
         hudRoot.AddComponent<BobWallTrainingHud>();

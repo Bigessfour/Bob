@@ -118,17 +118,17 @@ public static class BasketballProjectileSetup
             trail = ball.AddComponent<TrailRenderer>();
         }
 
-        trail.time = 1.5f;
-        trail.startWidth = 0.2f;
-        trail.endWidth = 0.02f;
-        trail.minVertexDistance = 0.05f;
+        trail.time = 0.45f;
+        trail.startWidth = 0.08f;
+        trail.endWidth = 0.015f;
+        trail.minVertexDistance = 0.08f;
         trail.autodestruct = false;
         trail.emitting = false;
 
-        var orange = new Color(1f, 0.45f, 0.08f, 0.85f);
+        var orange = new Color(1f, 0.45f, 0.08f, 0.7f);
         trail.startColor = orange;
         trail.endColor = new Color(orange.r, orange.g, orange.b, 0f);
-        trail.material = ArcAcademyShaderUtility.CreateEmissiveLineMaterial(orange, 1.2f);
+        trail.material = ArcAcademyShaderUtility.CreateEmissiveLineMaterial(orange, 0.8f);
     }
 
     /// <summary>Enable trail only while the ball is moving (called from runtime helper).</summary>

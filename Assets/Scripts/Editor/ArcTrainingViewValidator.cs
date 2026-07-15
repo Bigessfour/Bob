@@ -114,22 +114,12 @@ public static class ArcTrainingViewValidator
     private static void EnsureBobEyesAndFollow()
     {
         var bob = Object.FindAnyObjectByType<BobAgent>();
-        if (bob == null) return;
-
-        // Eyes are expected to be created by arena builder / face setup
-        var left = bob.transform.Find(BobFaceLayout.LeftEyeName);
-        var right = bob.transform.Find(BobFaceLayout.RightEyeName);
-
-        if (left == null || right == null)
+        if (bob == null)
         {
-            Debug.LogWarning("Eyes not found on Bob – rerun arena builder or BobFace setup.");
             return;
         }
 
-        if (bob.GetComponent<BobEyeFollow>() == null)
-        {
-            bob.gameObject.AddComponent<BobEyeFollow>();
-        }
+        SimpleArcAcademyArenaBuilder.PolishBobLabVisuals();
     }
 
     private static void EnsureRationalCamera()

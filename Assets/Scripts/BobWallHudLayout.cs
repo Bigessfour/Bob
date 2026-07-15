@@ -25,6 +25,7 @@ public static class BobWallHudLayout
         }
 
         ApplyLabHudLayout(arena.transform);
+        ApplyNearBobHudLayout(arena.transform);
     }
 
     public static void ApplyLabHudLayout(Transform arenaRoot)
@@ -55,6 +56,44 @@ public static class BobWallHudLayout
         }
 
         PlaceHudOnSouthWall(wallSouth, hud);
+    }
+
+    public static void ApplyNearBobHudLayout(Transform arenaRoot)
+    {
+        if (arenaRoot == null)
+        {
+            return;
+        }
+
+        var hud = arenaRoot.Find(BobNearBobTrainingHud.RootName);
+        if (hud == null)
+        {
+            return;
+        }
+
+        if (hud.parent != arenaRoot)
+        {
+            hud.SetParent(arenaRoot, true);
+        }
+
+        hud.position = SimpleArcAcademyArena.NearBobHudWorldPosition;
+        hud.localScale = Vector3.one;
+
+        var canvas = hud.GetComponentInChildren<Canvas>(true);
+        if (canvas == null)
+        {
+            return;
+        }
+
+        var canvasRect = canvas.transform as RectTransform;
+        if (canvasRect == null)
+        {
+            return;
+        }
+
+        canvasRect.sizeDelta = SimpleArcAcademyArena.NearBobHudCanvasSize;
+        canvasRect.localScale = SimpleArcAcademyArena.NearBobHudCanvasScale;
+        canvasRect.localPosition = Vector3.zero;
     }
 
     public static Vector3 GetHudWorldPosition(Transform wallSouth)
@@ -89,7 +128,37 @@ public static class BobWallHudLayout
         Vector3 localPos = wallSouth.InverseTransformPoint(worldTarget);
         hud.localPosition = localPos;
         hud.localRotation = ComputeHudRotation(worldTarget);
-        hud.localScale = Vector3.one;
+        // Wall_South uses a large non-uniform scale (22×4×1). World-space UI parented
+        // under it inherits that scale and becomes ~18 m wide — cancel it so the canvas
+        // LabHudCanvasScale maps to real meters (~1.60×1.70 per visual-vision.md).
+        hud.localScale = InverseParentScale(wallSouth.lossyScale);
+        CompensateCanvasScale(hud);
+    }
+
+    private static Vector3 InverseParentScale(Vector3 parentLossyScale)
+    {
+        return new Vector3(
+            1f / Mathf.Max(Mathf.Abs(parentLossyScale.x), 1e-4f),
+            1f / Mathf.Max(Mathf.Abs(parentLossyScale.y), 1e-4f),
+            1f / Mathf.Max(Mathf.Abs(parentLossyScale.z), 1e-4f));
+    }
+
+    private static void CompensateCanvasScale(Transform hud)
+    {
+        var canvas = hud.GetComponentInChildren<Canvas>(true);
+        if (canvas == null)
+        {
+            return;
+        }
+
+        var canvasRect = canvas.transform as RectTransform;
+        if (canvasRect == null)
+        {
+            return;
+        }
+
+        canvasRect.sizeDelta = SimpleArcAcademyArena.LabHudCanvasSize;
+        canvasRect.localScale = SimpleArcAcademyArena.LabHudCanvasScale;
     }
 
     private static Quaternion ComputeHudRotation(Vector3 hudWorldPosition)

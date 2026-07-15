@@ -22,7 +22,19 @@ public static class BobUnityMcpTools
         }
 
         EditorSceneManager.OpenScene(ScenePath);
+        FocusTrainingArenaInSceneView();
         return new { success = true, scene = ScenePath };
+    }
+
+    /// <summary>
+    /// Empty Scene/Game views (sky + Camera/Sun gizmos only) almost always mean a default
+    /// Untitled scene is open — not <c>BobTraining.unity</c>. Prefer this over hunting Project.
+    /// </summary>
+    [MenuItem("Bob/Open BobTraining Scene", priority = 0)]
+    public static void MenuOpenBobTrainingScene()
+    {
+        var result = OpenTrainingScene();
+        Debug.Log($"BOB_OPEN_SCENE: {result}");
     }
 
     public class BobArenaSetupParams
@@ -66,8 +78,26 @@ public static class BobUnityMcpTools
     [MenuItem("Bob/MCP/Open Training Scene")]
     public static void MenuOpenTrainingScene()
     {
-        var result = OpenTrainingScene();
-        Debug.Log($"BOB_MCP: {result}");
+        MenuOpenBobTrainingScene();
+    }
+
+    private static void FocusTrainingArenaInSceneView()
+    {
+        var focus = GameObject.Find(SimpleArcAcademyArena.RootName)
+            ?? GameObject.Find(ArcAcademyLayout.ArenaName)
+            ?? GameObject.Find("CameraRig");
+
+        if (focus == null)
+        {
+            return;
+        }
+
+        Selection.activeGameObject = focus;
+        var sceneView = SceneView.lastActiveSceneView;
+        if (sceneView != null)
+        {
+            sceneView.FrameSelected();
+        }
     }
 
     [MenuItem("Bob/MCP/Setup Simple Arc Academy Arena")]

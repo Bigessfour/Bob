@@ -67,14 +67,18 @@ bob/
 ### 1. Clone the repository
 
 ```bash
+# Clone into a fresh parent folder (e.g. ~/Projects). Do NOT clone into an existing
+# Unity Hub "Bob" project or an already-cloned Bob repo — that creates ~/…/Bob/Bob.
 git clone https://github.com/Bigessfour/Bob.git
 cd Bob
 ```
 
+The GitHub repo root **is** the Unity project (`Assets/Scenes/BobTraining.unity` lives at the top level). There is no nested `Bob/` folder on the remote.
+
 ### 2. Set up Unity
 
 1. Install [Unity Hub](https://unity.com/download) and **Unity 6 LTS** (6000.x) with **HDRP** (included with 3D HDRP template or add High Definition RP package)
-2. Open this repo as the Unity project (HDRP pipeline configured via `./scripts/validate-scene.sh`)
+2. Hub → **Open** → select **this** `Bob` folder (the one with `Assets/`, `config/`, `python/`) — not a parent directory
 3. In Package Manager, confirm `com.unity.ml-agents` (match version to `python/requirements.txt`)
 
 See [docs/setup-checklist.md](docs/setup-checklist.md) for the full M5 Mac checklist.
