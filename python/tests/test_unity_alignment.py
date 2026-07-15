@@ -192,6 +192,34 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/BobShotArcPreview.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobWallTrainingHud.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobNearBobTrainingHud.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobAudioFeedback.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/BobAudioFeedbackBuilder.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/BobInferenceDemo.cs").is_file()
+    assert (
+        repo_root / "Assets/Tests/PlayMode/BobScoreIncrementPlayModeTest.cs"
+    ).is_file()
+    assert (repo_root / "Assets/Audio/sfx_score.wav").is_file()
+    assert (
+        "MadeBasket = 3.0f"
+        in (repo_root / "Assets/Scripts/ArcAcademyRewards.cs").read_text()
+    )
+    assert "PlayScore" in (repo_root / "Assets/Scripts/HoopScoreZone.cs").read_text()
+    assert (
+        "BobAudioFeedbackBuilder.EnsureInScene"
+        in (
+            repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs"
+        ).read_text()
+    )
+    assert (
+        "Enable Inference Only"
+        in (repo_root / "Assets/Scripts/Editor/BobInferenceDemo.cs").read_text()
+    )
+    assert (
+        "RecordBasketballPoint"
+        in (
+            repo_root / "Assets/Tests/PlayMode/BobScoreIncrementPlayModeTest.cs"
+        ).read_text()
+    )
     assert (repo_root / "Assets/Scripts/BobScoreboardDisplay.cs").is_file()
     scoreboard_display = (
         repo_root / "Assets/Scripts/BobScoreboardDisplay.cs"

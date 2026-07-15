@@ -4,6 +4,7 @@
   "references": [
     "Bob",
     "Unity.ML-Agents",
+    "Unity.InferenceEngine",
     "Unity.RenderPipelines.Core.Runtime",
     "Unity.RenderPipelines.Core.Editor",
     "Unity.RenderPipelines.HighDefinition.Runtime",

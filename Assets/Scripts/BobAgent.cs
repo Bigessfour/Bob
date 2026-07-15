@@ -283,6 +283,7 @@ public class BobAgent : Agent
         if (ArcAcademyLayout.IsOutOfBounds(ObservationTransform.position))
         {
             GiveReward(-0.5f);
+            BobAudioFeedback.Instance?.PlayMiss();
             EndEpisode();
         }
     }

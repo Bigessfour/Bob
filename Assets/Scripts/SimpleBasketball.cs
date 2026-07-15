@@ -33,4 +33,12 @@ public class SimpleBasketball : MonoBehaviour
 
         BasketballProjectileSetup.UpdateTrailEmit(body);
     }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (Body != null && !Body.isKinematic)
+        {
+            BobAudioFeedback.Instance?.PlayBounce();
+        }
+    }
 }

@@ -1,6 +1,6 @@
 # Bob — Done Tracker
 
-**Last updated:** 2026-06-24 · **Branch:** `feature/simple-arc-academy`  
+**Last updated:** 2026-07-14 · **Branch:** `feature/dual-hud-scoreboard`  
 **Pin:** open this file in Cursor → right-click tab → **Pin Tab** (split beside Unity).
 
 North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md)
@@ -9,9 +9,9 @@ North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-
 
 ## MVP verdict
 
-**Done (infrastructure + Phase 3 artifacts)** — Week 1 gate verified; bob-v2 5 min batchmode session 2026-06-24 (`BOB_TRAIN_SESSION_DONE` 865 iter); plot refreshed; hero captures `022` + `TrainingView_Success.png`.
+**Demo-ready path in progress** — dual HUD + audio + PlayMode score test + inference menus shipped on `feature/dual-hud-scoreboard`. bob-v3 extended train + GIF + CloudFront URL remain the last demo gates.
 
-**Open (learning quality)** — Session success still low (~0.12%); launch shaping tuned for `bob-v3`. Follow-up PR to `main` pending.
+**Open** — bob-v3 rising success curve; training GIF; Terraform apply needs `aws login` on portfolio profile (`steve` session expired).
 
 ---
 
@@ -66,10 +66,14 @@ Prompts 5–6 are **vNext polish** — do not block Week 1 gate.
 
 - [x] Session plot → `docs/results/training_progress.png` (bob-v2 segment, 2026-06-24)
 - [x] **Phase 3 — extended bob-v2 training run** (5+ min @ 20×) + refresh plot
+- [x] Dual HUD — near-Bob float + wall RL console (2026-07-14)
+- [x] Audio juice — bounce / swish / score / miss (`BobAudioFeedback`)
+- [x] PlayMode score increment test (`BobScoreIncrementPlayModeTest`)
+- [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
+- [ ] **bob-v3** extended train + refreshed plot showing rising success
 - [ ] **Training GIF** for portfolio (`./scripts/capture-progress.sh --play`)
-- [ ] Follow-up PR — merge `feature/simple-arc-academy` → `main`
-- [ ] Terraform dev apply + CloudFront URL (**deferred** — do not deploy to AICO AWS account; scaffold + `terraform validate` in CI only)
-- [x] Prompts 1–2, 4–6 Play verification + hero screenshot (`docs/TrainingView_Success.png`)
+- [ ] Follow-up PR — merge `feature/dual-hud-scoreboard` → `main`
+- [ ] Terraform dev apply + CloudFront URL (**deferred** — portfolio AWS profile only; not AICO)
 
 ---
 

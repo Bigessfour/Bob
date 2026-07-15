@@ -89,10 +89,12 @@ public static class SimpleArcAcademyArenaBuilder
         {
             BobWallHudBuilder.EnsureWallTrainingHud(arena.transform);
             BobNearBobHudBuilder.EnsureNearBobTrainingHud(arena.transform);
+            BobAudioFeedbackBuilder.EnsureInScene();
         }
         else
         {
             BobWallHudLayout.ApplyActiveArenaLayout();
+            BobAudioFeedbackBuilder.EnsureInScene();
         }
 
         ApplyHardwoodCourtFloor();
@@ -235,6 +237,7 @@ public static class SimpleArcAcademyArenaBuilder
         EnsureSpawnAndManager(arenaRoot);
         BobWallHudBuilder.EnsureWallTrainingHud(arenaRoot.transform);
         BobNearBobHudBuilder.EnsureNearBobTrainingHud(arenaRoot.transform);
+        BobAudioFeedbackBuilder.EnsureInScene();
         SavePrefabFromInstance(arenaRoot);
         WireBobToArena(arenaRoot);
         EnsureSingleBasketball(arenaRoot);

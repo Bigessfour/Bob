@@ -59,10 +59,12 @@ public class HoopScoreZone : MonoBehaviour
         if (swish)
         {
             swishVfx?.PlaySwish();
+            BobAudioFeedback.Instance?.PlaySwish();
         }
 
         var agent = basketball.Owner;
         RecordBasketballPointAndNotify(agent, swish);
+        BobAudioFeedback.Instance?.PlayScore();
 
         return true;
     }
@@ -89,9 +91,11 @@ public class HoopScoreZone : MonoBehaviour
         if (swish)
         {
             swishVfx?.PlaySwish();
+            BobAudioFeedback.Instance?.PlaySwish();
         }
 
         RecordBasketballPointAndNotify(agent, swish);
+        BobAudioFeedback.Instance?.PlayScore();
     }
 
     /// <summary>

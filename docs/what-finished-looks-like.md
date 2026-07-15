@@ -90,7 +90,9 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 
 - [x] Lab room builder (grid floor, white walls, sideline `LabHero` camera)
 - [x] Wall-mounted training HUD (`BobWallTrainingHud` on `Wall_South`, back wall behind hoop)
+- [x] Near-Bob floating hero board (`BobNearBobTrainingHud`)
 - [x] Bob eyes + speech bubble + squash/stretch + power-path pulse
+- [x] Audio feedback (`BobAudioFeedback` bounce/swish/score/miss)
 - [x] `--play` captures: `arc-academy-lab-incremental-v1`, `arc-academy-ball-v1`, `arc-academy-lab-ux-v1`
 
 ### Phase 3 — Learning demo
@@ -98,14 +100,15 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 - [x] Session CSV export + `python/scripts/plot_training_progress.py`
 - [x] Plot copied to `docs/results/training_progress.png` (bob-v2 segment, 865 iterations @ 20×, 2026-06-24)
 - [x] Extended **bob-v2** training run after launch-direction rewards + refresh plot
+- [ ] Extended **bob-v3** run (MadeBasket=3.0 + stronger toward-hoop shaping) + refresh plot
 - [ ] Training GIF for portfolio
-- [ ] Optional inference `.onnx` demo
+- [x] Inference demo menus (`Bob → Demo → Enable Inference Only`) — assign exported `.onnx` under `Assets/Models/`
 
 ### Phase 4 — Publish
 
-- [ ] Terraform bootstrap + dev apply (**deferred** — not deployed to AICO AWS; use a separate portfolio AWS profile when ready)
-- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`) — hero `022` + training plot wired
-- [ ] CloudFront live demo URL in README (after non-AICO deploy)
+- [ ] Terraform bootstrap + dev apply (**deferred** — portfolio AWS profile; `aws login` required)
+- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`) — dual HUD write-up + GIF slot + training plot
+- [ ] CloudFront live demo URL in README (after portfolio deploy)
 
 ---
 
