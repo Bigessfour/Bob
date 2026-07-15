@@ -25,7 +25,7 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 - Unity 6 LTS (Personal)
 - ML-Agents Toolkit
 - C# + Python 3.10
-- Terraform for AWS hosting
+- GitHub Actions + Docker (CI)
 - GitHub + Cursor
 
 ## Timeline (Realistic Part-Time)
@@ -58,17 +58,14 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 - [x] Training GIF scaffold (`docs/progress/023-training-gif/`)
 - [ ] **Visible learning** — implement [ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + **bob-v4** train (rolling success >5%)
 
-### Week 3 — Polish + Deployment + Documentation
+### Week 3 — Polish + Documentation
 
-- [ ] **Priority stack** — [planning/next-14-days.md](planning/next-14-days.md) (P1–P6; bar **I**)
+- [ ] **Priority stack** — [planning/next-14-days.md](planning/next-14-days.md) (P1–P5; bar **I**; no AWS)
 - [ ] Portfolio polish — lab hero GIF + optional warehouse stretch still
 - [ ] Standalone macOS build + Recorder (`scripts/build-standalone.sh`, `scripts/capture-hero-video.sh`)
 - [ ] `scripts/release-checklist.sh` + optional CI build/capture step
 - [ ] `BobGameStateMachine.cs` + juice pass (after bob-v4 learning proves)
-- [ ] Terraform bootstrap applied (`terraform/bootstrap`)
-- [ ] Terraform dev stack applied (`terraform/environments/dev`)
-- [ ] Portfolio site synced to S3 + CloudFront invalidation (`docs/portfolio-site/` static HTML)
-- [ ] README demo link updated with CloudFront URL
+- [ ] README portfolio section links `docs/portfolio-site/` + latest GIF/plot
 - [ ] Technical write-up in `docs/`
 - [x] GitHub Actions CI smoke test (Python + Terraform validate)
 - [x] Portfolio site scaffold (`docs/portfolio-site/index.html`)
@@ -81,25 +78,16 @@ Bob is an **orange cube agent** that **shoots at one basketball hoop**, learning
 | Trainer         | PPO                                                                       | Default ML-Agents algorithm; good for continuous control           |
 | Behavior name   | `Bob`                                                                     | Matches agent character and config YAML                            |
 | Python version  | 3.10                                                                      | ML-Agents compatibility                                            |
-| Terraform state | S3 remote backend                                                         | Production-style DevOps; bootstrap creates state bucket            |
+| Terraform       | CI fmt/validate only                                                      | IaC smoke test in GitHub Actions; **Bob not hosted on AWS**        |
 | Render pipeline | HDRP 17 — **Lab mode** flat materials default; warehouse optional stretch |
-| Static hosting  | S3 + CloudFront OAC — portfolio site, not Unity WebGL                     |
+| Portfolio       | In-repo `docs/portfolio-site/` + README links                             | No S3/CloudFront deploy for this project                           |
 | CI              | GitHub Actions                                                            | pytest + Terraform validate + tflint + Docker build                |
 
 ## DevOps Milestones
 
-### Infrastructure (Week 3)
-
-- [ ] Apply `terraform/bootstrap` — state bucket + DynamoDB lock
-- [ ] Configure `backend.tf` from bootstrap outputs
-- [ ] Apply `terraform/environments/dev` — site bucket + CloudFront
-- [ ] Deploy portfolio site via `aws s3 sync docs/portfolio-site/`
-- [ ] Update `PROJECT.md` and README with live demo URL
-
 ### CI/CD
 
 - [x] Baseline CI: pytest + Terraform fmt/validate/tflint + Docker build
-- [ ] Automated S3 deploy + CloudFront invalidation on merge to `main` (portfolio site)
 
 ## Testing
 

@@ -30,10 +30,11 @@ Never commit directly to `main`. Use `feature/*` → PR → green CI.
 | --- | -------------------------------- | ------------------ |
 | 1   | ML Tier 1 in `BobAgent.cs`       | Not started (code) |
 | 2   | `build-standalone.sh` + Recorder | Not started        |
-| 3   | Terraform (portfolio AWS)        | Blocked            |
-| 4   | `BobGameStateMachine` + juice    | Partial            |
-| 5   | `release-checklist.sh` + CI      | Not started        |
-| 6   | Cursor RAG/MCP/skills            | Partial            |
+| 3   | `BobGameStateMachine` + juice    | Partial            |
+| 4   | `release-checklist.sh` + CI      | Not started        |
+| 5   | Cursor RAG/MCP/skills            | Partial            |
+
+**No AWS hosting** — portfolio is in-repo (`docs/portfolio-site/` + README).
 
 ### Do next (ML Tier 1 — Priority 1)
 
@@ -120,4 +121,4 @@ See [unity-mcp.md](unity-mcp.md)
 
 ## Completion standard
 
-Ship complete slices — no `TODO` stubs in code. If blocked (Editor-only, AWS auth), end turn with **Further development required** and concrete next steps.
+Ship complete slices — no `TODO` stubs in code. If blocked (Editor-only), end turn with **Further development required** and concrete next steps.

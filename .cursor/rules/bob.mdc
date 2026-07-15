@@ -32,7 +32,7 @@ Never propose direct commits to `main`. Reject scope that does not advance curre
 - **Unity 6 LTS** — game engine, scene, physics
 - **Unity ML-Agents** — `Agent` subclass in C#, Behavior Name = `Bob`
 - **Python 3.10** — training via `mlagents-learn`
-- **Terraform** — AWS portfolio site hosting (Week 3)
+- **GitHub Actions** — CI (pytest, Docker, Terraform fmt/validate only — **no AWS hosting**)
 
 ## Conventions
 
@@ -61,8 +61,7 @@ Never propose direct commits to `main`. Reject scope that does not advance curre
 
 ## DevOps
 
-- **Terraform:** `terraform/bootstrap/` (state bucket) → `terraform/environments/dev/` (S3 + CloudFront)
-- **CI:** `.github/workflows/ci.yml` — Python smoke test + Terraform fmt/validate
+- **CI:** `.github/workflows/ci.yml` — Python smoke test + Terraform fmt/validate (no AWS deploy)
 - **Docker:** `Dockerfile` for reproducible training deps (Unity Editor still runs on host)
 - **RAG:** ChromaDB index in `python/.rag/` — MCP server `bob-rag`; query before code edits (see `AGENTS.md`)
 - **Unity MCP:** MCP server `unity-mcp` — consult before Unity/scene/agent work with Editor open (see `docs/unity-mcp.md`)

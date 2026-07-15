@@ -13,7 +13,7 @@ North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-
 
 **Learning demo: Blocked on ML reward redesign** — bob-v2/v3 show **high arc (~67–74%)**, **0% makes**, **net RL negative**. Extended PPO alone will not fix this; implement **Tier 1** in [ml-training-recommendations.md](design/ml-training-recommendations.md), then **`RUN_ID=bob-v4`**.
 
-**Publish: Deferred** — Terraform apply needs `aws login` on portfolio profile (`steve` session expired); not AICO.
+**Publish:** Static portfolio in-repo — `docs/portfolio-site/` + README links. **No AWS hosting.**
 
 ---
 
@@ -65,7 +65,7 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] PlayMode test: make → +1 `BasketballPoints` (`BobScoreIncrementPlayModeTest`)
 - [ ] **Visible learning** — rolling success **>5%**, rising plot ([ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + bob-v4)
 - [ ] Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main` on green CI
-- [ ] CloudFront live URL (portfolio AWS profile)
+- [ ] README portfolio section links `docs/portfolio-site/` + latest hero/GIF/plot
 
 ---
 
@@ -84,7 +84,7 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ## vNext — implementation backlog (future agents)
 
-**Canonical 14-day stack:** [planning/next-14-days.md](planning/next-14-days.md) (priorities 1–6, status, missing agent capabilities).
+**Canonical 14-day stack:** [planning/next-14-days.md](planning/next-14-days.md) (priorities 1–5; no AWS hosting).
 
 ### Phase 3 — Learning (priority **1**)
 
@@ -100,11 +100,10 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [ ] `BobGameStateMachine.cs` + post-process / particle juice pass (after learning proves)
 - [ ] `scripts/release-checklist.sh` + optional CI build/capture step
 
-### Phase 4 — Publish (priority **3**)
+### Phase 4 — Ship (in-repo portfolio)
 
 - [ ] Merge **PR #10** → `main`
-- [ ] Terraform bootstrap + dev apply (**portfolio AWS profile only**; `aws login` required)
-- [ ] CloudFront URL in README + PROJECT.md
+- [ ] README portfolio section + `docs/portfolio-site/` synced with latest GIF/plot/hero
 
 ### Code / test debt
 

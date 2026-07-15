@@ -26,14 +26,14 @@ flowchart TD
     A["Vision<br/>Bob = Fun PPO Free-Throw Champion<br/>Portfolio + DevOps Showcase"]
     --> B["Week 1 - Setup and Foundations"]
     B --> C["Week 2 - Core Agent + Training Loop"]
-    C --> D["Week 3 - Polish + Portfolio Site + AWS Deploy"]
+    C --> D["Week 3 - Polish + Portfolio Docs"]
 
     subgraph WRLL["What Right Looks Like - Always True"]
         E["Protected main + feature/* branches<br/>Every change via PR + auto-merge on green CI"]
         F["80%+ test coverage<br/>Reproducible Docker + Python venv"]
         G["Clean C#, cheerful comments, portfolio-ready docs"]
-        H["Live demo URL in README + TensorBoard GIFs"]
-        I["Shippable builds + automated capture pipeline + live demo URL<br/>Feels like Cuphead — zero jank, full UX"]
+        H["README portfolio links + TensorBoard GIFs"]
+        I["Shippable builds + automated capture pipeline<br/>Feels like Cuphead — zero jank, full UX"]
     end
 
     B -->|Always| E
@@ -52,7 +52,7 @@ flowchart TD
 
 **Week 1** — foundations done; first training handshake verified.
 **Week 2** — Arc Academy MVP + dual HUD built; **learning blocked on ML reward redesign** ([ml-training-recommendations.md](design/ml-training-recommendations.md)).
-**Week 3** — polish artifacts in progress; Terraform apply deferred (portfolio AWS profile).
+**Week 3** — polish artifacts in progress; in-repo portfolio (`docs/portfolio-site/`). **No AWS hosting.**
 
 **New permanent quality bar I** added — shippable builds, automated capture pipeline, and Cuphead-level UX are now required before any PR merge.
 
@@ -114,8 +114,8 @@ Before suggesting or implementing changes, confirm:
 - [ ] **Hyperparameters** stay in `config/*.yaml`; **Behavior Name** stays `Bob`
 - [ ] **Docs updated** when behavior, workflow, or milestones change
 - [ ] **ML changes** align with [design/ml-training-recommendations.md](design/ml-training-recommendations.md) when touching rewards, obs, or training runs
-- [ ] **Production bar I** — shippable builds, capture pipeline, live demo URL, zero-jank UX before merge
-- [ ] **Portfolio artifacts** (GIFs, demo URL, progress gallery) tracked for Phase 3–4
+- [ ] **Production bar I** — shippable builds, capture pipeline, zero-jank UX before merge
+- [ ] **Portfolio artifacts** (GIFs, README links, progress gallery) tracked for Phase 3–4
 - [ ] **Product scope** aligns with [what-finished-looks-like.md](what-finished-looks-like.md) (agent, hoop, scoreboard vars, success graph)
 - [ ] **Visual changes** align with [docs/design/visual-vision.md](design/visual-vision.md) (Lab primary, warehouse stretch)
 

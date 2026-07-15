@@ -1,38 +1,40 @@
 # Bob — Next 14 Days (Priority Stack)
 
-**Captured:** 2026-07-14 (bedtime handoff)
+**Captured:** 2026-07-14 (bedtime handoff) · **Updated:** 2026-07-14 — **no AWS hosting** (Terraform in repo is CI validate only)
 **Branch:** `feature/dual-hud-scoreboard` · **PR:** [#10](https://github.com/Bigessfour/Bob/pull/10)
 **Live status:** [bob-done-tracker.md](../bob-done-tracker.md) · **ML detail:** [ml-training-recommendations.md](../design/ml-training-recommendations.md)
 
 Agents: read this before proposing scope. Do not start lower-priority work until Priority **1** ships (unless the user explicitly reprioritizes).
 
+**Hosting decision:** Bob is **not** deployed to AWS. Do not plan S3, CloudFront, or `terraform apply` for this project. The `terraform/` folder remains for **CI fmt/validate** only.
+
 ---
 
 ## Repo snapshot (2026-07-14)
 
-| Area                 | Status                                                                                    |
-| -------------------- | ----------------------------------------------------------------------------------------- |
-| `main`               | Healthy — CI green via `.github/workflows/ci.yml`                                         |
-| MVP handshake        | Works — `./scripts/train.sh` + Play → `BOB_TRAINING_OK`                                   |
-| Dual HUD + audio     | Shipped on PR #10                                                                         |
-| Learning demo        | **Blocked** — bob-v2/v3: ~67–74% arc, **0% makes**, net RL negative                       |
-| Production bar **I** | **Not met** — no standalone builds, automated hero video pipeline, or live CloudFront URL |
-| Agent skills         | `/bob-ml-agents-train`, `/bob-unity-mcp` in `.cursor/skills/` (docs + preflight only)     |
+| Area                 | Status                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `main`               | Healthy — CI green via `.github/workflows/ci.yml`                                    |
+| MVP handshake        | Works — `./scripts/train.sh` + Play → `BOB_TRAINING_OK`                              |
+| Dual HUD + audio     | Shipped on PR #10                                                                    |
+| Learning demo        | **Blocked** — bob-v2/v3: ~67–74% arc, **0% makes**, net RL negative                  |
+| Production bar **I** | **Not met** — no standalone builds or automated hero video pipeline yet              |
+| Portfolio            | Static write-up in `docs/portfolio-site/` + README links (no hosted deploy required) |
+| Agent skills         | `/bob-ml-agents-train`, `/bob-unity-mcp` in `.cursor/skills/`                        |
 
 ---
 
 ## Priority stack (7–14 days)
 
-| P     | Skill / area                                   | Why it moves the needle                              | Quick win                                                                                                                                                                                       | Est.      | **Status**                                           |
-| ----- | ---------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------- |
-| **1** | **ML-Agents Tier 1 reward / episode design**   | bob-v4 learning is the #1 blocker                    | Read [ml-training-recommendations.md](../design/ml-training-recommendations.md) → implement shot-resolved `EndEpisode()`, terminal miss proximity, gated per-step dist penalty in `BobAgent.cs` | 2–4 hr    | **Not started (code)** — doc + skill only            |
-| **2** | **Unity production builds + Recorder**         | Bar **I** — no standalone build or hero video yet    | Add `com.unity.recorder` → `scripts/build-standalone.sh` + `scripts/capture-hero-video.sh` (Apple Silicon native)                                                                               | 1–2 hr    | **Not started**                                      |
-| **3** | **Terraform + AWS CLI (portfolio profile)**    | Live CloudFront URL = “shipped” checkbox             | `aws login --profile portfolio` → `terraform -chdir=terraform/environments/dev apply`                                                                                                           | 30–60 min | **Blocked** — portfolio profile session expired      |
-| **4** | **C# state machine + juice systems**           | Cuphead-level polish (menus, pause, onboarding, VFX) | `BobGameStateMachine.cs` + post-process volume + particle systems                                                                                                                               | 3–5 hr    | **Partial** — audio/HUD/face exist; no state machine |
-| **5** | **Automated release checklist + CI extension** | Prevent regression before merge                      | Extend `ci.yml` + add `./scripts/release-checklist.sh` (build + capture smoke)                                                                                                                  | 1 hr      | **Not started**                                      |
-| **6** | **Cursor advanced workflow**                   | Leverage 3.8.23 fully                                | Composer multi-file, `@bob-rag`, inline `validate-scene.sh`, `.cursor/rules/bob.mdc`                                                                                                            | ongoing   | **Partial** — rules, RAG, MCP, skills wired          |
+| P     | Skill / area                                   | Why it moves the needle                              | Quick win                                                                                                                                                                                       | Est.    | **Status**                                           |
+| ----- | ---------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------- |
+| **1** | **ML-Agents Tier 1 reward / episode design**   | bob-v4 learning is the #1 blocker                    | Read [ml-training-recommendations.md](../design/ml-training-recommendations.md) → implement shot-resolved `EndEpisode()`, terminal miss proximity, gated per-step dist penalty in `BobAgent.cs` | 2–4 hr  | **Not started (code)** — doc + skill only            |
+| **2** | **Unity production builds + Recorder**         | Bar **I** — no standalone build or hero video yet    | Add `com.unity.recorder` → `scripts/build-standalone.sh` + `scripts/capture-hero-video.sh` (Apple Silicon native)                                                                               | 1–2 hr  | **Not started**                                      |
+| **3** | **C# state machine + juice systems**           | Cuphead-level polish (menus, pause, onboarding, VFX) | `BobGameStateMachine.cs` + post-process volume + particle systems                                                                                                                               | 3–5 hr  | **Partial** — audio/HUD/face exist; no state machine |
+| **4** | **Automated release checklist + CI extension** | Prevent regression before merge                      | Extend `ci.yml` + add `./scripts/release-checklist.sh` (build + capture smoke)                                                                                                                  | 1 hr    | **Not started**                                      |
+| **5** | **Cursor advanced workflow**                   | Leverage 3.8.23 fully                                | Composer multi-file, `@bob-rag`, inline `validate-scene.sh`, `.cursor/rules/bob.mdc`                                                                                                            | ongoing | **Partial** — rules, RAG, MCP, skills wired          |
 
-**Execution order:** 1 → 2 → 5 → 3 (when AWS auth works) → 4 (polish pass after learning proves).
+**Execution order:** 1 → 2 → 4 → 3 (polish pass after learning proves).
 
 ---
 
@@ -69,31 +71,17 @@ Skill: `/bob-ml-agents-train`
 | Unity Recorder package      | `Packages/manifest.json` → `com.unity.recorder`                                      |
 | macOS standalone build      | `scripts/build-standalone.sh` → `builds/macos/Bob.app`                               |
 | Hero video / GIF automation | `scripts/capture-hero-video.sh` (Recorder or existing `capture-progress.sh` wrapper) |
-| CI smoke (optional P5)      | Headless/batchmode build step or documented manual gate                              |
+| CI smoke (optional P4)      | Headless/batchmode build step or documented manual gate                              |
 
 Existing manual path: `./scripts/capture-progress.sh --play …` → `docs/progress/`.
+
+Portfolio: link README → `docs/portfolio-site/index.html` + progress gallery (no AWS deploy).
 
 Skill: `/bob-unity-mcp`
 
 ---
 
-## Priority 3 — AWS portfolio deploy
-
-**Profile:** `portfolio` (not AICO). User must run `aws login` locally first.
-
-```bash
-aws login --profile portfolio   # or aws configure --profile portfolio
-cd terraform/bootstrap && terraform init && terraform apply
-cd ../environments/dev && terraform init && terraform apply
-aws s3 sync docs/portfolio-site/ s3://<bucket>/ --profile portfolio
-# CloudFront invalidation per terraform outputs
-```
-
-Update README + `PROJECT.md` with live URL. Blocked until credentials work.
-
----
-
-## Priority 4 — Juice / state machine (Cuphead bar)
+## Priority 3 — Juice / state machine (Cuphead bar)
 
 **Partial today:** `BobAudioFeedback`, `BobFaceExpression`, `BobProceduralAnimator`, dual HUD, entrance controller.
 
@@ -108,7 +96,7 @@ Defer heavy juice until Priority **1** shows visible learning.
 
 ---
 
-## Priority 5 — Release checklist + CI
+## Priority 4 — Release checklist + CI
 
 **Deliverables:**
 
@@ -117,7 +105,7 @@ Defer heavy juice until Priority **1** shows visible learning.
 
 ---
 
-## Priority 6 — Cursor workflow (ongoing)
+## Priority 5 — Cursor workflow (ongoing)
 
 - **Rules:** `.cursor/rules/bob.mdc` — pin quality bar **I** from [what-right-looks-like.md](../what-right-looks-like.md)
 - **RAG:** `bob-rag` before code; reindex after significant edits
@@ -127,14 +115,21 @@ Defer heavy juice until Priority **1** shows visible learning.
 
 ---
 
-## Missing agent capabilities (workarounds)
+## Out of scope (do not plan)
 
-Things agents **cannot** do today — document so future turns do not pretend otherwise:
+| Removed                             | Reason                                                              |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| AWS S3 + CloudFront deploy          | **Not hosting Bob on AWS** — user decision 2026-07-14               |
+| `terraform apply` (bootstrap/dev)   | Terraform kept for CI validate only; no infrastructure to provision |
+| Portfolio AWS profile / `aws login` | Not required for this project                                       |
+
+---
+
+## Missing agent capabilities (workarounds)
 
 | Gap                                | Impact                                                      | Workaround                                                                                                        |
 | ---------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Direct Unity Play / scene bake** | Agents cannot press Play or run Recorder live               | User runs Play; use `unity-mcp` when bridge connected; batchmode `./scripts/validate-scene.sh` when Editor closed |
-| **AWS / Terraform apply**          | No portfolio profile in agent sandbox                       | User runs `aws login` + `terraform apply`; paste `terraform plan` output for review                               |
 | **Headless Unity builds in CI**    | No Linux/macOS Unity runner in CI today                     | `build-standalone.sh` on Mac host; optional Docker headless later                                                 |
 | **Live training monitor**          | No streaming TensorBoard/parser during `./scripts/train.sh` | Post-hoc: `summaries/bob_session.csv`, `plot_training_progress.py`, HUD in Play                                   |
 | **PR auto-merge**                  | Agents create PRs; merge requires green CI + user           | `gh pr merge` after checks; never force-push `main`                                                               |
@@ -149,7 +144,7 @@ Future idea: REST/CLI hook in `scripts/` for agent-triggered validate-after-edit
 2. [ ] `RUN_ID=bob-v4` train uninterrupted → refresh plot
 3. [ ] Priority **2** — build + capture scripts
 4. [ ] Merge PR #10 (or successor) on green CI
-5. [ ] Priority **3** — AWS login + Terraform when user available
+5. [ ] README portfolio section links `docs/portfolio-site/` + latest hero/GIF
 6. [ ] Update [bob-done-tracker.md](../bob-done-tracker.md) as each gate clears
 
 ---

@@ -30,15 +30,15 @@ Help design, implement, and document Bob — a cheerful orange cube that learns 
 
 ## Tech Stack
 
-| Layer               | Technology                                   |
-| ------------------- | -------------------------------------------- |
-| Game engine         | Unity 6 LTS                                  |
-| RL framework        | Unity ML-Agents Toolkit                      |
-| Agent / environment | C# (clean, well-commented)                   |
-| Training            | Python 3.10 (`mlagents-learn`)               |
-| Infrastructure      | Terraform (S3 + CloudFront on AWS Free Tier) |
-| CI/CD               | GitHub Actions                               |
-| Container           | Dockerfile for reproducible training deps    |
+| Layer               | Technology                                             |
+| ------------------- | ------------------------------------------------------ |
+| Game engine         | Unity 6 LTS                                            |
+| RL framework        | Unity ML-Agents Toolkit                                |
+| Agent / environment | C# (clean, well-commented)                             |
+| Training            | Python 3.10 (`mlagents-learn`)                         |
+| CI/CD               | GitHub Actions                                         |
+| Container           | Dockerfile for reproducible training deps              |
+| IaC (CI only)       | `terraform/` — fmt/validate in CI; **not hosting Bob** |
 
 ## Priorities
 
@@ -46,8 +46,8 @@ Help design, implement, and document Bob — a cheerful orange cube that learns 
 2. **Clean C#** — readable `Agent` subclasses, clear reward logic, match Behavior Name `Bob` to YAML config
 3. **Reproducible training** — configs in `config/`, venv in `python/`, Docker `bob-train`; **no script edits during Play training**
 4. **In-scene progress UI** — scoreboard + success graph (`BobTrainingStats`); TensorBoard for dev only
-5. **Visual portfolio assets** — training GIFs, progress gallery, reward/success plots
-6. **IaC-first DevOps** — Terraform bootstrap + dev stack on **portfolio AWS profile** (not AICO)
+5. **Visual portfolio assets** — training GIFs, progress gallery, reward/success plots; README links to `docs/portfolio-site/`
+6. **DevOps** — green CI, Docker training, PR workflow — **no AWS hosting for Bob**
 
 ## ML training rules (mandatory)
 
@@ -71,22 +71,20 @@ Canonical plan: **[docs/planning/next-14-days.md](docs/planning/next-14-days.md)
 | --- | ------------------------------------------------ | ----------------------------------- |
 | 1   | ML Tier 1 → bob-v4                               | **Not started (code)** — #1 blocker |
 | 2   | Standalone build + Recorder + hero video scripts | Not started                         |
-| 3   | Terraform / CloudFront (portfolio profile)       | Blocked on `aws login`              |
-| 4   | State machine + Cuphead juice                    | Partial (audio/HUD only)            |
-| 5   | `release-checklist.sh` + CI extension            | Not started                         |
-| 6   | Cursor workflow (RAG, MCP, skills)               | Partial                             |
+| 3   | State machine + Cuphead juice                    | Partial (audio/HUD only)            |
+| 4   | `release-checklist.sh` + CI extension            | Not started                         |
+| 5   | Cursor workflow (RAG, MCP, skills)               | Partial                             |
 
-Work top-down unless the user explicitly reprioritizes.
+Work top-down unless the user explicitly reprioritizes. **Do not** plan AWS/CloudFront deploy.
 
 ## Missing agent capabilities
 
 Agents **cannot** reliably do the following — do not pretend otherwise; use workarounds in [next-14-days.md](docs/planning/next-14-days.md#missing-agent-capabilities-workarounds):
 
 1. **Unity Play mode / live Recorder capture** — user runs Play; use `unity-mcp` when bridge is up; batchmode `./scripts/validate-scene.sh` when Editor is closed.
-2. **AWS `terraform apply` on portfolio profile** — user runs `aws login` locally; agents review plans and docs only.
-3. **Headless Unity builds in CI** — host Mac build via future `build-standalone.sh`; no Linux Unity runner in CI today.
-4. **Live training session monitor** — use post-hoc CSV, plots, and in-scene HUD; not streaming TensorBoard in agent context.
-5. **Auto-merge PRs** — create/push PRs; merge only after green CI and user intent.
+2. **Headless Unity builds in CI** — host Mac build via future `build-standalone.sh`; no Linux Unity runner in CI today.
+3. **Live training session monitor** — use post-hoc CSV, plots, and in-scene HUD; not streaming TensorBoard in agent context.
+4. **Auto-merge PRs** — create/push PRs; merge only after green CI and user intent.
 
 Future optional: agent-callable validate hook in `scripts/` after code edits.
 
@@ -237,7 +235,7 @@ Do not silently defer work in code comments—surface it in the turn summary so 
 | `config/`            | ML-Agents YAML trainer configs                                                                                                   |
 | `python/`            | venv, training scripts, visualization, **RAG** (`python/rag/`)                                                                   |
 | `python/.rag/`       | ChromaDB vector index (gitignored; rebuild via `./scripts/rag-index.sh`)                                                         |
-| `terraform/`         | AWS infrastructure (bootstrap + dev)                                                                                             |
+| `terraform/`         | IaC scaffold — **CI fmt/validate only**; not used to host Bob                                                                    |
 | `.github/workflows/` | CI pipelines                                                                                                                     |
 | `docs/`              | Setup guides, project plan, portfolio write-ups, **North Star**, **ML recommendations**, [instructions.md](docs/instructions.md) |
 
@@ -269,9 +267,6 @@ python scripts/plot_training_progress.py --output ../docs/results/training_progr
 
 # TensorBoard (dev only — not audience UI)
 tensorboard --logdir ../results
-
-# Terraform bootstrap (one-time)
-cd terraform/bootstrap && terraform init && terraform apply
 
 # Docker training image
 docker build -t bob-train . && docker run --rm bob-train
