@@ -74,8 +74,18 @@ public static class BobNearBobHudBuilder
             BobScoreboardDisplay.HeadlineColor);
         y -= 10f;
 
-        PlaceTopRow(panel.transform, "LastShotText", "Last  +0.0 RL   ·   Arc 0%",
-            BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 48f,
+        y = PlaceTopRow(panel.transform, "StatusText", "Inference fallback — start ./scripts/train.sh",
+            BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
+            new Color(1f, 0.55f, 0.45f));
+        y -= 8f;
+
+        y = PlaceTopRow(panel.transform, "LastShotText", "Last  +0.0 RL   ·   Arc 0%   ·   —",
+            BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
+            BobScoreboardDisplay.BodyColor);
+        y -= 8f;
+
+        PlaceTopRow(panel.transform, "LaunchText", "Launch a=(0,0,0)  F=(0,0,0)  toward 0.00",
+            BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
             BobScoreboardDisplay.BodyColor);
 
         hudRoot.AddComponent<BobNearBobTrainingHud>();

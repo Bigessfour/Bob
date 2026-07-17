@@ -194,6 +194,7 @@ public class BobAgent : Agent
         }
 
         GiveReward(reward);
+        FinalizeShotLog(scored: true, endReason: swish ? "swish" : "make");
         EndEpisode();
     }
 
@@ -218,7 +219,46 @@ public class BobAgent : Agent
         }
 
         BobAudioFeedback.Instance?.PlayMiss();
+        string reason = applyOutOfBoundsPenalty ? "oob" : ResolveMissReason();
+        FinalizeShotLog(scored: false, endReason: reason);
         EndEpisode();
+    }
+
+    private string ResolveMissReason()
+    {
+        if (stepsSinceShot >= ArcAcademyLayout.ShotResolveMaxSteps)
+        {
+            return "timeout";
+        }
+
+        if (TryResolveFloorContact())
+        {
+            return "floor";
+        }
+
+        if (settledStepCount >= ArcAcademyLayout.BallSettledStepsRequired)
+        {
+            return "settled";
+        }
+
+        if (rimApproachSign != 0 && hoop != null)
+        {
+            float pastRim = rimApproachSign * (ObservationTransform.position.z - hoop.position.z);
+            if (pastRim >= ArcAcademyLayout.RimPlaneMissTolerance)
+            {
+                return "rim_miss";
+            }
+        }
+
+        return "miss";
+    }
+
+    private void FinalizeShotLog(bool scored, string endReason)
+    {
+        var stats = BobTrainingStats.Instance;
+        stats?.RecordShotEndReason(endReason);
+        float net = stats != null ? stats.CurrentEpisodeNetReward : 0f;
+        BobShotActionLog.RecordResolution(scored, net, episodePeakArcQuality, endReason);
     }
 
     private bool IsShotInFlight()
@@ -375,6 +415,13 @@ public class BobAgent : Agent
                 }
             }
 
+            float towardDot = ComputeTowardHoopDot(impulse);
+            int iteration = BobTrainingStats.Instance != null ? BobTrainingStats.Instance.TotalIterations : 0;
+            bool training = BobTrainingConnectionMonitor.Instance != null
+                            && BobTrainingConnectionMonitor.Instance.IsTrainingConnected;
+            BobTrainingStats.Instance?.RecordLaunch(new Vector3(c[0], c[1], c[2]), impulse, towardDot);
+            BobShotActionLog.RecordLaunch(iteration, c[0], c[1], c[2], impulse, towardDot, training);
+
             ApplyLaunchDirectionRewards(impulse);
 
             GetComponent<BobProceduralAnimator>()?.NotifyShotImpulse();
@@ -448,6 +495,31 @@ public class BobAgent : Agent
         float alignmentScore = Mathf.Clamp01((alignment + 1f) * 0.5f);
 
         return (apexScore * 0.6f) + (alignmentScore * 0.4f);
+    }
+
+    private float ComputeTowardHoopDot(Vector3 impulse)
+    {
+        if (hoop == null)
+        {
+            return 0f;
+        }
+
+        Vector3 toHoop = hoop.position - ObservationTransform.position;
+        Vector3 toHoopFlat = new Vector3(toHoop.x, 0f, toHoop.z);
+        float horizontalDist = toHoopFlat.magnitude;
+        if (horizontalDist < 0.05f)
+        {
+            return 0f;
+        }
+
+        Vector3 impulseFlat = new Vector3(impulse.x, 0f, impulse.z);
+        float flatMag = impulseFlat.magnitude;
+        if (flatMag < 0.01f)
+        {
+            return 0f;
+        }
+
+        return Vector3.Dot(impulseFlat / flatMag, toHoopFlat / horizontalDist);
     }
 
     /// <summary>

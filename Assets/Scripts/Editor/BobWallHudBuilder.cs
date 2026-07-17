@@ -62,6 +62,21 @@ public static class BobWallHudBuilder
             useDetailStyle: true);
         y -= 8f;
 
+        PlaceTopRow(panel.transform, "EpisodesText", $"{BobScoreboardDisplay.EpisodesLabel}: 0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 28f,
+            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+        PlaceTopRow(panel.transform, "ScoreText", $"{BobScoreboardDisplay.ScoreLabel}: 0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 28f,
+            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+        y -= 28f;
+        y -= 6f;
+
+        y = PlaceTopRow(panel.transform, "SuccessText",
+            $"{BobScoreboardDisplay.SuccessLabel}: 0%  ·  Rolling 0%",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 28f,
+            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+        y -= 8f;
+
         PlaceTopRow(panel.transform, "RewardsText", "Rewards: +0.0",
             BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 28f,
             BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);

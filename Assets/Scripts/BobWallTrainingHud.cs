@@ -74,6 +74,22 @@ public class BobWallTrainingHud : MonoBehaviour
             titleText.text = "Lab Console · RL";
         }
 
+        if (episodesText != null)
+        {
+            episodesText.text = $"{BobScoreboardDisplay.EpisodesLabel}: {stats.TotalIterations}";
+        }
+
+        if (scoreText != null)
+        {
+            scoreText.text = $"{BobScoreboardDisplay.ScoreLabel}: {stats.BasketballPoints}";
+        }
+
+        if (successText != null)
+        {
+            successText.text =
+                $"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P0}  ·  Rolling {stats.RollingSuccessRate:P0}";
+        }
+
         if (arcText != null)
         {
             arcText.text =

@@ -16,6 +16,8 @@ public class BobNearBobTrainingHud : MonoBehaviour
     [SerializeField] private Text scoreText;
     [SerializeField] private Text successText;
     [SerializeField] private Text lastShotText;
+    [SerializeField] private Text statusText;
+    [SerializeField] private Text launchText;
 
     private void Awake()
     {
@@ -75,7 +77,26 @@ public class BobNearBobTrainingHud : MonoBehaviour
         if (lastShotText != null)
         {
             lastShotText.text =
-                $"Last  {stats.LastEpisodeNetReward:+0.0;-0.0} RL   ·   Arc {stats.LastEpisodePeakArcQuality:P0}";
+                $"Last  {stats.LastEpisodeNetReward:+0.0;-0.0} RL   ·   Arc {stats.LastEpisodePeakArcQuality:P0}" +
+                $"   ·   {stats.LastShotEndReason}";
+        }
+
+        var monitor = BobTrainingConnectionMonitor.Instance;
+        if (statusText != null)
+        {
+            statusText.text = monitor != null ? monitor.StatusLabel : "Play mode";
+            statusText.color = monitor != null && monitor.IsTrainingConnected
+                ? new Color(0.45f, 0.95f, 0.55f)
+                : new Color(1f, 0.55f, 0.45f);
+        }
+
+        if (launchText != null)
+        {
+            Vector3 a = stats.LastLaunchActions;
+            Vector3 f = stats.LastLaunchImpulse;
+            launchText.text =
+                $"Launch a=({a.x:+0.00;-0.00},{a.y:+0.00;-0.00},{a.z:+0.00;-0.00})  " +
+                $"F=({f.x:+0.0;-0.0},{f.y:+0.0;-0.0},{f.z:+0.0;-0.0})  toward {stats.LastTowardHoopDot:+0.00;-0.00}";
         }
     }
 
@@ -92,6 +113,8 @@ public class BobNearBobTrainingHud : MonoBehaviour
         scoreText ??= panel.Find("ScoreText")?.GetComponent<Text>();
         successText ??= panel.Find("SuccessText")?.GetComponent<Text>();
         lastShotText ??= panel.Find("LastShotText")?.GetComponent<Text>();
+        statusText ??= panel.Find("StatusText")?.GetComponent<Text>();
+        launchText ??= panel.Find("LaunchText")?.GetComponent<Text>();
     }
 
     private void EnsureReadableStyles()
@@ -106,5 +129,16 @@ public class BobNearBobTrainingHud : MonoBehaviour
             successText, BobScoreboardDisplay.FloatSuccessFontSize, BobScoreboardDisplay.HeadlineColor);
         BobScoreboardDisplay.ApplyFloatHeroTextStyle(
             lastShotText, BobScoreboardDisplay.FloatDetailFontSize, BobScoreboardDisplay.BodyColor, bold: false);
+        if (statusText != null)
+        {
+            BobScoreboardDisplay.ApplyFloatHeroTextStyle(
+                statusText, BobScoreboardDisplay.FloatDetailFontSize, new Color(1f, 0.55f, 0.45f), bold: false);
+        }
+
+        if (launchText != null)
+        {
+            BobScoreboardDisplay.ApplyFloatHeroTextStyle(
+                launchText, BobScoreboardDisplay.FloatDetailFontSize, BobScoreboardDisplay.BodyColor, bold: false);
+        }
     }
 }

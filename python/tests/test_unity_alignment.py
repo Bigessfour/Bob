@@ -305,10 +305,13 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "BobTrainingSessionLog" in stats
 
     assert (repo_root / "Assets/Scripts/BobTrainingSessionLog.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobShotActionLog.cs").is_file()
     assert (repo_root / "python/scripts/plot_training_progress.py").is_file()
+    assert (repo_root / "python/scripts/review_training_run.py").is_file()
 
     agent_src = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
     assert "episodePeakArcQuality" in agent_src
+    assert "BobShotActionLog.RecordLaunch" in agent_src
     assert "BobProceduralAnimator" in agent_src
     assert "ArcAcademyPowerPathPulse" in agent_src
 
