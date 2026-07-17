@@ -1,6 +1,6 @@
 # Bob — Done Tracker
 
-**Last updated:** 2026-07-14 · **Branch:** `feature/dual-hud-scoreboard` · **PR:** [#10](https://github.com/Bigessfour/Bob/pull/10)
+**Last updated:** 2026-07-17 · **Branch:** `main` · **Merged:** [#10](https://github.com/Bigessfour/Bob/pull/10), [#11](https://github.com/Bigessfour/Bob/pull/11) (Ollama AI Review)
 **Pin:** open this file in Cursor → right-click tab → **Pin Tab** (split beside Unity).
 
 North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md)
@@ -63,8 +63,9 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] Core loop in code (scene + agent + HUD + scoring)
 - [x] Dual HUD + audio + portfolio artifacts (hero `023`, GIF `023-training-gif`)
 - [x] PlayMode test: make → +1 `BasketballPoints` (`BobScoreIncrementPlayModeTest`)
-- [ ] **Visible learning** — rolling success **>5%**, rising plot ([ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + bob-v4)
-- [ ] Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main` on green CI
+- [ ] **Visible learning** — rolling success **>5%**, rising plot ([ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + bob-v4) — **trainer running `bob-v4`**
+- [x] Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main` on green CI
+- [x] Merge [PR #11](https://github.com/Bigessfour/Bob/pull/11) → `main` (Ollama AI Review)
 - [ ] README portfolio section links `docs/portfolio-site/` + latest hero/GIF/plot
 
 ---
@@ -102,7 +103,8 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ### Phase 4 — Ship (in-repo portfolio)
 
-- [ ] Merge **PR #10** → `main`
+- [x] Merge **PR #10** → `main`
+- [x] Merge **PR #11** → `main` (Ollama AI Review)
 - [ ] README portfolio section + `docs/portfolio-site/` synced with latest GIF/plot/hero
 
 ### Code / test debt

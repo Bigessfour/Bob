@@ -26,6 +26,17 @@ public class BobTrainingStats : MonoBehaviour
 
     public float LastEpisodePeakArcQuality { get; private set; }
 
+    /// <summary>Last continuous actions that produced a shot impulse (for HUD / run review).</summary>
+    public Vector3 LastLaunchActions { get; private set; }
+
+    /// <summary>Last world-space impulse applied to the projectile.</summary>
+    public Vector3 LastLaunchImpulse { get; private set; }
+
+    /// <summary>Dot of flat impulse vs flat toward-hoop (−1 away … +1 toward).</summary>
+    public float LastTowardHoopDot { get; private set; }
+
+    public string LastShotEndReason { get; private set; } = "—";
+
     public float NetSessionReward => TotalRewards - TotalPenalties;
 
     public float SessionSuccessRate =>
@@ -68,8 +79,24 @@ public class BobTrainingStats : MonoBehaviour
         LastEpisodeNetReward = 0f;
         CurrentEpisodeNetReward = 0f;
         LastEpisodePeakArcQuality = 0f;
+        LastLaunchActions = Vector3.zero;
+        LastLaunchImpulse = Vector3.zero;
+        LastTowardHoopDot = 0f;
+        LastShotEndReason = "—";
         m_RecentOutcomes.Clear();
         m_RecentArcQuality.Clear();
+    }
+
+    public void RecordLaunch(Vector3 actions, Vector3 impulse, float towardHoopDot)
+    {
+        LastLaunchActions = actions;
+        LastLaunchImpulse = impulse;
+        LastTowardHoopDot = towardHoopDot;
+    }
+
+    public void RecordShotEndReason(string reason)
+    {
+        LastShotEndReason = string.IsNullOrEmpty(reason) ? "—" : reason;
     }
 
     /// <param name="previousEpisodeScored">Whether the episode that just ended scored a basket.</param>
