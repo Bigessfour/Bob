@@ -1,0 +1,107 @@
+# Advisory PR review via ai-review + Ollama (local LLM, cached models).
+# Does NOT block merge — green pytest/terraform/docker CI remains the gate.
+name: AI Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      review-command:
+        type: choice
+        default: run-summary
+        options:
+          - run-summary
+          - run-inline
+          - run-context
+          - run
+        description: AI Review command
+      pull-request-number:
+        type: string
+        required: false
+        description: PR number (defaults to event PR on pull_request)
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  OLLAMA_HOST: 127.0.0.1:11434
+  REVIEW_MODEL: qwen2.5-coder:7b
+
+jobs:
+  ai-review:
+    name: Ollama AI Review
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Cache Ollama models
+        id: ollama-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama
+          key: ollama-ai-review-${{ hashFiles('.ai-review-models.txt') }}
+          restore-keys: |
+            ollama-ai-review-
+
+      - name: Install Ollama
+        uses: ai-action/setup-ollama@v2
+
+      - name: Start Ollama and pull model
+        run: |
+          ollama serve > /tmp/ollama-serve.log 2>&1 &
+          echo "Waiting for Ollama..."
+          for i in $(seq 1 45); do
+            if curl -sf "http://127.0.0.1:11434/api/tags" >/dev/null; then
+              echo "Ollama ready."
+              break
+            fi
+            sleep 2
+          done
+          if ! curl -sf "http://127.0.0.1:11434/api/tags" >/dev/null; then
+            echo "Ollama failed to start. Log:"
+            tail -50 /tmp/ollama-serve.log || true
+            exit 1
+          fi
+          if [[ "${{ steps.ollama-cache.outputs.cache-hit }}" == "true" ]]; then
+            echo "Model cache hit — skipping pull if already present."
+          else
+            echo "Cache miss — pulling ${REVIEW_MODEL} (saved for future runs)."
+          fi
+          ollama pull "${REVIEW_MODEL}"
+          ollama show "${REVIEW_MODEL}"
+
+      - name: Resolve PR number
+        id: pr
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "number=${{ inputs.pull-request-number }}" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Run AI Review
+        uses: Nikita-Filonov/ai-review@v0.71.0
+        with:
+          review-command: >-
+            ${{ github.event_name == 'pull_request' && 'run-summary' || inputs.review-command }}
+        env:
+          LLM__PROVIDER: OLLAMA
+          LLM__META__MODEL: qwen2.5-coder:7b
+          LLM__META__MAX_TOKENS: "4096"
+          LLM__META__TEMPERATURE: "0.2"
+          LLM__HTTP_CLIENT__API_URL: http://127.0.0.1:11434
+          LLM__HTTP_CLIENT__TIMEOUT: "600"
+          VCS__PROVIDER: GITHUB
+          VCS__PIPELINE__OWNER: ${{ github.repository_owner }}
+          VCS__PIPELINE__REPO: ${{ github.event.repository.name }}
+          VCS__PIPELINE__PULL_NUMBER: ${{ steps.pr.outputs.number }}
+          VCS__HTTP_CLIENT__API_URL: https://api.github.com
+          VCS__HTTP_CLIENT__API_TOKEN: ${{ secrets.GITHUB_TOKEN }}

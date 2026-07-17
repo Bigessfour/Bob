@@ -48,22 +48,22 @@ MVP loop + Arc Academy Lab + dual HUD are implemented. **bob-v2/v3** show high a
 
 ## Links
 
-| Resource                | Location                                                                                       |
-| ----------------------- | ---------------------------------------------------------------------------------------------- |
-| Portfolio write-up      | [`docs/portfolio-site/index.html`](docs/portfolio-site/index.html) (in-repo; link from README) |
-| CI workflow             | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)                                         |
-| Testing strategy        | [`docs/testing-strategy.md`](docs/testing-strategy.md)                                         |
-| Unity dev guide         | [`docs/unity-dev.md`](docs/unity-dev.md)                                                       |
-| Unity MCP (Editor)      | [`docs/unity-mcp.md`](docs/unity-mcp.md)                                                       |
-| Build progress gallery  | [`docs/progress/`](docs/progress/)                                                             |
-| **Product north star**  | [`docs/what-finished-looks-like.md`](docs/what-finished-looks-like.md)                         |
-| **Visual vision**       | [`docs/design/visual-vision.md`](docs/design/visual-vision.md)                                 |
-| Repository RAG          | [`docs/rag.md`](docs/rag.md)                                                                   |
-| Terraform (CI only)     | [`terraform/README.md`](terraform/README.md) — fmt/validate in CI; **not used for hosting**    |
-| Agent rules             | [`AGENTS.md`](AGENTS.md)                                                                       |
-| Setup guide             | [`docs/setup-checklist.md`](docs/setup-checklist.md)                                           |
-| Project plan            | [`docs/project-plan.md`](docs/project-plan.md)                                                 |
-| **North Star diagrams** | [`docs/what-right-looks-like.md`](docs/what-right-looks-like.md)                               |
+| Resource                | Location                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Portfolio write-up      | [`docs/portfolio-site/index.html`](docs/portfolio-site/index.html) (in-repo; link from README)                 |
+| CI workflow             | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) · [AI Review (Ollama)](.github/workflows/ai-review.yml) |
+| Testing strategy        | [`docs/testing-strategy.md`](docs/testing-strategy.md)                                                         |
+| Unity dev guide         | [`docs/unity-dev.md`](docs/unity-dev.md)                                                                       |
+| Unity MCP (Editor)      | [`docs/unity-mcp.md`](docs/unity-mcp.md)                                                                       |
+| Build progress gallery  | [`docs/progress/`](docs/progress/)                                                                             |
+| **Product north star**  | [`docs/what-finished-looks-like.md`](docs/what-finished-looks-like.md)                                         |
+| **Visual vision**       | [`docs/design/visual-vision.md`](docs/design/visual-vision.md)                                                 |
+| Repository RAG          | [`docs/rag.md`](docs/rag.md)                                                                                   |
+| Terraform (CI only)     | [`terraform/README.md`](terraform/README.md) — fmt/validate in CI; **not used for hosting**                    |
+| Agent rules             | [`AGENTS.md`](AGENTS.md)                                                                                       |
+| Setup guide             | [`docs/setup-checklist.md`](docs/setup-checklist.md)                                                           |
+| Project plan            | [`docs/project-plan.md`](docs/project-plan.md)                                                                 |
+| **North Star diagrams** | [`docs/what-right-looks-like.md`](docs/what-right-looks-like.md)                                               |
 
 ## DevOps Status
 

@@ -1,0 +1,47 @@
+# Bob — AI Review (Ollama, local/offline). See docs/ai-review.md
+llm:
+  provider: OLLAMA
+  meta:
+    # Code-specialized; good for Unity C#, Python, YAML. ~4.7GB Q4 — cached in CI.
+    model: qwen2.5-coder:7b
+    max_tokens: 4096
+    temperature: 0.2
+    num_ctx: 8192
+  http_client:
+    timeout: 600
+    api_url: http://127.0.0.1:11434
+
+vcs:
+  provider: GITHUB
+  http_client:
+    timeout: 120
+    api_url: https://api.github.com
+
+prompt:
+  summary_prompt_files:
+    - ./prompts/ai-review/bob-summary.md
+  inline_prompt_files:
+    - ./prompts/ai-review/bob-inline.md
+
+review:
+  mode: FULL_FILE_DIFF
+  dry_run: false
+  summary_tag: "#ai-review-summary"
+  inline_tag: "#ai-review-inline"
+  max_inline_comments: 15
+  ignore_changes:
+    - "docs/progress/**"
+    - "**/*.unity"
+    - "**/Library/**"
+    - "**/.rag/**"
+    - "python/.venv/**"
+  allow_changes:
+    - "Assets/Scripts/**"
+    - "config/**"
+    - "python/**"
+    - "scripts/**"
+    - "docs/**"
+    - ".github/**"
+
+logger:
+  level: INFO
