@@ -88,7 +88,7 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ### Phase 3 — Learning (priority **1**)
 
-- [ ] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty — **DONE (2026-07-17)**
+- [x] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty (2026-07-17)
 - [ ] **`RUN_ID=bob-v4`** extended train (30+ min @ 20×, uninterrupted Play) + refresh `docs/results/training_progress.png`
 - [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), Bob-local impulse, optional curriculum
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`

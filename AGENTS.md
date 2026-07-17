@@ -246,6 +246,7 @@ Do not silently defer work in code comments—surface it in the turn summary so 
 - [docs/bob-done-tracker.md](docs/bob-done-tracker.md) — **Live done / vNext checklist**
 - [docs/planning/next-14-days.md](docs/planning/next-14-days.md) — **14-day priority stack + missing capabilities**
 - [docs/instructions.md](docs/instructions.md) — **Agent quick reference**
+- [docs/ai-review.md](docs/ai-review.md) — **Ollama PR review** (advisory, cached models)
 - [docs/design/ai-warehouse-ops.md](docs/design/ai-warehouse-ops.md) — training handshake + stability
 - [docs/design/visual-vision.md](docs/design/visual-vision.md) — **Visual north star** (Arc Academy Lab + workflow)
 - [docs/what-right-looks-like.md](docs/what-right-looks-like.md) — **Workflow north star** (milestones + PR/CI)

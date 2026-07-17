@@ -618,6 +618,21 @@ def test_build_standalone_script_exists(repo_root: Path) -> None:
     assert "BobBuildCli.BuildStandaloneMacFromCli" in script.read_text()
 
 
+def test_ai_review_ollama_config_exists(repo_root: Path) -> None:
+    assert (repo_root / ".ai-review.yaml").is_file()
+    assert (repo_root / ".ai-review-models.txt").is_file()
+    cfg = (repo_root / ".ai-review.yaml").read_text()
+    assert "OLLAMA" in cfg
+    assert "qwen2.5-coder:7b" in cfg
+    models = (repo_root / ".ai-review-models.txt").read_text()
+    assert "qwen2.5-coder:7b" in models
+    workflow = (repo_root / ".github/workflows/ai-review.yml").read_text()
+    assert "actions/cache@v4" in workflow
+    assert "ollama-cache" in workflow or "Cache Ollama" in workflow
+    assert (repo_root / "scripts/setup-ai-review-ollama.sh").is_file()
+    assert (repo_root / "prompts/ai-review/bob-summary.md").is_file()
+
+
 def test_capture_progress_script_wires_hdrp_setup(repo_root: Path) -> None:
     script = (repo_root / "scripts/capture-progress.sh").read_text()
     assert "ArcAcademyHdrpSetup.EnsureHdrpFromCli" in script
