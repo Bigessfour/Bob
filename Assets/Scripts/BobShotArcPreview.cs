@@ -10,7 +10,7 @@ public class BobShotArcPreview : MonoBehaviour
     [SerializeField] private int arcSegments = 24;
     [SerializeField] private float sampleDelta = 0.05f;
     [SerializeField] private float launchSpeedThreshold = 0.5f;
-    [SerializeField] private float lineWidth = 0.04f;
+    [SerializeField] private float lineWidth = 0.025f;
 
     private LineRenderer lineRenderer;
     private bool previewShownThisEpisode;

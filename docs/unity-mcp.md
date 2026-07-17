@@ -105,15 +105,28 @@ Full built-in tool reference: [Unity MCP overview](https://docs.unity3d.com/Pack
 
 ## Troubleshooting
 
-| Symptom                         | Fix                                                                                                       |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Cursor: `unity-mcp` won't start | Run `chmod +x scripts/unity-mcp.sh`; open Unity once so relay installs to `~/.unity/relay/`               |
-| Tools list empty / calls fail   | Unity Editor closed, bridge **Stopped**, or Cursor not **Accepted** in Unity MCP settings                 |
-| `Session not ready` / timeouts  | Wait for domain reload after script compile; call `refresh_unity`; check bridge is Running                |
-| Multiple Unity instances        | `set_active_instance` with exact `Name@hash` from `unity_instances` resource                              |
-| Tool disabled                   | **Edit → Project Settings → AI → Unity MCP → Tools** — enable the tool or its group                       |
-| Package import errors           | Re-open project; confirm `com.unity.ai.assistant` in Package Manager                                      |
-| Duplicate MCP entries           | Remove global `unityMCP` / CoplayDev entries from `~/.cursor/mcp.json`; use **Bob/.cursor/mcp.json** only |
+| Symptom                         | Fix                                                                                                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cursor: `unity-mcp` won't start | Run `chmod +x scripts/unity-mcp.sh`; open Unity once so relay installs to `~/.unity/relay/`                                                 |
+| Tools list empty / calls fail   | Unity Editor closed, bridge **Stopped**, Cursor not **Accepted**, **or Unity opened the wrong folder** (see below)                          |
+| Empty Scene/Game (sky only)     | Hub opened a folder that is **not** the git repo (no `BobTraining.unity`) — open the folder that contains `Assets/Scenes/BobTraining.unity` |
+| `Session not ready` / timeouts  | Wait for domain reload after script compile; call `refresh_unity`; check bridge is Running                                                  |
+| Multiple Unity instances        | `set_active_instance` with exact `Name@hash` from `unity_instances` resource                                                                |
+| Tool disabled                   | **Edit → Project Settings → AI → Unity MCP → Tools** — enable the tool or its group                                                         |
+| Package import errors           | Re-open project; confirm `com.unity.ai.assistant` in Package Manager                                                                        |
+| Duplicate MCP entries           | Remove global `unityMCP` / CoplayDev entries from `~/.cursor/mcp.json`; use **Bob/.cursor/mcp.json** only                                   |
+
+### Wrong Unity Hub project path
+
+Canonical project path is the **git repo root** (folder with `Assets/Scenes/BobTraining.unity`, `config/`, `python/`). Example: `/Users/you/Bob`.
+
+1. Quit Unity.
+2. Hub → remove any entry whose `Assets/` does not contain `Scenes/BobTraining.unity`.
+3. **Add** → Open → select the git repo root.
+4. Edit → Project Settings → AI → Unity MCP → bridge **Running** → Accept Cursor.
+5. In Cursor MCP panel, restart **unity-mcp** (and **bob-rag** after `./scripts/setup-python.sh`).
+
+`scripts/unity-mcp.sh` passes `--project-path` to this repo so the relay does not attach to the wrong Editor.
 
 ## Unity AI Gateway (Grok BYOM)
 

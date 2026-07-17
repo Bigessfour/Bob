@@ -100,6 +100,24 @@ chmod +x scripts/unity-mcp.sh
 
 Open Unity → **Edit → Project Settings → AI → Unity MCP** → bridge **Running** → approve Cursor. Enable **`unity-mcp`** and **`bob-rag`** in MCP settings. Agents must consult Unity MCP before scene/agent/Assets edits. See [docs/unity-mcp.md](unity-mcp.md).
 
+### Agent skills (`.cursor/skills/`)
+
+Project-specific skills auto-apply when editing matching paths, or invoke explicitly in Agent chat:
+
+| Skill                  | Use for                                                         |
+| ---------------------- | --------------------------------------------------------------- |
+| `/bob-ml-agents-train` | PPO training, rewards, bob-v4, `BobAgent.cs`, `config/*.yaml`   |
+| `/bob-unity-mcp`       | Scenes, prefabs, Behavior Parameters, unity-mcp, validate-scene |
+
+Preflight scripts:
+
+```bash
+.cursor/skills/bob-ml-agents-train/scripts/check-training-handshake.sh
+.cursor/skills/bob-unity-mcp/scripts/preflight-unity-mcp.sh
+```
+
+See [docs/instructions.md](instructions.md#agent-skills-cursor) and [AGENTS.md](../AGENTS.md#agent-skills-cursor).
+
 ## Format on Save
 
 Enabled for C# and Python via workspace settings. For C#, ensure the C# extension is installed and OmniSharp is running (check status bar).

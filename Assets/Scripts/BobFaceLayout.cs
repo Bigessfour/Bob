@@ -15,10 +15,10 @@ public static class BobFaceLayout
     public static readonly Vector3 RightEyeLocalPosition = new(0.18f, 0.1f, -0.505f);
     public static readonly Vector3 MouthLocalPosition = new(0f, -0.1f, -0.505f);
 
-    /// <summary>~26% of face width — readable from sideline camera (AI Warehouse scale).</summary>
-    public static readonly Vector3 ScleraLocalScale = new(0.26f, 0.26f, 0.08f);
-    public static readonly Vector3 PupilLocalScale = new(0.1f, 0.1f, 0.05f);
-    public static readonly Vector3 PupilLocalOffset = new(0f, 0f, -0.04f);
+    /// <summary>~32% of face width — readable from 3/4 lab camera (AI Warehouse Albert scale).</summary>
+    public static readonly Vector3 ScleraLocalScale = new(0.32f, 0.32f, 0.1f);
+    public static readonly Vector3 PupilLocalScale = new(0.13f, 0.13f, 0.06f);
+    public static readonly Vector3 PupilLocalOffset = new(0f, 0f, -0.045f);
 
     public const float DefaultExpressionScale = 1f;
     public const float FocusExpressionScale = 0.65f;

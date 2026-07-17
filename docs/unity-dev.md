@@ -121,6 +121,7 @@ Arc Academy uses **HDRP** in the Unity Editor. **Default visual target** is the 
 
 | What you want               | Where to click                                                               |
 | --------------------------- | ---------------------------------------------------------------------------- |
+| Open the training lab scene | **Bob → Open BobTraining Scene** (or `Assets/Scenes/BobTraining.unity`)      |
 | Fix white / blown-out scene | **Hierarchy → TrainingArena** → Inspector → **Fix White Blowout (In-Place)** |
 | Same fix via menu           | **Top menu bar** → **Bob** → **HDRP** → **Fix White Blowout (In-Place)**     |
 | ML-Agents / shooting tuning | **Hierarchy → Bob** → Inspector (Behavior Parameters, forces)                |
@@ -131,6 +132,43 @@ Arc Academy uses **HDRP** in the Unity Editor. **Default visual target** is the 
 **No Bob top menu?** Check Console for red compile errors; wait for scripts to finish compiling, then look on the macOS menu bar between **Window** and **Help**.
 
 **CLI (Editor must be closed):** `./scripts/fix-hdrp-blowout.sh`
+
+### Scene / Game view is empty (only sky + Camera / Sun gizmos)
+
+That is almost always a **default Untitled scene**, not the training lab. `BobTraining.unity` on disk has the full arena (~150+ meshes).
+
+1. Check the Hierarchy window title / scene tab — you want **`BobTraining`**, not `Untitled`.
+2. **Bob → Open BobTraining Scene** (or double-click `Assets/Scenes/BobTraining.unity`).
+3. Press **F** in Scene view with `SimpleArcAcademyArena` selected (the menu also frames the view).
+4. Press **Play** and watch the **Game** tab — you should see the court, Bob, and hoop.
+
+If Hierarchy lists `TrainingArena` / `SimpleArcAcademyArena` but the Game view is still empty sky, then use the lighting fixes below.
+
+### Game view is pixelated but Scene looks fine
+
+Almost always the Game tab **Scale** slider (toolbar above the Game view) is set above **1x** (e.g. 4.2x). That only zooms the editor preview — it does not change the scene.
+
+- Drag **Scale** to **1** (or **Bob → Polish → Reset Game View Scale (1x)**)
+- Prefer resolution **Free Aspect** or a 16:9 preset at Scale 1x
+- Then **Bob → Polish → Fix Bob Lab Visuals (AI Warehouse)** and Play
+
+### Floor is black grid instead of wood court
+
+Default Floor uses **`Mat_Floor_Hardwood`** (warm wood) with the blue **KeyPaint** overlay on top. If you still see charcoal squares:
+
+1. **Stop Play** and wait for compile to finish
+2. **Bob → Polish → Apply Hardwood Court Floor** (or Fix Bob Lab Visuals)
+3. Press Play → Game tab
+
+Do not edit scripts while Play is active — that disconnects training (`BOB_TRAINING_COMPILE_DURING_PLAY`).
+
+### Bob looks like an orange circle / no eyes
+
+Bob is a **cube**; the round orange object is the **basketball**. Eyes face the hoop (-Z). Run:
+
+**Bob → Polish → Fix Bob Lab Visuals (AI Warehouse)**
+
+That refreshes the orange body, larger Unlit eyes, and a 3/4 camera that shows Bob’s face + hoop. Then Play → **Game** tab.
 
 ### Scene looks dark, blown out, or blurry
 
@@ -172,8 +210,8 @@ Ignore: Unity Licensing 404, `NoSubscription` AI generators, MCP WebSocket error
 
 ### Training arena layout
 
-**Visual north star:** [`docs/design/visual-vision.md`](design/visual-vision.md)  
-**Primary reference:** [`docs/design/ai-warehouse-lab-reference.png`](design/ai-warehouse-lab-reference.png)  
+**Visual north star:** [`docs/design/visual-vision.md`](design/visual-vision.md)
+**Primary reference:** [`docs/design/ai-warehouse-lab-reference.png`](design/ai-warehouse-lab-reference.png)
 **Stretch reference:** [`docs/design/arc-academy-reference.jpg`](design/arc-academy-reference.jpg)
 
 `BobTrainingSceneBuilder` creates the training scene under `TrainingArena`. **Lab mode** (target) simplifies the warehouse build; current builder still produces the full warehouse until Phase 2 lands.

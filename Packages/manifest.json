@@ -7,6 +7,7 @@
     "com.unity.render-pipelines.high-definition": "17.0.4",
     "com.unity.services.cloudcode": "2.10.3",
     "com.unity.services.cloudsave": "3.4.1",
+    "com.unity.test-framework": "1.4.5",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",
     "com.unity.modules.ai": "1.0.0",

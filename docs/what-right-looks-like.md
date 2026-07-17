@@ -15,7 +15,7 @@
 | **Before a PR**   | Verify feature branch → green CI → merge to `main`; never commit directly to `main`                         |
 | **Agent turns**   | Reference this doc in [AGENTS.md](../AGENTS.md); query `bob-rag` with `what-right-looks-like` for alignment |
 
-If a proposed change does not advance a milestone **and** satisfy at least one permanent quality bar (E–H below), defer it.
+If a proposed change does not advance a milestone **and** satisfy at least one permanent quality bar (E–I below), defer it.
 
 ---
 
@@ -26,29 +26,35 @@ flowchart TD
     A["Vision<br/>Bob = Fun PPO Free-Throw Champion<br/>Portfolio + DevOps Showcase"]
     --> B["Week 1 - Setup and Foundations"]
     B --> C["Week 2 - Core Agent + Training Loop"]
-    C --> D["Week 3 - Polish + Portfolio Site + AWS Deploy"]
+    C --> D["Week 3 - Polish + Portfolio Docs"]
 
     subgraph WRLL["What Right Looks Like - Always True"]
         E["Protected main + feature/* branches<br/>Every change via PR + auto-merge on green CI"]
         F["80%+ test coverage<br/>Reproducible Docker + Python venv"]
         G["Clean C#, cheerful comments, portfolio-ready docs"]
-        H["Live demo URL in README + TensorBoard GIFs"]
+        H["README portfolio links + TensorBoard GIFs"]
+        I["Shippable builds + automated capture pipeline<br/>Feels like Cuphead — zero jank, full UX"]
     end
 
     B -->|Always| E
     C -->|Always| F
     D -->|Always| G
     D -->|Always| H
+    D -->|Always| I
 
     style A fill:#FF6200,stroke:#fff,color:#fff
     style E fill:#22d3ee,stroke:#fff
     style F fill:#a855f7,stroke:#fff
     style G fill:#eab308,stroke:#fff
+    style H fill:#f97316,stroke:#fff
+    style I fill:#10b981,stroke:#fff,color:#052e16
 ```
 
-**Week 1** — foundations done (Unity, CI, agent, scene CLI); **first training run still open**.  
-**Week 2** — Arc Academy MVP built locally; prove training loop, then reward shaping + GIFs.  
-**Week 3** — polish, portfolio static site (GIFs + write-up), Terraform apply, live CloudFront URL.
+**Week 1** — foundations done; first training handshake verified.
+**Week 2** — Arc Academy MVP + dual HUD built; **learning blocked on ML reward redesign** ([ml-training-recommendations.md](design/ml-training-recommendations.md)).
+**Week 3** — polish artifacts in progress; in-repo portfolio (`docs/portfolio-site/`). **No AWS hosting.**
+
+**New permanent quality bar I** added — shippable builds, automated capture pipeline, and Cuphead-level UX are now required before any PR merge.
 
 ---
 
@@ -63,7 +69,7 @@ flowchart LR
         C["python/<br/>requirements.txt<br/>tests/<br/>scripts/plot_rewards.py"]
         D["terraform/<br/>bootstrap/<br/>environments/dev/"]
         E[".github/workflows/<br/>ci.yml - pytest + terraform + docker"]
-        F["docs/<br/>testing-strategy.md<br/>setup-checklist.md<br/>reward-curves/"]
+        F["docs/<br/>testing-strategy.md<br/>setup-checklist.md<br/>ml-training-recommendations.md"]
     end
 
     G["Dev Workflow"] --> H["Create feature/xxx branch"]
@@ -81,17 +87,35 @@ flowchart LR
 
 ---
 
+## 3. ML training alignment (agents)
+
+Use skill **`/bob-ml-agents-train`** or read [ml-training-recommendations.md](design/ml-training-recommendations.md) before reward/training work.
+
+Before changing `BobAgent`, rewards, observations, or `config/bob_free_throw.yaml`:
+
+- [ ] Read [design/ml-training-recommendations.md](design/ml-training-recommendations.md) — canonical ML evaluation + Tier 1/2/3 backlog
+- [ ] **Do not** expect bob-v2/v3 policies to show makes — arc quality ≠ success; implement bob-v4 Tier 1 first
+- [ ] **Episode design:** single-shot tasks must `EndEpisode()` on make, miss, or short timeout — not only OOB
+- [ ] **Sparse rewards:** pair extrinsic make reward with terminal miss proximity and/or **Behavioral Cloning** demos
+- [ ] **Training stability:** no script saves or Play toggles during an active `./scripts/train.sh` session
+- [ ] **Success metric:** track **makes / 1k episodes** and rolling success % — not arc quality alone
+- [ ] **Hyperparameters** stay in `config/*.yaml`; **Behavior Name** stays `Bob` (obs count changes need validator + alignment tests)
+
+---
+
 ## Alignment checklist (agents)
 
 Before suggesting or implementing changes, confirm:
 
-- [ ] Task maps to **current week** in [PROJECT.md](../PROJECT.md) (see Current Milestone)
+- [ ] Task maps to **current milestone** in [PROJECT.md](../PROJECT.md), [bob-done-tracker.md](bob-done-tracker.md), and [planning/next-14-days.md](planning/next-14-days.md)
 - [ ] Change respects **repo layout** (Assets, config, python, terraform, docs — not ad-hoc paths)
 - [ ] Work happens on **`feature/*`** (or fix branch), not direct commits to `main`
 - [ ] **CI must pass** before merge (pytest, Terraform, Docker build)
 - [ ] **Hyperparameters** stay in `config/*.yaml`; **Behavior Name** stays `Bob`
 - [ ] **Docs updated** when behavior, workflow, or milestones change
-- [ ] **Portfolio artifacts** (GIFs, demo URL, progress gallery) tracked for Week 2–3
+- [ ] **ML changes** align with [design/ml-training-recommendations.md](design/ml-training-recommendations.md) when touching rewards, obs, or training runs
+- [ ] **Production bar I** — shippable builds, capture pipeline, zero-jank UX before merge
+- [ ] **Portfolio artifacts** (GIFs, README links, progress gallery) tracked for Phase 3–4
 - [ ] **Product scope** aligns with [what-finished-looks-like.md](what-finished-looks-like.md) (agent, hoop, scoreboard vars, success graph)
 - [ ] **Visual changes** align with [docs/design/visual-vision.md](design/visual-vision.md) (Lab primary, warehouse stretch)
 
@@ -100,6 +124,9 @@ Before suggesting or implementing changes, confirm:
 ## Related
 
 - [**What finished looks like**](what-finished-looks-like.md) — product definition (agent, hoop, scoreboard, success graph)
+- [**ML training recommendations**](design/ml-training-recommendations.md) — reward/episode fixes + bob-v4 plan
+- [**Agent skills**](../.cursor/skills/) — `/bob-ml-agents-train`, `/bob-unity-mcp` (see [instructions.md](instructions.md#agent-skills-cursor))
+- [**14-day priority stack**](planning/next-14-days.md) — P1–P6 backlog + missing agent capabilities
 - [**Visual vision**](design/visual-vision.md) — Arc Academy Lab look + visual workflow
 - [project-plan.md](project-plan.md) — week-by-week checklist
 - [testing-strategy.md](testing-strategy.md) — coverage targets toward 80%+

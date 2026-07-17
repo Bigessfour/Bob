@@ -4,7 +4,7 @@
 
 A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube — learns to shoot perfect free throws in a 3D basketball court. Inspired by AI Warehouse training videos, this project showcases an entertaining learning curve with visual training progress, ideal for a portfolio piece.
 
-**Live demo:** Portfolio site scaffold at [`docs/portfolio-site/`](docs/portfolio-site/) (local / GitHub Pages–ready). **AWS deploy is not run against the AICO account** — Terraform remains CI-validated scaffold only until a separate personal/portfolio AWS profile is configured.
+**Live demo:** Portfolio write-up at [`docs/portfolio-site/`](docs/portfolio-site/) — link from README; no AWS hosting required.
 
 **Project status:** See [PROJECT.md](PROJECT.md) | **Product:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) | **Visual:** [docs/design/visual-vision.md](docs/design/visual-vision.md) | **Workflow:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agents:** [AGENTS.md](AGENTS.md)
 
@@ -22,7 +22,7 @@ Bob is an **orange cube** that learns to **shoot at one basketball hoop** throug
 - Bob agent (`Behavior Name: Bob`) — iterative shots toward hoop
 - In-scene scoreboard + success graph (`BobTrainingStats`)
 - `./scripts/train.sh` + Play for ML-Agents training
-- Portfolio static site on AWS (Week 3)
+- Portfolio static site in-repo ([`docs/portfolio-site/`](docs/portfolio-site/))
 
 ## Stretch Goals
 
@@ -32,14 +32,14 @@ Bob is an **orange cube** that learns to **shoot at one basketball hoop** throug
 
 ## Tech Stack
 
-| Layer               | Technology                       |
-| ------------------- | -------------------------------- |
-| Engine              | Unity 6 LTS (Personal)           |
-| RL Framework        | Unity ML-Agents Toolkit          |
-| Agent / Environment | C#                               |
-| Training            | Python 3.10 + `mlagents`         |
-| Hosting             | Terraform + AWS (portfolio site) |
-| Tooling             | GitHub, Cursor                   |
+| Layer               | Technology                                 |
+| ------------------- | ------------------------------------------ |
+| Engine              | Unity 6 LTS (Personal)                     |
+| RL Framework        | Unity ML-Agents Toolkit                    |
+| Agent / Environment | C#                                         |
+| Training            | Python 3.10 + `mlagents`                   |
+| Hosting             | In-repo portfolio (`docs/portfolio-site/`) |
+| Tooling             | GitHub, Cursor                             |
 
 ## Repository Structure
 
@@ -67,14 +67,18 @@ bob/
 ### 1. Clone the repository
 
 ```bash
+# Clone into a fresh parent folder (e.g. ~/Projects). Do NOT clone into an existing
+# Unity Hub "Bob" project or an already-cloned Bob repo — that creates ~/…/Bob/Bob.
 git clone https://github.com/Bigessfour/Bob.git
 cd Bob
 ```
 
+The GitHub repo root **is** the Unity project (`Assets/Scenes/BobTraining.unity` lives at the top level). There is no nested `Bob/` folder on the remote.
+
 ### 2. Set up Unity
 
 1. Install [Unity Hub](https://unity.com/download) and **Unity 6 LTS** (6000.x) with **HDRP** (included with 3D HDRP template or add High Definition RP package)
-2. Open this repo as the Unity project (HDRP pipeline configured via `./scripts/validate-scene.sh`)
+2. Hub → **Open** → select **this** `Bob` folder (the one with `Assets/`, `config/`, `python/`) — not a parent directory
 3. In Package Manager, confirm `com.unity.ml-agents` (match version to `python/requirements.txt`)
 
 See [docs/setup-checklist.md](docs/setup-checklist.md) for the full M5 Mac checklist.

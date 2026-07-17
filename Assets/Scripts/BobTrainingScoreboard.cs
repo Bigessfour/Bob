@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// On-screen training scoreboard fallback for warehouse scenes without a wall HUD.
-/// In Simple Arc Academy lab view, <see cref="BobWallTrainingHud"/> on Wall_South is canonical.
+/// On-screen training scoreboard fallback for warehouse scenes without in-scene HUDs.
+/// In Simple Arc Academy lab view, <see cref="BobNearBobTrainingHud"/> + wall console are canonical.
 /// </summary>
 public class BobTrainingScoreboard : MonoBehaviour
 {
@@ -23,7 +23,7 @@ public class BobTrainingScoreboard : MonoBehaviour
             return;
         }
 
-        if (SimpleArcAcademyArena.IsLabViewActive && BobWallTrainingHud.Instance != null)
+        if (BobWallTrainingHud.Instance != null || BobNearBobTrainingHud.Instance != null)
         {
             return;
         }

@@ -2,20 +2,23 @@
 
 Supplement to [`.cursor/rules/bob.mdc`](rules/bob.mdc) and [`AGENTS.md`](../AGENTS.md).
 
-**North Star:** [docs/what-right-looks-like.md](../docs/what-right-looks-like.md) — align infrastructure and CI work with the milestone flowchart and PR workflow diagram.
+**North Star:** [docs/what-right-looks-like.md](../docs/what-right-looks-like.md) — align CI and release work with the milestone flowchart and PR workflow diagram.
 
-## Infrastructure as Code
+**Hosting:** Bob is **not** deployed to AWS. Do not plan `terraform apply`, S3 sync, or CloudFront for this project.
 
-- **All AWS resources** must be defined in `terraform/` — no manual console-only setup without matching IaC
-- Apply order: `terraform/bootstrap/` first (state bucket), then `terraform/environments/dev/`
+## Infrastructure as Code (CI only)
+
+- `terraform/` exists for **GitHub Actions fmt/validate/tflint** — not for provisioning Bob hosting
 - Never commit `terraform.tfvars` with real values; use `terraform.tfvars.example`
-- Document bootstrap outputs and backend configuration steps in `terraform/README.md`
+- Do not add AWS deploy steps to CI unless the user explicitly changes hosting strategy
 
 ## Documentation for Portfolio
 
 - Document every major step in `docs/` for the portfolio write-up
 - Update [`PROJECT.md`](../PROJECT.md) status when milestones complete
-- Capture training progress (GIFs, TensorBoard screenshots, reward plots) in Week 2
+- Capture training progress (GIFs, success plots) — re-capture after **bob-v4** policy lands
+- Portfolio deliverable: in-repo [`docs/portfolio-site/`](../docs/portfolio-site/) + README links
+- **ML changes:** follow [ml-training-recommendations.md](../docs/design/ml-training-recommendations.md); update [bob-done-tracker.md](../docs/bob-done-tracker.md) when gates move
 
 ## Reproducibility
 
@@ -28,9 +31,9 @@ Supplement to [`.cursor/rules/bob.mdc`](rules/bob.mdc) and [`AGENTS.md`](../AGEN
 
 - Clear, descriptive commit messages focused on _why_
 - No secrets, API keys, or `.tfstate` files in the repo
-- Use GitHub Secrets for CI credentials when deploy pipeline is added (Week 3)
+- Use GitHub Secrets for CI credentials only if future deploy pipeline is scoped
 
 ## CI/CD Progression
 
-1. **Now:** Python smoke test + Terraform fmt/validate
-2. **Week 3:** Portfolio static site deploy (S3 sync + CloudFront invalidation)
+1. **Now:** Python smoke test + Terraform fmt/validate + Docker build
+2. **Next:** `scripts/release-checklist.sh` + optional macOS build/capture smoke (see [next-14-days.md](../docs/planning/next-14-days.md))

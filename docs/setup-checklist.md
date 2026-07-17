@@ -22,17 +22,25 @@ Step-by-step guide to get Bob training locally on Apple Silicon.
 
 > **No WebGL module** — Bob uses HDRP, which does not support WebGL. Week 3 deploy is a static portfolio site on S3/CloudFront.
 
-## 2. Create Unity Project at Repo Root
+## 2. Open the cloned repo in Unity Hub (preferred)
+
+This repo **already is** a Unity project. After `git clone …/Bob.git && cd Bob`:
+
+1. Unity Hub → **Open** → choose that `Bob` folder (must contain `Assets/Scenes/BobTraining.unity`, `config/`, `python/`)
+2. Do **not** create a new empty Hub project named `Bob` above the clone — that yields `…/Bob/` (empty) + `…/Bob/Bob/` (real repo)
+3. Do **not** run `git clone` again inside an existing Bob folder — same nested `Bob/Bob` mess
+
+> **Important:** One folder only. Hub + Cursor + MCP all point at the git repo root.
+
+### Alternate: Create Unity Project at Repo Root
+
+Only if you scaffolded the git repo before Unity assets existed:
 
 1. Open Unity Hub → **New project**
 2. Template: **3D (HDRP)** or open this repo directly (pipeline configured by `./scripts/validate-scene.sh`)
 3. Project name: `Bob` (or match repo folder name)
-4. Location: **repo root** — e.g. `/Users/you/Bob/Bob` (same folder as `config/`, `python/`, `docs/`)
+4. Location: **the git repo root** — e.g. `/Users/you/Bob` (same folder as `config/`, `python/`, `docs/`)
 5. Click **Create project**
-
-Unity will create `Assets/`, `ProjectSettings/`, and `Packages/` alongside existing scaffold folders.
-
-> **Important:** Do not create the project in a nested subfolder. ML-Agents and this repo layout expect Unity at the root.
 
 ## 3. Install ML-Agents in Unity
 

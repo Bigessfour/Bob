@@ -24,8 +24,9 @@ Restart Cursor so [`.cursor/mcp.json`](../.cursor/mcp.json) loads the **`bob-rag
 
 ### Before code edits
 
-1. MCP: `rag_query` with task + target file path
-2. Align implementation with retrieved patterns (behavior names, reward logic, CLI conventions)
+1. MCP: `rag_query` with task + target file path — include ML terms when touching rewards (`bob-v4`, `miss proximity`, `EndEpisode`)
+2. For reward/training work: also query `ml-training-recommendations` and read [bob-done-tracker.md](bob-done-tracker.md)
+3. Align implementation with retrieved patterns (behavior names, reward logic, CLI conventions)
 
 ### After significant changes per turn
 
@@ -60,13 +61,23 @@ python scripts/rag_query.py -q "reward shaping" --json
 
 Defined in [`python/rag/settings.py`](../python/rag/settings.py):
 
-- `AGENTS.md`, `PROJECT.md`, `README.md`
+- `AGENTS.md`, `PROJECT.md`, `README.md`, `docs/instructions.md`
+- `docs/bob-done-tracker.md`, `docs/design/ml-training-recommendations.md`
 - `Assets/Scripts/`, `Assets/Editor/`
 - `config/`, `docs/`, `scripts/`, `terraform/`
 - `python/rag/`, `python/scripts/`
 - `.cursor/rules/`, `.cursor/project-rules.md`
 
 Skips binaries, `Library/`, `.venv/`, `results/`, files over 256 KB.
+
+## Agent skills (`.cursor/skills/`)
+
+| Skill                 | Triggers on                                      |
+| --------------------- | ------------------------------------------------ |
+| `bob-ml-agents-train` | `BobAgent.cs`, `config/*.yaml`, ML training docs |
+| `bob-unity-mcp`       | `Assets/**`, Unity MCP / scene work              |
+
+Invoke: `/bob-ml-agents-train` or `/bob-unity-mcp` in Agent chat.
 
 ## Week 2 extension (play-mode captures)
 

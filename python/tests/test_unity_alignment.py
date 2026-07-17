@@ -160,8 +160,29 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert "LabCameraFieldOfView" in arena
     assert "LabBehindBobCameraPosition" in arena
     assert "GetHeroCameraPosition" in arena
+    assert "11f, 3.5f, -2.2f" in arena
+    assert (
+        "PolishBobLabVisuals"
+        in (
+            repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs"
+        ).read_text()
+    )
+    assert (
+        "CreateArcLineMaterial"
+        in (
+            repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs"
+        ).read_text()
+    )
+    assert (
+        "0.32f, 0.32f, 0.1f"
+        in (repo_root / "Assets/Scripts/BobFaceLayout.cs").read_text()
+    )
     assert "LabHudWorldX" in arena
     assert "LabHudWorldZ" in arena
+    assert "LabHudCanvasSize = new(800f, 850f)" in arena
+    assert "NearBobHudCanvasSize = new(900f, 560f)" in arena
+    assert "NearBobHudWorldPosition" in arena
+    assert "WallSouthScale = new(22f, 4f, 1f)" in arena
     assert "WallSouthName" in arena
     assert "LabHudWallName = WallSouthName" in arena
     assert "ShowBudgetFlavorProps" in arena
@@ -170,12 +191,42 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/BasketballProjectileSetup.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobShotArcPreview.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobWallTrainingHud.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobNearBobTrainingHud.cs").is_file()
+    assert (repo_root / "Assets/Scripts/BobAudioFeedback.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/BobAudioFeedbackBuilder.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/BobInferenceDemo.cs").is_file()
+    assert (
+        repo_root / "Assets/Tests/PlayMode/BobScoreIncrementPlayModeTest.cs"
+    ).is_file()
+    assert (repo_root / "Assets/Audio/sfx_score.wav").is_file()
+    assert (
+        "MadeBasket = 3.0f"
+        in (repo_root / "Assets/Scripts/ArcAcademyRewards.cs").read_text()
+    )
+    assert "PlayScore" in (repo_root / "Assets/Scripts/HoopScoreZone.cs").read_text()
+    assert (
+        "BobAudioFeedbackBuilder.EnsureInScene"
+        in (
+            repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs"
+        ).read_text()
+    )
+    assert (
+        "Enable Inference Only"
+        in (repo_root / "Assets/Scripts/Editor/BobInferenceDemo.cs").read_text()
+    )
+    assert (
+        "RecordBasketballPoint"
+        in (
+            repo_root / "Assets/Tests/PlayMode/BobScoreIncrementPlayModeTest.cs"
+        ).read_text()
+    )
     assert (repo_root / "Assets/Scripts/BobScoreboardDisplay.cs").is_file()
     scoreboard_display = (
         repo_root / "Assets/Scripts/BobScoreboardDisplay.cs"
     ).read_text()
     assert "EpisodesLabel" in scoreboard_display
     assert "ApplyReadableTextStyle" in scoreboard_display
+    assert "ApplyFloatHeroTextStyle" in scoreboard_display
     assert "ConfigureCanvasScaler" in scoreboard_display
     assert (repo_root / "Assets/Scripts/BobProceduralAnimator.cs").is_file()
     assert (repo_root / "Assets/Scripts/BobFaceExpression.cs").is_file()
@@ -189,18 +240,37 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     assert (repo_root / "Assets/Scripts/ArcAcademyPowerPathPulse.cs").is_file()
     assert (repo_root / "Assets/Scripts/ArcAcademyLabSceneCleanup.cs").is_file()
     assert (repo_root / "Assets/Scripts/Editor/BobWallHudBuilder.cs").is_file()
+    assert (repo_root / "Assets/Scripts/Editor/BobNearBobHudBuilder.cs").is_file()
     wall_hud_layout = (repo_root / "Assets/Scripts/BobWallHudLayout.cs").read_text()
     assert "PlaceHudOnSouthWall" in wall_hud_layout
+    assert "ApplyNearBobHudLayout" in wall_hud_layout
     assert "WallWestName" in wall_hud_layout
+    assert "InverseParentScale" in wall_hud_layout
+    assert "CompensateCanvasScale" in wall_hud_layout
     wall_hud_builder = (
         repo_root / "Assets/Scripts/Editor/BobWallHudBuilder.cs"
     ).read_text()
     assert "BobWallHudLayout.ApplyLabHudLayout" in wall_hud_builder
     assert "BobScoreboardDisplay.ConfigureCanvasScaler" in wall_hud_builder
-    assert "EpisodesText" in wall_hud_builder
+    assert "GraphImage" in wall_hud_builder
+    assert "Lab Console" in wall_hud_builder
     assert "ArcText" in wall_hud_builder
     assert "ApplyReadableTextStyle" in wall_hud_builder
     assert "CameraFacingBillboard" in wall_hud_builder
+    near_bob_builder = (
+        repo_root / "Assets/Scripts/Editor/BobNearBobHudBuilder.cs"
+    ).read_text()
+    assert "EnsureNearBobTrainingHud" in near_bob_builder
+    assert "BobNearBobTrainingHud" in near_bob_builder
+    assert "EpisodesText" in near_bob_builder
+    assert (
+        "FloatHeroFontSize" in near_bob_builder
+        or "FloatHeroFontSize" in scoreboard_display
+    )
+    builder = (
+        repo_root / "Assets/Scripts/Editor/SimpleArcAcademyArenaBuilder.cs"
+    ).read_text()
+    assert "BobNearBobHudBuilder.EnsureNearBobTrainingHud" in builder
     assert (repo_root / "Assets/Scripts/Editor/SimpleArenaTextureFactory.cs").is_file()
 
     builder = (
@@ -421,8 +491,13 @@ def test_arc_academy_layout_and_scripts_exist(repo_root: Path) -> None:
     scoreboard = (repo_root / "Assets/Scripts/BobTrainingScoreboard.cs").read_text()
     assert "BobScoreboardDisplay.EpisodesLabel" in scoreboard
     wall_hud = (repo_root / "Assets/Scripts/BobWallTrainingHud.cs").read_text()
-    assert "BobScoreboardDisplay.EpisodesLabel" in wall_hud
+    assert "Lab Console" in wall_hud
     assert "ArcText" in wall_hud
+    near_bob_hud = (repo_root / "Assets/Scripts/BobNearBobTrainingHud.cs").read_text()
+    assert "BobScoreboardDisplay.EpisodesLabel" in near_bob_hud
+    assert (
+        "FloatHeroFontSize" in near_bob_hud or "ApplyFloatHeroTextStyle" in near_bob_hud
+    )
     assert (repo_root / "Assets/Scripts/BobPhysicsLayers.cs").is_file()
     assert (repo_root / "Assets/Scripts/SpawnPadPulse.cs").is_file()
     assert (repo_root / "Assets/Scripts/CameraFacingBillboard.cs").is_file()
@@ -513,17 +588,34 @@ def test_bob_court_layout_referenced_in_builder(repo_root: Path) -> None:
 
 def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     agent = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    layout = (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
     assert "ArcAcademyLayout" in agent
     assert "RegisterMadeShot" in agent
     assert "CalculateArcQuality" in agent
     assert "ApplyLaunchDirectionRewards" in agent
-    assert (
-        "LaunchRadicallyWrongFlatPenalty"
-        in (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
-    )
+    assert "LaunchRadicallyWrongFlatPenalty" in layout
     assert "ApplyFlightDirectionPenalties" in agent
     assert "NotifyEpisodeBegin" in agent
+    assert "ResolveEpisodeAsMiss" in agent
+    assert "MissProximityRewardScale" in layout
+    assert "ShotResolveMaxSteps" in layout
+    assert "PerStepDistancePenaltyScale" in layout
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
+
+
+def test_release_checklist_script_exists(repo_root: Path) -> None:
+    script = repo_root / "scripts/release-checklist.sh"
+    assert script.is_file()
+    text = script.read_text()
+    assert "validate-scene.sh" in text
+    assert "test_unity_alignment.py" in text
+    assert "RELEASE_CHECKLIST_OK" in text
+
+
+def test_build_standalone_script_exists(repo_root: Path) -> None:
+    script = repo_root / "scripts/build-standalone.sh"
+    assert script.is_file()
+    assert "BobBuildCli.BuildStandaloneMacFromCli" in script.read_text()
 
 
 def test_capture_progress_script_wires_hdrp_setup(repo_root: Path) -> None:

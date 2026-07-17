@@ -11,10 +11,18 @@ public static class BobScoreboardDisplay
     public const string ArcLabel = "Arc";
     public const string ScoreLabel = "Score";
 
-    public const int HeadlineFontSize = 24;
-    public const int BodyFontSize = 15;
-    public const int DetailFontSize = 12;
-    public const int TitleFontSize = 18;
+    public const int HeadlineFontSize = 36;
+    public const int BodyFontSize = 22;
+    public const int DetailFontSize = 16;
+    public const int TitleFontSize = 28;
+
+    /// <summary>Near-Bob floating board — oversized for lab-camera readability.</summary>
+    public const int FloatHeroFontSize = 72;
+    public const int FloatScoreFontSize = 64;
+    public const int FloatSuccessFontSize = 56;
+    public const int FloatDetailFontSize = 36;
+    public const int FloatTitleFontSize = 40;
+    public static readonly Vector2 FloatOutlineDistance = new(2.5f, -2.5f);
 
     public const float CanvasReferencePixelsPerUnit = 100f;
     public static readonly Color HeadlineColor = Color.white;
@@ -33,6 +41,31 @@ public static class BobScoreboardDisplay
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
         scaler.scaleFactor = 1f;
         scaler.referencePixelsPerUnit = CanvasReferencePixelsPerUnit;
+    }
+
+    public static void ApplyFloatHeroTextStyle(Text text, int fontSize, Color color, bool bold = true)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.color = color;
+        text.fontSize = fontSize;
+        text.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+        text.alignment = TextAnchor.MiddleLeft;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+
+        var outline = text.GetComponent<Outline>();
+        if (outline == null)
+        {
+            outline = text.gameObject.AddComponent<Outline>();
+        }
+
+        outline.effectColor = OutlineColor;
+        outline.effectDistance = FloatOutlineDistance;
+        outline.useGraphicAlpha = true;
     }
 
     public static void ApplyReadableTextStyle(Text text, bool headline)

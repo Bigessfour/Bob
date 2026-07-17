@@ -194,7 +194,7 @@ public static class ArcAcademyLayout
     public const float IdealLaunchUpRatio = 0.62f;
 
     /// <summary>Reward when horizontal impulse aims toward the hoop (XZ plane).</summary>
-    public const float LaunchTowardHoopRewardScale = 0.35f;
+    public const float LaunchTowardHoopRewardScale = 0.45f;
 
     /// <summary>Extra penalty scale when horizontal impulse points away from the hoop.</summary>
     public const float LaunchAwayFromHoopPenaltyScale = 0.85f;
@@ -219,6 +219,16 @@ public static class ArcAcademyLayout
 
     /// <summary>Per-step penalty when ball velocity points away from the hoop mid-flight.</summary>
     public const float FlightAwayFromHoopPenaltyScale = 0.15f;
+
+    // bob-v4 Tier 1 — shot-resolved episodes + terminal miss proximity
+    public const float MissProximityRewardScale = 0.75f;
+    public const float MissProximityMaxDist = 6f;
+    public const float PerStepDistancePenaltyScale = 0.002f;
+    public const int ShotResolveMaxSteps = 75;
+    public const float CourtFloorContactHeight = 0.38f;
+    public const float BallSettledSpeedThreshold = 0.4f;
+    public const int BallSettledStepsRequired = 10;
+    public const float RimPlaneMissTolerance = 0.15f;
 
     public static Vector3 RimWorldPosition(Vector3 hoopRootPosition, Vector3 rimLocalPosition)
     {

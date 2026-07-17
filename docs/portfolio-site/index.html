@@ -93,29 +93,51 @@
     <main>
       <figure class="hero">
         <img
-          src="../progress/022-2026-06-24-lab-hero-v2/capture.png"
-          alt="Bob training lab with wall HUD, orange Bob, and sideline camera"
+          src="../progress/023-dual-hud-hero/capture.png"
+          alt="Bob training lab with near-Bob float HUD, wall console, orange Bob"
         />
         <figcaption>
-          Arc Academy Lab — wall metrics, dual success/arc graph, Bob launcher +
-          basketball.
+          Arc Academy Lab — large near-Bob scoreboard (Episodes / Score /
+          Success), Wall_South RL console + graph, Bob launcher + basketball.
         </figcaption>
       </figure>
 
       <section>
         <h2>What you see in Play</h2>
+        <p>
+          Bob is a Deep RL free-throw agent: each episode he aims and shoots a
+          basketball at one hoop. Made baskets add +1 score; PPO reshapes aim
+          over thousands of shots. Audience progress lives on in-scene boards —
+          not TensorBoard.
+        </p>
         <ul>
           <li>One Bob launcher + one basketball per iteration</li>
           <li>
-            Wall-mounted training HUD (iterations, score, RL rewards/penalties,
-            success + arc quality graph)
+            <strong>Near-Bob floating HUD</strong> — oversized Episodes, Score,
+            Success %, last-shot RL (camera-facing)
           </li>
           <li>
-            Speech bubble on made baskets; squash/stretch and eye expressions on
-            Bob
+            <strong>Wall console</strong> — cumulative RL rewards/penalties/net
+            + rolling success/arc graph
           </li>
-          <li>Floor power-path pulse on each shot release</li>
+          <li>
+            Speech bubble, squash/stretch, eyes, power-path pulse, SFX on
+            bounce/swish/score
+          </li>
         </ul>
+      </section>
+
+      <section>
+        <h2>Training clip</h2>
+        <figure class="hero">
+          <img
+            src="../progress/023-training-gif/capture.gif"
+            alt="Bob training session GIF"
+          />
+          <figcaption>
+            Play-mode capture of the learning loop (bob-v3 session).
+          </figcaption>
+        </figure>
       </section>
 
       <section>
@@ -126,8 +148,8 @@
             alt="Bob session success rate and rolling arc quality over iterations"
           />
           <figcaption>
-            In-scene metrics from <code>summaries/bob_session.csv</code> —
-            bob-v2 training segment (PPO @ 20×).
+            In-scene metrics from <code>summaries/bob_session.csv</code> — PPO
+            training segment @ 20× time scale.
           </figcaption>
         </figure>
       </section>

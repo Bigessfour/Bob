@@ -19,6 +19,9 @@ using UnityEngine;
 ///
 /// Reward shaping at launch penalizes sideways/backward/downward impulses and rewards
 /// upward arc toward the hoop (see ApplyLaunchDirectionRewards).
+///
+/// bob-v4 Tier 1: episodes end when the shot resolves (rim miss, floor, settle, or step cap),
+/// with terminal miss proximity reward and gated per-step distance penalty.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class BobAgent : Agent
@@ -47,6 +50,9 @@ public class BobAgent : Agent
     private float scorePulseTimer;
     private float episodePeakArcQuality;
     private bool shotImpulseThisEpisode;
+    private int stepsSinceShot;
+    private int settledStepCount;
+    private int rimApproachSign;
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private Color baseEmissive = new(1f, 0.38f, 0f);
 
@@ -111,6 +117,9 @@ public class BobAgent : Agent
         scoredThisEpisode = false;
         trackingArc = false;
         shotImpulseThisEpisode = false;
+        stepsSinceShot = 0;
+        settledStepCount = 0;
+        rimApproachSign = 0;
         episodePeakArcQuality = 0f;
         shotPeakHeight = ObservationTransform.position.y;
         shotStartHeight = ObservationTransform.position.y;
@@ -188,6 +197,113 @@ public class BobAgent : Agent
         EndEpisode();
     }
 
+    private void ResolveEpisodeAsMiss(bool applyOutOfBoundsPenalty = false)
+    {
+        if (scoredThisEpisode)
+        {
+            return;
+        }
+
+        if (hoop != null)
+        {
+            Vector3 pos = ObservationTransform.position;
+            float xzDist = new Vector2(pos.x - hoop.position.x, pos.z - hoop.position.z).magnitude;
+            float proximity = 1f - Mathf.Clamp01(xzDist / ArcAcademyLayout.MissProximityMaxDist);
+            GiveReward(proximity * ArcAcademyLayout.MissProximityRewardScale);
+        }
+
+        if (applyOutOfBoundsPenalty)
+        {
+            GiveReward(-0.5f);
+        }
+
+        BobAudioFeedback.Instance?.PlayMiss();
+        EndEpisode();
+    }
+
+    private bool IsShotInFlight()
+    {
+        return shotImpulseThisEpisode
+               && ObservationTransform.position.y > ArcAcademyLayout.CourtFloorContactHeight;
+    }
+
+    private bool TryResolveShotAfterImpulse()
+    {
+        if (!shotImpulseThisEpisode || scoredThisEpisode)
+        {
+            return false;
+        }
+
+        stepsSinceShot++;
+
+        if (stepsSinceShot >= ArcAcademyLayout.ShotResolveMaxSteps)
+        {
+            ResolveEpisodeAsMiss();
+            return true;
+        }
+
+        if (TryResolveRimPlaneMiss())
+        {
+            ResolveEpisodeAsMiss();
+            return true;
+        }
+
+        if (TryResolveFloorContact())
+        {
+            ResolveEpisodeAsMiss();
+            return true;
+        }
+
+        if (TryResolveBallSettled())
+        {
+            ResolveEpisodeAsMiss();
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryResolveRimPlaneMiss()
+    {
+        if (hoop == null || rimApproachSign == 0)
+        {
+            return false;
+        }
+
+        Vector3 pos = ObservationTransform.position;
+        float pastRim = rimApproachSign * (pos.z - hoop.position.z);
+        if (pastRim < ArcAcademyLayout.RimPlaneMissTolerance)
+        {
+            return false;
+        }
+
+        float rimHeight = hoop.position.y;
+        return pos.y <= rimHeight + 1.2f && pos.y >= ArcAcademyLayout.CourtFloorContactHeight;
+    }
+
+    private bool TryResolveFloorContact()
+    {
+        return ObservationTransform.position.y <= ArcAcademyLayout.CourtFloorContactHeight;
+    }
+
+    private bool TryResolveBallSettled()
+    {
+        if (ActionRigidbody == null)
+        {
+            return false;
+        }
+
+        if (ActionRigidbody.linearVelocity.sqrMagnitude
+            > ArcAcademyLayout.BallSettledSpeedThreshold * ArcAcademyLayout.BallSettledSpeedThreshold)
+        {
+            settledStepCount = 0;
+            return false;
+        }
+
+        settledStepCount++;
+        return settledStepCount >= ArcAcademyLayout.BallSettledStepsRequired;
+    }
+
     private void GiveReward(float amount)
     {
         AddReward(amount);
@@ -222,6 +338,11 @@ public class BobAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+        if (BobGameStateMachine.Instance != null && BobGameStateMachine.Instance.IsPaused)
+        {
+            return;
+        }
+
         if (entrance != null && entrance.IsActive)
         {
             return;
@@ -243,6 +364,16 @@ public class BobAgent : Agent
             Vector3 impulse = new Vector3(fx, fy, fz);
             ActionRigidbody.AddForce(impulse, ForceMode.Impulse);
             shotImpulseThisEpisode = true;
+            stepsSinceShot = 0;
+            settledStepCount = 0;
+            if (hoop != null)
+            {
+                rimApproachSign = (int)Mathf.Sign(hoop.position.z - transform.position.z);
+                if (rimApproachSign == 0)
+                {
+                    rimApproachSign = 1;
+                }
+            }
 
             ApplyLaunchDirectionRewards(impulse);
 
@@ -256,13 +387,22 @@ public class BobAgent : Agent
             GiveReward(-0.005f);
         }
 
+        if (TryResolveShotAfterImpulse())
+        {
+            return;
+        }
+
         ApplyFlightDirectionPenalties();
 
         Vector3 toHoop = hoop.position - ObservationTransform.position;
         float xzDist = new Vector2(toHoop.x, toHoop.z).magnitude;
-        GiveReward(-0.002f * xzDist);
 
-        if (trackingArc)
+        if (IsShotInFlight())
+        {
+            GiveReward(-ArcAcademyLayout.PerStepDistancePenaltyScale * xzDist);
+        }
+
+        if (trackingArc && IsShotInFlight())
         {
             if (ObservationTransform.position.y > shotPeakHeight)
             {
@@ -282,8 +422,7 @@ public class BobAgent : Agent
 
         if (ArcAcademyLayout.IsOutOfBounds(ObservationTransform.position))
         {
-            GiveReward(-0.5f);
-            EndEpisode();
+            ResolveEpisodeAsMiss(applyOutOfBoundsPenalty: true);
         }
     }
 

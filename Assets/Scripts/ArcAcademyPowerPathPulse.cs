@@ -9,7 +9,7 @@ public class ArcAcademyPowerPathPulse : MonoBehaviour
     public static ArcAcademyPowerPathPulse Instance { get; private set; }
 
     [SerializeField] private float pulseDuration = 0.6f;
-    [SerializeField] private float lineWidth = 0.35f;
+    [SerializeField] private float lineWidth = 0.12f;
     [SerializeField] private float lineHeight = 0.04f;
 
     private LineRenderer lineRenderer;
