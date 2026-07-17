@@ -11,7 +11,7 @@ North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-
 
 **Infrastructure + polish: Done** — training handshake, dual HUD, audio, PlayMode score test, inference menus, hero + GIF artifacts on `feature/dual-hud-scoreboard`.
 
-**Learning demo: Blocked on ML reward redesign** — bob-v2/v3 show **high arc (~67–74%)**, **0% makes**, **net RL negative**. Extended PPO alone will not fix this; implement **Tier 1** in [ml-training-recommendations.md](design/ml-training-recommendations.md), then **`RUN_ID=bob-v4`**.
+**Learning demo: Blocked on bob-v4 train** — Tier 1 reward/episode code landed in `BobAgent.cs`; run **`RUN_ID=bob-v4`** next.
 
 **Publish:** Static portfolio in-repo — `docs/portfolio-site/` + README links. **No AWS hosting.**
 
@@ -88,7 +88,7 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ### Phase 3 — Learning (priority **1**)
 
-- [ ] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md)) — **NOT STARTED (code)**
+- [ ] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty — **DONE (2026-07-17)**
 - [ ] **`RUN_ID=bob-v4`** extended train (30+ min @ 20×, uninterrupted Play) + refresh `docs/results/training_progress.png`
 - [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), Bob-local impulse, optional curriculum
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
@@ -96,9 +96,9 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ### Phase 3–4 — Production bar **I** (priorities **2**, **4**, **5**)
 
-- [ ] Unity Recorder + `scripts/build-standalone.sh` + `scripts/capture-hero-video.sh`
-- [ ] `BobGameStateMachine.cs` + post-process / particle juice pass (after learning proves)
-- [ ] `scripts/release-checklist.sh` + optional CI build/capture step
+- [ ] Unity Recorder + `scripts/build-standalone.sh` + `scripts/capture-hero-video.sh` — **scripts added; Recorder package optional**
+- [ ] `BobGameStateMachine.cs` + post-process / particle juice pass (after learning proves) — **state machine scaffold done**
+- [ ] `scripts/release-checklist.sh` + optional CI build/capture step — **checklist script done**
 
 ### Phase 4 — Ship (in-repo portfolio)
 

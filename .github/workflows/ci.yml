@@ -101,6 +101,5 @@ jobs:
       - name: Verify mlagents-learn
         run: docker run --rm bob-train mlagents-learn --help
 
-  # TODO (Week 3): Portfolio static site deploy to S3 + CloudFront invalidation
-  # - aws s3 sync docs/portfolio-site/ s3://$SITE_BUCKET/
-  # - aws cloudfront create-invalidation ...
+  # Local macOS gate (requires Unity Editor): ./scripts/release-checklist.sh
+  # TODO (optional): macOS Unity build job when runner with Unity is available

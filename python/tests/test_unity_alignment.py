@@ -588,17 +588,34 @@ def test_bob_court_layout_referenced_in_builder(repo_root: Path) -> None:
 
 def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     agent = (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    layout = (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
     assert "ArcAcademyLayout" in agent
     assert "RegisterMadeShot" in agent
     assert "CalculateArcQuality" in agent
     assert "ApplyLaunchDirectionRewards" in agent
-    assert (
-        "LaunchRadicallyWrongFlatPenalty"
-        in (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
-    )
+    assert "LaunchRadicallyWrongFlatPenalty" in layout
     assert "ApplyFlightDirectionPenalties" in agent
     assert "NotifyEpisodeBegin" in agent
+    assert "ResolveEpisodeAsMiss" in agent
+    assert "MissProximityRewardScale" in layout
+    assert "ShotResolveMaxSteps" in layout
+    assert "PerStepDistancePenaltyScale" in layout
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
+
+
+def test_release_checklist_script_exists(repo_root: Path) -> None:
+    script = repo_root / "scripts/release-checklist.sh"
+    assert script.is_file()
+    text = script.read_text()
+    assert "validate-scene.sh" in text
+    assert "test_unity_alignment.py" in text
+    assert "RELEASE_CHECKLIST_OK" in text
+
+
+def test_build_standalone_script_exists(repo_root: Path) -> None:
+    script = repo_root / "scripts/build-standalone.sh"
+    assert script.is_file()
+    assert "BobBuildCli.BuildStandaloneMacFromCli" in script.read_text()
 
 
 def test_capture_progress_script_wires_hdrp_setup(repo_root: Path) -> None:
