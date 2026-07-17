@@ -188,7 +188,9 @@ public static class ArcAcademyLayout
     public const float MaxRimHeight = 3.25f;
 
     public const float IdealArcApexRatio = 0.55f;
-    public const float ArcQualityRewardScale = 0.1f;
+
+    /// <summary>bob-v4.1 — slash per-step arc pay so pretty arcs cannot rival makes.</summary>
+    public const float ArcQualityRewardScale = 0.02f;
 
     /// <summary>Ideal upward weight when blending toward-hoop + up for launch-direction rewards.</summary>
     public const float IdealLaunchUpRatio = 0.62f;
@@ -221,8 +223,13 @@ public static class ArcAcademyLayout
     public const float FlightAwayFromHoopPenaltyScale = 0.15f;
 
     // bob-v4 Tier 1 — shot-resolved episodes + terminal miss proximity
-    public const float MissProximityRewardScale = 0.75f;
+    /// <summary>bob-v4.1 — capped so max terminal miss ≪ MadeBasket.</summary>
+    public const float MissProximityRewardScale = 0.35f;
     public const float MissProximityMaxDist = 6f;
+
+    /// <summary>bob-v4.1 — small penalty when rim plane is crossed without a make.</summary>
+    public const float RimPlaneMissPenalty = 0.2f;
+
     public const float PerStepDistancePenaltyScale = 0.002f;
     public const int ShotResolveMaxSteps = 75;
     public const float CourtFloorContactHeight = 0.38f;

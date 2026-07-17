@@ -22,6 +22,7 @@ using UnityEngine;
 ///
 /// bob-v4 Tier 1: episodes end when the shot resolves (rim miss, floor, settle, or step cap),
 /// with terminal miss proximity reward and gated per-step distance penalty.
+/// bob-v4.1: Bob-local impulse + stronger make / capped miss proximity / rim-plane miss penalty.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class BobAgent : Agent
@@ -198,7 +199,9 @@ public class BobAgent : Agent
         EndEpisode();
     }
 
-    private void ResolveEpisodeAsMiss(bool applyOutOfBoundsPenalty = false)
+    private void ResolveEpisodeAsMiss(
+        bool applyOutOfBoundsPenalty = false,
+        bool applyRimPlaneMissPenalty = false)
     {
         if (scoredThisEpisode)
         {
@@ -213,13 +216,22 @@ public class BobAgent : Agent
             GiveReward(proximity * ArcAcademyLayout.MissProximityRewardScale);
         }
 
+        if (applyRimPlaneMissPenalty)
+        {
+            GiveReward(-ArcAcademyLayout.RimPlaneMissPenalty);
+        }
+
         if (applyOutOfBoundsPenalty)
         {
             GiveReward(-0.5f);
         }
 
         BobAudioFeedback.Instance?.PlayMiss();
-        string reason = applyOutOfBoundsPenalty ? "oob" : ResolveMissReason();
+        string reason = applyOutOfBoundsPenalty
+            ? "oob"
+            : applyRimPlaneMissPenalty
+                ? "rim_miss"
+                : ResolveMissReason();
         FinalizeShotLog(scored: false, endReason: reason);
         EndEpisode();
     }
@@ -284,7 +296,7 @@ public class BobAgent : Agent
 
         if (TryResolveRimPlaneMiss())
         {
-            ResolveEpisodeAsMiss();
+            ResolveEpisodeAsMiss(applyRimPlaneMissPenalty: true);
             return true;
         }
 
@@ -401,7 +413,9 @@ public class BobAgent : Agent
             float fy = c[1] * verticalForceScale + verticalBias;
             float fz = c[2] * forwardForceScale + forwardBias;
 
-            Vector3 impulse = new Vector3(fx, fy, fz);
+            // bob-v4.1: local impulse so spawn facing / jitter stay coherent.
+            Vector3 localImpulse = new Vector3(fx, fy, fz);
+            Vector3 impulse = transform.rotation * localImpulse;
             ActionRigidbody.AddForce(impulse, ForceMode.Impulse);
             shotImpulseThisEpisode = true;
             stepsSinceShot = 0;

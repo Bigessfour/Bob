@@ -35,24 +35,24 @@ paths:
 | Config         | `config/bob_free_throw.yaml` only — no Python hyperparameter hardcoding |
 | Success metric | **BasketballPoints / TotalIterations** — not arc quality alone          |
 
-## Current learning gate (bob-v4)
+## Current learning gate (bob-v4.1)
 
-**Do not** resume bob-v2/v3 expecting visible learning (0% makes, high arc, net RL negative).
+**Do not** resume bob-v2/v3 expecting visible learning. Tier 1 episode design is shipped; bob-v4 showed **0.5% makes** with profitable rim_misses.
 
-Implement **Tier 1** before extended train:
+Implement **Tier 1.5** before extended train — [ml-training-recommendations.md](../../../docs/design/ml-training-recommendations.md):
 
-1. `EndEpisode()` when shot resolves (rim pass, floor, or `MaxStep` ~60–90)
-2. Terminal **miss proximity** reward at episode end
-3. **Gate** per-step `-0.002 × xzDist` — no unbounded post-bounce accumulation
+1. `MadeBasket=7`, `ArcQualityRewardScale=0.02`, `MissProximityRewardScale=0.35`, `RimPlaneMissPenalty`
+2. Bob-local impulse: `transform.rotation * localImpulse`
+3. Short `RUN_ID=bob-v4.1` validation → diagnostic dashboard pass checks
 
 Then:
 
 ```bash
-RUN_ID=bob-v4 ./scripts/train.sh --force
+RUN_ID=bob-v4.1 ./scripts/train.sh --force
 # Play ONCE after "Listening on port 5004" — no C# edits until training stops
 ```
 
-**Pass:** rolling success **>5%** over 30+ min @ 20×; refresh `docs/results/training_progress.png`.
+**Pass:** rim_miss mean net ≪ make; positive-miss % drops; then rolling success **>5%** over 30+ min @ 20×.
 
 ## Safe training workflow
 
