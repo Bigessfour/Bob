@@ -11,6 +11,7 @@ public class HoopScoreZone : MonoBehaviour
 
     [SerializeField] private HoopRimContact rimContact;
     [SerializeField] private HoopSwishVfx swishVfx;
+    [SerializeField] private HoopNetPhysics netPhysics;
 
     private void Awake()
     {
@@ -25,6 +26,11 @@ public class HoopScoreZone : MonoBehaviour
         if (swishVfx == null && transform.parent != null)
         {
             swishVfx = transform.parent.GetComponentInChildren<HoopSwishVfx>();
+        }
+
+        if (netPhysics == null && transform.parent != null)
+        {
+            netPhysics = transform.parent.GetComponentInChildren<HoopNetPhysics>();
         }
     }
 
@@ -59,6 +65,7 @@ public class HoopScoreZone : MonoBehaviour
         if (swish)
         {
             swishVfx?.PlaySwish();
+            netPhysics?.PlaySwishFeedback();
             BobAudioFeedback.Instance?.PlaySwish();
         }
 
@@ -91,6 +98,7 @@ public class HoopScoreZone : MonoBehaviour
         if (swish)
         {
             swishVfx?.PlaySwish();
+            netPhysics?.PlaySwishFeedback();
             BobAudioFeedback.Instance?.PlaySwish();
         }
 

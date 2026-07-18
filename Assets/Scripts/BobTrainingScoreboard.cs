@@ -28,6 +28,12 @@ public class BobTrainingScoreboard : MonoBehaviour
             return;
         }
 
+        // Modern Canvas/TMP HUD replaces this OnGUI fallback when present.
+        if (BobTrainingHUD.Instance != null || Object.FindAnyObjectByType<BobTrainingHUD>() != null)
+        {
+            return;
+        }
+
         var stats = BobTrainingStats.Instance;
         if (stats == null)
         {

@@ -622,6 +622,11 @@ public class SimpleFreeThrowSetup : MonoBehaviour
             cam.gameObject.AddComponent<BobTrainingScoreboard>();
         }
 
+        if (cam != null && cam.GetComponent<BobTrainingHUD>() == null)
+        {
+            cam.gameObject.AddComponent<BobTrainingHUD>();
+        }
+
         if (cam != null && cam.GetComponent<BobTrainingSuccessGraph>() == null)
         {
             cam.gameObject.AddComponent<BobTrainingSuccessGraph>();

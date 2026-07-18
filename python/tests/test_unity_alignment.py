@@ -764,6 +764,12 @@ def test_success_graph_wiring(repo_root: Path) -> None:
     assert "BeginIteration" in stats
     assert "StatsRecorder" in stats
     assert "Environment/TowardHoop" in stats
+    assert "GetRecentEndReasons" in stats
+
+    hud = (repo_root / "Assets/Scripts/BobTrainingHUD.cs").read_text()
+    assert "TextMeshProUGUI" in hud
+    assert "BobTrainingStats" in hud
+    assert "GetRecentEndReasons" in hud
 
     graph = (repo_root / "Assets/Scripts/BobTrainingSuccessGraph.cs").read_text()
     assert "BobTrainingStats" in graph

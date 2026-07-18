@@ -13,6 +13,10 @@ public class HoopBackboardFeedback : MonoBehaviour
     [SerializeField] private float minImpactSpeed = 1.5f;
     [SerializeField] private float maxImpactSpeed = 12f;
 
+    [Header("Enhanced Visual Feedback")]
+    public ParticleSystem impactParticles;
+    public float impactParticleThreshold = 2.5f;
+
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private static readonly int EmissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
     private static readonly Color FlashTint = new(1f, 0.95f, 0.75f);
@@ -31,6 +35,11 @@ public class HoopBackboardFeedback : MonoBehaviour
         // existing Backboard components get the stronger 20×-readable flash.
         flashDurationSeconds = Mathf.Max(flashDurationSeconds, 0.45f);
         flashIntensity = Mathf.Max(flashIntensity, 4.5f);
+
+        if (impactParticles == null)
+        {
+            impactParticles = EnsureImpactParticles();
+        }
 
         backboardRenderer = GetComponent<Renderer>();
         if (backboardRenderer == null)
@@ -96,5 +105,45 @@ public class HoopBackboardFeedback : MonoBehaviour
             activeFlashPeak = Mathf.Max(0.35f, activeFlashPeak);
             flashTimer = flashDurationSeconds;
         }
+
+        if (impactParticles != null
+            && impact > impactParticleThreshold
+            && collision.contactCount > 0)
+        {
+            impactParticles.transform.position = collision.GetContact(0).point;
+            impactParticles.Play();
+        }
+    }
+
+    /// <summary>Runtime burst so hard hits show particles without Inspector wiring.</summary>
+    private ParticleSystem EnsureImpactParticles()
+    {
+        var go = new GameObject("BackboardImpactParticles");
+        go.transform.SetParent(transform, false);
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        var main = ps.main;
+        main.playOnAwake = false;
+        main.loop = false;
+        main.duration = 0.35f;
+        main.startLifetime = 0.3f;
+        main.startSize = 0.08f;
+        main.startSpeed = 2.5f;
+        main.startColor = new Color(1f, 0.92f, 0.7f, 0.95f);
+        main.maxParticles = 48;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.useUnscaledTime = true;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 0f;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 28) });
+
+        var shape = ps.shape;
+        shape.enabled = true;
+        shape.shapeType = ParticleSystemShapeType.Hemisphere;
+        shape.radius = 0.12f;
+
+        return ps;
     }
 }

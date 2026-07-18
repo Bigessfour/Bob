@@ -50,6 +50,7 @@ public class BobTrainingStats : MonoBehaviour
 
     private readonly Queue<float> m_RecentOutcomes = new();
     private readonly Queue<float> m_RecentArcQuality = new();
+    private readonly Queue<string> m_RecentEndReasons = new();
 
     private void Awake()
     {
@@ -87,6 +88,7 @@ public class BobTrainingStats : MonoBehaviour
         LastShotEndReason = "—";
         m_RecentOutcomes.Clear();
         m_RecentArcQuality.Clear();
+        m_RecentEndReasons.Clear();
     }
 
     public void RecordLaunch(Vector3 actions, Vector3 impulse, float towardHoopDot)
@@ -102,6 +104,15 @@ public class BobTrainingStats : MonoBehaviour
     public void RecordShotEndReason(string reason)
     {
         LastShotEndReason = string.IsNullOrEmpty(reason) ? "—" : reason;
+        if (LastShotEndReason != "—")
+        {
+            m_RecentEndReasons.Enqueue(LastShotEndReason);
+            while (m_RecentEndReasons.Count > DefaultRollingWindow * 4)
+            {
+                m_RecentEndReasons.Dequeue();
+            }
+        }
+
         // One-hot style gauges (MostRecent) so TensorBoard shows last outcome mix over time.
         PushStat("Environment/EndMake", reason == "make" ? 1f : 0f, StatAggregationMethod.Average);
         PushStat("Environment/EndRimMiss", reason == "rim_miss" ? 1f : 0f, StatAggregationMethod.Average);
@@ -159,6 +170,23 @@ public class BobTrainingStats : MonoBehaviour
     public IReadOnlyList<float> GetRecentOutcomes(int maxCount)
     {
         return BuildRollingSeries(m_RecentOutcomes, maxCount);
+    }
+
+    /// <summary>Most recent shot end reasons (make, swish, rim_miss, floor, …) for HUD color strips.</summary>
+    public IReadOnlyList<string> GetRecentEndReasons(int maxCount)
+    {
+        if (m_RecentEndReasons.Count == 0 || maxCount <= 0)
+        {
+            return System.Array.Empty<string>();
+        }
+
+        var list = new List<string>(m_RecentEndReasons);
+        if (list.Count > maxCount)
+        {
+            list = list.GetRange(list.Count - maxCount, maxCount);
+        }
+
+        return list;
     }
 
     public IReadOnlyList<float> GetRecentArcQuality(int maxCount)
