@@ -71,23 +71,23 @@ public class BobNearBobTrainingHud : MonoBehaviour
         if (successText != null)
         {
             successText.text =
-                $"{BobScoreboardDisplay.SuccessLabel}  {stats.SessionSuccessRate:P0}   ·   Rolling {stats.RollingSuccessRate:P0}";
+                $"{BobScoreboardDisplay.SuccessLabel}  {stats.SessionSuccessRate:P0}   ·   " +
+                $"{BobScoreboardDisplay.RollingLabel} {stats.RollingSuccessRate:P0}";
         }
 
         if (lastShotText != null)
         {
             lastShotText.text =
-                $"Last  {stats.LastEpisodeNetReward:+0.0;-0.0} RL   ·   Arc {stats.LastEpisodePeakArcQuality:P0}" +
-                $"   ·   {stats.LastShotEndReason}";
+                $"{BobScoreboardDisplay.LastShotRlLabel}  {stats.LastEpisodeNetReward:+0.0;-0.0}   ·   " +
+                $"{BobScoreboardDisplay.ArcLabel} {stats.LastEpisodePeakArcQuality:P0}   ·   {stats.LastShotEndReason}";
         }
 
         var monitor = BobTrainingConnectionMonitor.Instance;
         if (statusText != null)
         {
             statusText.text = monitor != null ? monitor.StatusLabel : "Play mode";
-            statusText.color = monitor != null && monitor.IsTrainingConnected
-                ? new Color(0.45f, 0.95f, 0.55f)
-                : new Color(1f, 0.55f, 0.45f);
+            statusText.color = BobScoreboardDisplay.StatusColor(
+                monitor != null && monitor.IsTrainingConnected);
         }
 
         if (launchText != null)
@@ -120,7 +120,7 @@ public class BobNearBobTrainingHud : MonoBehaviour
     private void EnsureReadableStyles()
     {
         BobScoreboardDisplay.ApplyFloatHeroTextStyle(
-            titleText, BobScoreboardDisplay.FloatTitleFontSize, new Color(0.92f, 0.94f, 1f), bold: true);
+            titleText, BobScoreboardDisplay.FloatTitleFontSize, BobScoreboardDisplay.BodyColor, bold: true);
         BobScoreboardDisplay.ApplyFloatHeroTextStyle(
             episodesText, BobScoreboardDisplay.FloatHeroFontSize, BobScoreboardDisplay.HeadlineColor);
         BobScoreboardDisplay.ApplyFloatHeroTextStyle(
@@ -132,13 +132,14 @@ public class BobNearBobTrainingHud : MonoBehaviour
         if (statusText != null)
         {
             BobScoreboardDisplay.ApplyFloatHeroTextStyle(
-                statusText, BobScoreboardDisplay.FloatDetailFontSize, new Color(1f, 0.55f, 0.45f), bold: false);
+                statusText, BobScoreboardDisplay.FloatDetailFontSize,
+                BobScoreboardDisplay.StatusDisconnectedColor, bold: false);
         }
 
         if (launchText != null)
         {
             BobScoreboardDisplay.ApplyFloatHeroTextStyle(
-                launchText, BobScoreboardDisplay.FloatDetailFontSize, BobScoreboardDisplay.BodyColor, bold: false);
+                launchText, BobScoreboardDisplay.FloatDetailFontSize, BobScoreboardDisplay.MutedDetailColor, bold: false);
         }
     }
 }

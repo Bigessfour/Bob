@@ -11,6 +11,69 @@ public class HoopNetPhysics : MonoBehaviour
     [SerializeField] private float segmentLength = 0.12f;
     [SerializeField] private float segmentMass = 0.015f;
 
+    [Header("Swish Visual & Audio Feedback")]
+    public ParticleSystem swishParticles;
+    public AudioClip swishSound;
+
+    private void Awake()
+    {
+        if (swishParticles == null)
+        {
+            swishParticles = EnsureSwishParticles();
+        }
+    }
+
+    /// <summary>
+    /// Called by <see cref="HoopScoreZone"/> on a clean swish (no recent rim contact).
+    /// </summary>
+    public void PlaySwishFeedback()
+    {
+        if (swishParticles != null)
+        {
+            swishParticles.Play();
+        }
+
+        if (swishSound != null)
+        {
+            AudioSource.PlayClipAtPoint(swishSound, transform.position, 1.0f);
+        }
+    }
+
+    /// <summary>Runtime burst so swishes show without Inspector wiring.</summary>
+    private ParticleSystem EnsureSwishParticles()
+    {
+        var go = new GameObject("NetSwishParticles");
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = new Vector3(0f, -0.25f, 0f);
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        var main = ps.main;
+        main.playOnAwake = false;
+        main.loop = false;
+        main.duration = 0.4f;
+        main.startLifetime = 0.45f;
+        main.startSize = 0.1f;
+        main.startSpeed = 1.8f;
+        main.startColor = new Color(0.85f, 1f, 0.95f, 0.95f);
+        main.maxParticles = 64;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.useUnscaledTime = true;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 0f;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 40) });
+
+        var shape = ps.shape;
+        shape.enabled = true;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = 25f;
+        shape.radius = 0.15f;
+        shape.rotation = new Vector3(-90f, 0f, 0f);
+
+        return ps;
+    }
+
     public void BuildNet(Transform rim, Material strandMaterial, PhysicsMaterial strandPhysic)
     {
         BuildNet(rim, strandMaterial, strandPhysic, physicsColliders: false);
@@ -58,10 +121,18 @@ public class HoopNetPhysics : MonoBehaviour
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
+            var child = transform.GetChild(i).gameObject;
+            // Keep runtime swish VFX child across net rebuilds.
+            if (child.name == "NetSwishParticles"
+                || (swishParticles != null && child == swishParticles.gameObject))
+            {
+                continue;
+            }
+
             if (Application.isPlaying)
-                Destroy(transform.GetChild(i).gameObject);
+                Destroy(child);
             else
-                DestroyImmediate(transform.GetChild(i).gameObject);
+                DestroyImmediate(child);
         }
     }
 

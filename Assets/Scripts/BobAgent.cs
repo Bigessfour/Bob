@@ -39,7 +39,9 @@ public class BobAgent : Agent
     public float verticalForceScale = 16f;
     public float verticalBias = 4f;
     public float forwardForceScale = 14f;
-    public float forwardBias = -6f;
+    // Local +Z is toward the hoop when spawn facing is applied; +6 maps neutral
+    // actions to the same world prior as the old world-space bias of -6.
+    public float forwardBias = 6f;
 
     private Rigidbody rb;
     private Renderer bobRenderer;
@@ -409,14 +411,19 @@ public class BobAgent : Agent
         {
             var c = actions.ContinuousActions;
 
-            float fx = c[0] * lateralForceScale;
-            float fy = c[1] * verticalForceScale + verticalBias;
-            float fz = c[2] * forwardForceScale + forwardBias;
+            // === LOCAL IMPULSE (robust to spawn rotation/jitter) ===
+            float fx = c[0] * lateralForceScale;                           // local X (lateral)
+            float fy = c[1] * verticalForceScale + verticalBias;           // Y = world up
+            float fz = c[2] * forwardForceScale + forwardBias;             // local Z (forward)
 
-            // bob-v4.1: local impulse so spawn facing / jitter stay coherent.
             Vector3 localImpulse = new Vector3(fx, fy, fz);
-            Vector3 impulse = transform.rotation * localImpulse;
-            ActionRigidbody.AddForce(impulse, ForceMode.Impulse);
+            Vector3 worldImpulse = transform.rotation * localImpulse;      // Convert using Bob's facing
+
+            ActionRigidbody.AddForce(worldImpulse, ForceMode.Impulse);
+
+            // Preserve variable name for minimal downstream changes
+            Vector3 impulse = worldImpulse;
+
             shotImpulseThisEpisode = true;
             stepsSinceShot = 0;
             settledStepCount = 0;
@@ -647,6 +654,7 @@ public class BobAgent : Agent
         }
 
         float zInput = Input.GetAxis("Vertical");
-        continuous[2] = zInput == 0f ? -0.5f : zInput;
+        // Local +Z is forward (toward hoop); default matches prior world −Z shot.
+        continuous[2] = zInput == 0f ? 0.5f : zInput;
     }
 }

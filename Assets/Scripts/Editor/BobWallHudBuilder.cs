@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Editor helper: mounts compact world-space lab HUD on SimpleArcAcademyArena south wall.
+/// Typography comes from <see cref="BobScoreboardDisplay"/> so rebuilds match runtime styles.
 /// </summary>
 public static class BobWallHudBuilder
 {
@@ -41,7 +42,7 @@ public static class BobWallHudBuilder
 
         var panel = CreateUiObject<RectTransform>("Panel", canvasGo.transform);
         var panelImage = panel.gameObject.AddComponent<Image>();
-        panelImage.color = new Color(0.04f, 0.05f, 0.08f, 0.92f);
+        panelImage.color = BobScoreboardDisplay.PanelBackgroundColor;
         panel.anchorMin = Vector2.zero;
         panel.anchorMax = Vector2.one;
         panel.offsetMin = Vector2.zero;
@@ -49,62 +50,68 @@ public static class BobWallHudBuilder
 
         float pad = SimpleArcAcademyArena.LabHudPanelPadding;
         float contentWidth = SimpleArcAcademyArena.LabHudCanvasSize.x - (pad * 2f);
-        float halfGap = 10f;
+        float halfGap = 12f;
         float halfWidth = (contentWidth - halfGap) * 0.5f;
         float y = -pad;
 
-        y = PlaceTopRow(panel.transform, "TitleText", "Lab Console · RL", BobScoreboardDisplay.TitleFontSize,
-            FontStyle.Bold, pad, y, contentWidth, 36f, new Color(0.92f, 0.94f, 1f), headline: false);
+        // Title
+        y = PlaceTopRow(panel.transform, "TitleText", "Lab Console · RL",
+            BobScoreboardDisplay.TitleFontSize, FontStyle.Bold, pad, y, contentWidth, 38f,
+            BobScoreboardDisplay.BodyColor, LabelKind.Title);
+        y -= 12f;
+
+        // Connection status
+        y = PlaceTopRow(panel.transform, "StatusText", "Play mode",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Italic, pad, y, contentWidth, 30f,
+            BobScoreboardDisplay.StatusDisconnectedColor, LabelKind.Detail);
         y -= 10f;
 
-        y = PlaceTopRow(panel.transform, "StatusText", "Play mode", BobScoreboardDisplay.DetailFontSize,
-            FontStyle.Italic, pad, y, contentWidth, 28f, new Color(1f, 0.55f, 0.45f), headline: false,
-            useDetailStyle: true);
-        y -= 8f;
-
+        // Hero metrics — taller rows so WallMetricFontSize does not clip
         PlaceTopRow(panel.transform, "EpisodesText", $"{BobScoreboardDisplay.EpisodesLabel}: 0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 28f,
-            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+            BobScoreboardDisplay.WallMetricFontSize, FontStyle.Bold, pad, y, halfWidth, 36f,
+            BobScoreboardDisplay.HeadlineColor, LabelKind.Metric);
         PlaceTopRow(panel.transform, "ScoreText", $"{BobScoreboardDisplay.ScoreLabel}: 0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 28f,
-            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
-        y -= 28f;
-        y -= 6f;
+            BobScoreboardDisplay.WallMetricFontSize, FontStyle.Bold, pad + halfWidth + halfGap, y, halfWidth, 36f,
+            BobScoreboardDisplay.ScoreAccentColor, LabelKind.Score);
+        y -= 36f;
+        y -= 8f;
 
         y = PlaceTopRow(panel.transform, "SuccessText",
-            $"{BobScoreboardDisplay.SuccessLabel}: 0%  ·  Rolling 0%",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 28f,
-            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
+            $"{BobScoreboardDisplay.SuccessLabel}: 0%  ·  {BobScoreboardDisplay.RollingLabel} 0%",
+            BobScoreboardDisplay.WallMetricFontSize, FontStyle.Bold, pad, y, contentWidth, 36f,
+            BobScoreboardDisplay.HeadlineColor, LabelKind.Metric);
+        y -= 10f;
+
+        PlaceTopRow(panel.transform, "RewardsText", $"{BobScoreboardDisplay.RewardsLabel}: +0.0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 30f,
+            BobScoreboardDisplay.MutedDetailColor, LabelKind.Detail);
+        PlaceTopRow(panel.transform, "PenaltiesText", $"{BobScoreboardDisplay.PenaltiesLabel}: -0.0",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 30f,
+            BobScoreboardDisplay.MutedDetailColor, LabelKind.Detail);
+        y -= 30f;
         y -= 8f;
 
-        PlaceTopRow(panel.transform, "RewardsText", "Rewards: +0.0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, halfWidth, 28f,
-            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
-        PlaceTopRow(panel.transform, "PenaltiesText", "Penalties: -0.0",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad + halfWidth + halfGap, y, halfWidth, 28f,
-            BobScoreboardDisplay.BodyColor, headline: false, useDetailStyle: true);
-        y -= 28f;
-        y -= 8f;
-
-        y = PlaceTopRow(panel.transform, "NetRlText", "Net RL: 0.0",
+        y = PlaceTopRow(panel.transform, "NetRlText", $"{BobScoreboardDisplay.NetRlLabel}: 0.0",
             BobScoreboardDisplay.BodyFontSize, FontStyle.Bold, pad, y, contentWidth, 34f,
-            BobScoreboardDisplay.BodyColor, headline: false);
+            BobScoreboardDisplay.BodyColor, LabelKind.Body);
         y -= 8f;
 
-        y = PlaceTopRow(panel.transform, "LastEpisodeText", "Last shot RL: 0.0  ·  Arc: 0%",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 28f,
-            new Color(0.85f, 0.88f, 0.95f), headline: false, useDetailStyle: true);
+        y = PlaceTopRow(panel.transform, "LastEpisodeText",
+            $"{BobScoreboardDisplay.LastShotRlLabel}: 0.0  ·  {BobScoreboardDisplay.ArcLabel}: 0%",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 30f,
+            BobScoreboardDisplay.MutedDetailColor, LabelKind.Detail);
         y -= 8f;
 
         y = PlaceTopRow(panel.transform, "ArcText",
             $"{BobScoreboardDisplay.ArcLabel} avg: 0%",
             BobScoreboardDisplay.BodyFontSize, FontStyle.Bold, pad, y, contentWidth, 34f,
-            BobScoreboardDisplay.HeadlineColor, headline: true);
+            BobScoreboardDisplay.BodyColor, LabelKind.Body);
         y -= 8f;
 
-        PlaceTopRow(panel.transform, "GraphLegendText", "Success · Arc quality",
-            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 24f,
-            new Color(0.75f, 0.8f, 0.88f), headline: false, useDetailStyle: true);
+        PlaceTopRow(panel.transform, "GraphLegendText",
+            $"{BobScoreboardDisplay.SuccessLabel} · {BobScoreboardDisplay.ArcLabel} quality",
+            BobScoreboardDisplay.DetailFontSize, FontStyle.Normal, pad, y, contentWidth, 26f,
+            BobScoreboardDisplay.MutedDetailColor, LabelKind.Detail);
 
         var graphRect = CreateUiObject<RectTransform>("GraphImage", panel.transform);
         graphRect.anchorMin = new Vector2(0f, 0f);
@@ -124,6 +131,15 @@ public static class BobWallHudBuilder
         EditorUtility.SetDirty(hudRoot);
     }
 
+    private enum LabelKind
+    {
+        Title,
+        Metric,
+        Score,
+        Body,
+        Detail,
+    }
+
     private static float PlaceTopRow(
         Transform parent,
         string name,
@@ -135,12 +151,11 @@ public static class BobWallHudBuilder
         float width,
         float height,
         Color color,
-        bool headline,
-        bool useDetailStyle = false)
+        LabelKind kind)
     {
         CreateLabel(parent, name, defaultText, fontSize, style,
             new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(x, y), new Vector2(width, height), color, headline, useDetailStyle);
+            new Vector2(x, y), new Vector2(width, height), color, kind);
         return y - height;
     }
 
@@ -163,8 +178,7 @@ public static class BobWallHudBuilder
         Vector2 anchoredPosition,
         Vector2 sizeDelta,
         Color color,
-        bool headline,
-        bool useDetailStyle = false)
+        LabelKind kind)
     {
         var rect = CreateUiObject<RectTransform>(name, parent);
         rect.anchorMin = anchorMin;
@@ -183,17 +197,23 @@ public static class BobWallHudBuilder
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Truncate;
 
-        if (useDetailStyle)
+        switch (kind)
         {
-            BobScoreboardDisplay.ApplyDetailTextStyle(text);
-        }
-        else if (headline)
-        {
-            BobScoreboardDisplay.ApplyReadableTextStyle(text, headline: true);
-        }
-        else
-        {
-            BobScoreboardDisplay.ApplyReadableTextStyle(text, headline: false);
+            case LabelKind.Title:
+                BobScoreboardDisplay.ApplyTitleTextStyle(text);
+                break;
+            case LabelKind.Metric:
+                BobScoreboardDisplay.ApplyWallMetricTextStyle(text);
+                break;
+            case LabelKind.Score:
+                BobScoreboardDisplay.ApplyScoreAccentTextStyle(text);
+                break;
+            case LabelKind.Detail:
+                BobScoreboardDisplay.ApplyDetailTextStyle(text);
+                break;
+            default:
+                BobScoreboardDisplay.ApplyReadableTextStyle(text, headline: false);
+                break;
         }
     }
 }

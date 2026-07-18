@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using Unity.MLAgents;
 using UnityEngine;
 
 /// <summary>
 /// Session training metrics for scoreboards and wall HUD (iterations, RL, basketball points, arc quality).
+/// Also mirrors key signals to ML-Agents <see cref="StatsRecorder"/> for TensorBoard (dev only).
 /// </summary>
 public class BobTrainingStats : MonoBehaviour
 {
@@ -48,6 +50,7 @@ public class BobTrainingStats : MonoBehaviour
 
     private readonly Queue<float> m_RecentOutcomes = new();
     private readonly Queue<float> m_RecentArcQuality = new();
+    private readonly Queue<string> m_RecentEndReasons = new();
 
     private void Awake()
     {
@@ -85,6 +88,7 @@ public class BobTrainingStats : MonoBehaviour
         LastShotEndReason = "—";
         m_RecentOutcomes.Clear();
         m_RecentArcQuality.Clear();
+        m_RecentEndReasons.Clear();
     }
 
     public void RecordLaunch(Vector3 actions, Vector3 impulse, float towardHoopDot)
@@ -92,11 +96,28 @@ public class BobTrainingStats : MonoBehaviour
         LastLaunchActions = actions;
         LastLaunchImpulse = impulse;
         LastTowardHoopDot = towardHoopDot;
+        PushStat("Environment/TowardHoop", towardHoopDot);
+        PushStat("Environment/LaunchFy", impulse.y);
+        PushStat("Environment/LaunchFz", impulse.z);
     }
 
     public void RecordShotEndReason(string reason)
     {
         LastShotEndReason = string.IsNullOrEmpty(reason) ? "—" : reason;
+        if (LastShotEndReason != "—")
+        {
+            m_RecentEndReasons.Enqueue(LastShotEndReason);
+            while (m_RecentEndReasons.Count > DefaultRollingWindow * 4)
+            {
+                m_RecentEndReasons.Dequeue();
+            }
+        }
+
+        // One-hot style gauges (MostRecent) so TensorBoard shows last outcome mix over time.
+        PushStat("Environment/EndMake", reason == "make" ? 1f : 0f, StatAggregationMethod.Average);
+        PushStat("Environment/EndRimMiss", reason == "rim_miss" ? 1f : 0f, StatAggregationMethod.Average);
+        PushStat("Environment/EndFloor", reason == "floor" ? 1f : 0f, StatAggregationMethod.Average);
+        PushStat("Environment/EndTimeout", reason == "timeout" ? 1f : 0f, StatAggregationMethod.Average);
     }
 
     /// <param name="previousEpisodeScored">Whether the episode that just ended scored a basket.</param>
@@ -111,6 +132,9 @@ public class BobTrainingStats : MonoBehaviour
         CurrentEpisodeNetReward = 0f;
         TotalIterations++;
         BobTrainingSessionLog.Append(this, previousEpisodeScored);
+        PushStat("Environment/SessionSuccessPct", SessionSuccessRate * 100f);
+        PushStat("Environment/RollingSuccessPct", RollingSuccessRate * 100f);
+        PushStat("Environment/EpisodeNetRl", LastEpisodeNetReward);
     }
 
     public void RecordReward(float amount)
@@ -146,6 +170,23 @@ public class BobTrainingStats : MonoBehaviour
     public IReadOnlyList<float> GetRecentOutcomes(int maxCount)
     {
         return BuildRollingSeries(m_RecentOutcomes, maxCount);
+    }
+
+    /// <summary>Most recent shot end reasons (make, swish, rim_miss, floor, …) for HUD color strips.</summary>
+    public IReadOnlyList<string> GetRecentEndReasons(int maxCount)
+    {
+        if (m_RecentEndReasons.Count == 0 || maxCount <= 0)
+        {
+            return System.Array.Empty<string>();
+        }
+
+        var list = new List<string>(m_RecentEndReasons);
+        if (list.Count > maxCount)
+        {
+            list = list.GetRange(list.Count - maxCount, maxCount);
+        }
+
+        return list;
     }
 
     public IReadOnlyList<float> GetRecentArcQuality(int maxCount)
@@ -231,6 +272,25 @@ public class BobTrainingStats : MonoBehaviour
         while (m_RecentOutcomes.Count > DefaultRollingWindow * 4)
         {
             m_RecentOutcomes.Dequeue();
+        }
+    }
+
+    /// <summary>
+    /// Mirror metrics into TensorBoard via ML-Agents. No-op if Academy is not ready.
+    /// </summary>
+    private static void PushStat(
+        string key,
+        float value,
+        StatAggregationMethod method = StatAggregationMethod.Average)
+    {
+        try
+        {
+            var recorder = Academy.Instance?.StatsRecorder;
+            recorder?.Add(key, value, method);
+        }
+        catch (System.Exception)
+        {
+            // Edit mode / pre-Academy — in-scene HUD still records locally.
         }
     }
 }

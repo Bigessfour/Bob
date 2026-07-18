@@ -80,10 +80,21 @@ python scripts/plot_training_progress.py --output ../docs/results/training_progr
 
 Update **bob-done-tracker.md** when gates move.
 
-## Tier 2 (after Tier 1 proves makes)
+## Tier 2 (after Tier 1.5 contrast pass)
 
-- Behavioral cloning: `Assets/Demos/bob_free_throw.demo` + YAML `behavioral_cloning` block
-- Bob-local impulse: `transform.rotation * localImpulse`
+- **Record demos:** `Bob → Demo → Enable Demonstration Recorder` → Play ~40 shots → Stop → `Assets/Demos/bob_free_throw.demo`
+- **Train with BC:** `CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.2 ./scripts/train.sh --force`
+- **Restore training Behavior:** `Bob → Demo → Disable Demonstration Recorder` (Default) before PPO Play
+- Bob-local impulse: `transform.rotation * localImpulse` with `forwardBias = 6f` (local +Z toward hoop)
 - Optional curriculum in `environment_parameters`
+
+## Dev tools
+
+```bash
+./scripts/tensorboard.sh   # Environment/* StatsRecorder gauges + PPO curves
+python scripts/plot_learning_dashboard.py --since … --check-pass
+```
+
+Do **not** add W&B, SB3, or LLM-RL skills — see [ml-training-recommendations.md](../../../docs/design/ml-training-recommendations.md#dev-tools--adopt-vs-reject).
 
 See [reference.md](reference.md) for reward ledger and observation gaps.

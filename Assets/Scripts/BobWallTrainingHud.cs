@@ -87,7 +87,8 @@ public class BobWallTrainingHud : MonoBehaviour
         if (successText != null)
         {
             successText.text =
-                $"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P0}  ·  Rolling {stats.RollingSuccessRate:P0}";
+                $"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P0}  ·  " +
+                $"{BobScoreboardDisplay.RollingLabel} {stats.RollingSuccessRate:P0}";
         }
 
         if (arcText != null)
@@ -100,36 +101,37 @@ public class BobWallTrainingHud : MonoBehaviour
         if (statusText != null)
         {
             statusText.text = monitor != null ? monitor.StatusLabel : "Play mode";
-            statusText.color = monitor != null && monitor.IsTrainingConnected
-                ? new Color(0.45f, 0.95f, 0.55f)
-                : new Color(1f, 0.55f, 0.45f);
+            statusText.color = BobScoreboardDisplay.StatusColor(
+                monitor != null && monitor.IsTrainingConnected);
         }
 
         if (rewardsText != null)
         {
-            rewardsText.text = $"Rewards: +{stats.TotalRewards:F1}";
+            rewardsText.text = $"{BobScoreboardDisplay.RewardsLabel}: +{stats.TotalRewards:F1}";
         }
 
         if (penaltiesText != null)
         {
-            penaltiesText.text = $"Penalties: -{stats.TotalPenalties:F1}";
+            penaltiesText.text = $"{BobScoreboardDisplay.PenaltiesLabel}: -{stats.TotalPenalties:F1}";
         }
 
         if (netRlText != null)
         {
-            netRlText.text = $"Net RL: {stats.NetSessionReward:+0.0;-0.0}";
+            netRlText.text = $"{BobScoreboardDisplay.NetRlLabel}: {stats.NetSessionReward:+0.0;-0.0}";
         }
 
         if (lastEpisodeText != null)
         {
             lastEpisodeText.text =
-                $"Last shot RL: {stats.LastEpisodeNetReward:+0.0;-0.0}  ·  {BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}";
+                $"{BobScoreboardDisplay.LastShotRlLabel}: {stats.LastEpisodeNetReward:+0.0;-0.0}  ·  " +
+                $"{BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}";
         }
 
         if (graphLegendText != null)
         {
             graphLegendText.text =
-                $"{BobScoreboardDisplay.SuccessLabel} · {BobScoreboardDisplay.ArcLabel} quality (avg {stats.RollingAverageArcQuality:P0})";
+                $"{BobScoreboardDisplay.SuccessLabel} · {BobScoreboardDisplay.ArcLabel} quality " +
+                $"(avg {stats.RollingAverageArcQuality:P0})";
         }
 
         DrawGraph(stats);
@@ -158,29 +160,19 @@ public class BobWallTrainingHud : MonoBehaviour
         graphImage ??= panel.Find("GraphImage")?.GetComponent<RawImage>();
     }
 
+    /// <summary>
+    /// Hierarchy: title → Episodes/Score/Success (hero) → RL detail → arc/graph legend.
+    /// </summary>
     private void EnsureReadableStyles()
     {
-        if (episodesText != null)
-        {
-            BobScoreboardDisplay.ApplyReadableTextStyle(episodesText, headline: true);
-        }
+        BobScoreboardDisplay.ApplyTitleTextStyle(titleText);
+        BobScoreboardDisplay.ApplyWallMetricTextStyle(episodesText);
+        BobScoreboardDisplay.ApplyScoreAccentTextStyle(scoreText);
+        BobScoreboardDisplay.ApplyWallMetricTextStyle(successText);
+        BobScoreboardDisplay.ApplyReadableTextStyle(arcText, headline: false);
+        BobScoreboardDisplay.ApplyReadableTextStyle(netRlText, headline: false);
 
-        if (successText != null)
-        {
-            BobScoreboardDisplay.ApplyReadableTextStyle(successText, headline: true);
-        }
-
-        if (arcText != null)
-        {
-            BobScoreboardDisplay.ApplyReadableTextStyle(arcText, headline: true);
-        }
-
-        if (scoreText != null)
-        {
-            BobScoreboardDisplay.ApplyReadableTextStyle(scoreText, headline: false);
-        }
-
-        foreach (var detail in new[] { statusText, rewardsText, penaltiesText, netRlText, lastEpisodeText, graphLegendText })
+        foreach (var detail in new[] { statusText, rewardsText, penaltiesText, lastEpisodeText, graphLegendText })
         {
             if (detail != null)
             {

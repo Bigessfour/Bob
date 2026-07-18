@@ -273,6 +273,68 @@ def plot_dashboard(
     }
 
 
+def evaluate_tier15_pass(
+    summary: dict,
+    *,
+    min_episodes: int = 100,
+    rim_miss_max_mean: float = 0.5,
+    positive_miss_max_pct: float = 25.0,
+    bob_v4_baseline_positive_miss_pct: float = 44.0,
+) -> tuple[bool, list[str]]:
+    """Tier 1.5 contrast pass checks from ml-training-recommendations.md."""
+    lines: list[str] = []
+    econ = summary.get("econ_means") or {}
+    make_mean = econ.get("make")
+    rim_mean = econ.get("rim_miss")
+    pos_miss = float(summary.get("positive_miss_pct") or 0.0)
+    n = int(summary.get("episodes") or 0)
+
+    if n < min_episodes:
+        lines.append(f"FAIL sample: episodes={n} (need >= {min_episodes})")
+    else:
+        lines.append(f"OK sample: episodes={n}")
+
+    if make_mean is None:
+        lines.append("FAIL economics: no make episodes yet (need at least one make)")
+    else:
+        lines.append(f"OK make mean net RL={make_mean:+.3f}")
+
+    if rim_mean is None:
+        lines.append("FAIL economics: no rim_miss episodes")
+    else:
+        if rim_mean < rim_miss_max_mean:
+            lines.append(
+                f"OK rim_miss mean net RL={rim_mean:+.3f} (< {rim_miss_max_mean})"
+            )
+        else:
+            lines.append(
+                f"FAIL rim_miss mean net RL={rim_mean:+.3f} "
+                f"(want < {rim_miss_max_mean}; bob-v4 was ~+1.69)"
+            )
+        if make_mean is not None and rim_mean < make_mean:
+            lines.append(
+                f"OK separation: rim_miss ({rim_mean:+.3f}) ≪ make ({make_mean:+.3f})"
+            )
+        elif make_mean is not None:
+            lines.append(
+                f"FAIL separation: rim_miss ({rim_mean:+.3f}) not ≪ make ({make_mean:+.3f})"
+            )
+
+    if pos_miss <= positive_miss_max_pct:
+        lines.append(
+            f"OK positive-miss={pos_miss:.1f}% "
+            f"(<= {positive_miss_max_pct}%; bob-v4 baseline ~{bob_v4_baseline_positive_miss_pct}%)"
+        )
+    else:
+        lines.append(
+            f"FAIL positive-miss={pos_miss:.1f}% "
+            f"(want <= {positive_miss_max_pct}%; bob-v4 was ~{bob_v4_baseline_positive_miss_pct}%)"
+        )
+
+    passed = n >= min_episodes and all(line.startswith("OK ") for line in lines)
+    return passed, lines
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Plot Bob learning dashboard")
     parser.add_argument(
@@ -295,6 +357,17 @@ def main() -> int:
         "--title",
         default="Bob learning dashboard (Tier 1.5 diagnostics)",
     )
+    parser.add_argument(
+        "--check-pass",
+        action="store_true",
+        help="Exit 0 only if Tier 1.5 contrast pass checks succeed",
+    )
+    parser.add_argument(
+        "--min-episodes",
+        type=int,
+        default=100,
+        help="Minimum connected PPO episodes for --check-pass (default 100)",
+    )
     args = parser.parse_args()
 
     session = load_csv(args.session, args.since)
@@ -313,7 +386,16 @@ def main() -> int:
         f"positive_miss={summary['positive_miss_pct']}%"
     )
     print(f"Economics means: {summary['econ_means']}")
-    return 0
+
+    if not args.check_pass:
+        return 0
+
+    passed, lines = evaluate_tier15_pass(summary, min_episodes=args.min_episodes)
+    print("\nTier 1.5 contrast pass checks:")
+    for line in lines:
+        print(f"  {line}")
+    print("PASS" if passed else "FAIL")
+    return 0 if passed else 2
 
 
 if __name__ == "__main__":
