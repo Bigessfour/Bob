@@ -590,7 +590,7 @@ MonoBehaviour:
   verticalForceScale: 16
   verticalBias: 4
   forwardForceScale: 14
-  forwardBias: -6
+  forwardBias: 6
 --- !u!114 &6938450185269456593
 MonoBehaviour:
   m_ObjectHideFlags: 0

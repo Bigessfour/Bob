@@ -36,15 +36,19 @@ public class BobTrainingScoreboard : MonoBehaviour
 
         EnsureStyles();
 
-        const float width = 300f;
-        const float height = 218f;
+        var width = BobScoreboardDisplay.OnGuiPanelWidth;
+        var height = BobScoreboardDisplay.OnGuiPanelHeight;
         var rect = new Rect(Screen.width - width - 14f, 14f, width, height);
 
         GUILayout.BeginArea(rect, panelStyle);
         GUILayout.Label("Arc Academy Scoreboard", titleStyle);
+        GUILayout.Space(4f);
         GUILayout.Label($"{BobScoreboardDisplay.EpisodesLabel}: {stats.TotalIterations}", lineStyle);
         GUILayout.Label($"{BobScoreboardDisplay.ScoreLabel} (baskets): {stats.BasketballPoints}", highlightStyle);
-        GUILayout.Label($"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P1}", lineStyle);
+        GUILayout.Label(
+            $"{BobScoreboardDisplay.SuccessLabel}: {stats.SessionSuccessRate:P1}  ·  " +
+            $"{BobScoreboardDisplay.RollingLabel}: {stats.RollingSuccessRate:P1}",
+            lineStyle);
         var monitor = BobTrainingConnectionMonitor.Instance;
         if (monitor != null)
         {
@@ -53,19 +57,19 @@ public class BobTrainingScoreboard : MonoBehaviour
                 fontStyle = FontStyle.Italic,
                 normal =
                 {
-                    textColor = monitor.IsTrainingConnected
-                        ? new Color(0.45f, 0.95f, 0.55f)
-                        : new Color(1f, 0.55f, 0.45f),
+                    textColor = BobScoreboardDisplay.StatusColor(monitor.IsTrainingConnected),
                 },
             };
             GUILayout.Label(monitor.StatusLabel, statusStyle);
         }
 
-        GUILayout.Label($"Rewards (RL): +{stats.TotalRewards:F2}", lineStyle);
-        GUILayout.Label($"Penalties (RL): -{stats.TotalPenalties:F2}", lineStyle);
-        GUILayout.Label($"Net RL reward: {stats.NetSessionReward:+0.00;-0.00}", lineStyle);
+        GUILayout.Space(2f);
+        GUILayout.Label($"{BobScoreboardDisplay.RewardsLabel} (RL): +{stats.TotalRewards:F2}", lineStyle);
+        GUILayout.Label($"{BobScoreboardDisplay.PenaltiesLabel} (RL): -{stats.TotalPenalties:F2}", lineStyle);
+        GUILayout.Label($"{BobScoreboardDisplay.NetRlLabel}: {stats.NetSessionReward:+0.00;-0.00}", lineStyle);
         GUILayout.Label(
-            $"Last iteration: {stats.LastEpisodeNetReward:+0.00;-0.00}  ·  {BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}",
+            $"{BobScoreboardDisplay.LastShotRlLabel}: {stats.LastEpisodeNetReward:+0.00;-0.00}  ·  " +
+            $"{BobScoreboardDisplay.ArcLabel}: {stats.LastEpisodePeakArcQuality:P0}",
             lineStyle);
         GUILayout.EndArea();
     }
@@ -79,24 +83,25 @@ public class BobTrainingScoreboard : MonoBehaviour
 
         panelStyle = new GUIStyle(GUI.skin.box)
         {
-            padding = new RectOffset(12, 12, 10, 10),
-            normal = { background = MakeTex(2, 2, new Color(0.04f, 0.05f, 0.08f, 0.82f)) },
+            padding = new RectOffset(14, 14, 12, 12),
+            normal = { background = MakeTex(2, 2, BobScoreboardDisplay.PanelBackgroundColor) },
         };
         titleStyle = new GUIStyle(GUI.skin.label)
         {
-            fontSize = 15,
+            fontSize = BobScoreboardDisplay.OnGuiTitleFontSize,
             fontStyle = FontStyle.Bold,
-            normal = { textColor = new Color(0.92f, 0.94f, 1f) },
+            normal = { textColor = BobScoreboardDisplay.BodyColor },
         };
         lineStyle = new GUIStyle(GUI.skin.label)
         {
-            fontSize = 13,
-            normal = { textColor = new Color(0.88f, 0.9f, 0.95f) },
+            fontSize = BobScoreboardDisplay.OnGuiBodyFontSize,
+            normal = { textColor = BobScoreboardDisplay.BodyColor },
         };
         highlightStyle = new GUIStyle(lineStyle)
         {
+            fontSize = BobScoreboardDisplay.OnGuiHighlightFontSize,
             fontStyle = FontStyle.Bold,
-            normal = { textColor = new Color(1f, 0.82f, 0.35f) },
+            normal = { textColor = BobScoreboardDisplay.ScoreAccentColor },
         };
     }
 

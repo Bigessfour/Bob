@@ -12,7 +12,9 @@
 | Distance penalty   | In-flight only            | −0.002 × xzDist/step         |
 | OOB                | End                       | −0.5                         |
 
-Impulse is **Bob-local**: `transform.rotation * localImpulse`.
+Impulse is **Bob-local**: `transform.rotation * localImpulse` with
+`forwardBias = +6` (local +Z toward hoop; world-era `−6` inverts aim).
+Heuristic keyboard default for `continuous[2]` is `+0.5` (same local prior).
 
 ## Observation gaps (Tier 3)
 

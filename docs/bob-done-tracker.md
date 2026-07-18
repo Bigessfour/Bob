@@ -95,7 +95,8 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] **Diagnostic dashboard v2** — economics / positive-miss / make-signature panels in `plot_learning_dashboard.py`
 - [ ] **Short validation train** `RUN_ID=bob-v4.1` + confirm rim_miss mean net ≪ make / positive-miss % drops
 - [ ] **Extended train** (30+ min @ 20× after Tier 1.5 pass) + refresh `docs/results/bob_v4.1_learning_dashboard.png`
-- [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), curriculum, power shaping
+- [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), curriculum, power shaping — **recorder menu + `bob_free_throw_bc.yaml` scaffolded**; demos not recorded yet
+- [x] **Dev ML tools** — StatsRecorder → TensorBoard, `./scripts/tensorboard.sh`, demo recorder menus (reject W&B/SB3/LLM-RL)
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
 - [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4.1 policy)
 

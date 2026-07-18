@@ -48147,7 +48147,7 @@ MonoBehaviour:
   verticalForceScale: 16
   verticalBias: 4
   forwardForceScale: 14
-  forwardBias: -6
+  forwardBias: 6
 --- !u!33 &5112315558624467314
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -28,16 +28,16 @@ config/bob_free_throw.yaml (PPO)
   → BobTrainingStats → HUD + summaries/bob_session.csv
 ```
 
-| Stage          | Status                   | Issue                                                   |
-| -------------- | ------------------------ | ------------------------------------------------------- |
-| PPO config     | OK                       | No BC/GAIL/curriculum                                   |
-| Observations   | Thin                     | Missing `vy`, speed, shot phase                         |
-| Actions        | 3D world impulse         | Not Bob-local; breaks under spawn jitter                |
-| Launch prior   | Weak                     | Biases only; no expert/BC demos                         |
-| Dense rewards  | Misaligned (post–Tier 1) | Arc pay + miss proximity still make rim_miss profitable |
-| Episode length | OK after Tier 1          | Shot-resolved (~75 steps max)                           |
-| Success metric | Misleading if misused    | High arc ≠ makes — track makes / episodes               |
-| Data viz       | Partial                  | Need economics / positive-miss / make-signature panels  |
+| Stage          | Status                        | Issue                                                       |
+| -------------- | ----------------------------- | ----------------------------------------------------------- |
+| PPO config     | OK                            | No BC/GAIL/curriculum                                       |
+| Observations   | Thin                          | Missing `vy`, speed, shot phase                             |
+| Actions        | 3D Bob-local impulse          | `forwardBias=+6` local +Z toward hoop (world −Z at FT line) |
+| Launch prior   | Bias OK after sign fix        | Still no expert/BC demos                                    |
+| Dense rewards  | Tier 1.5 contrast shipped     | Validate rim_miss mean ≪ make; positive-miss %↓             |
+| Episode length | OK after Tier 1               | Shot-resolved (~75 steps max)                               |
+| Success metric | Misleading if misused         | High arc ≠ makes — track makes / episodes                   |
+| Data viz       | Dashboard v2 + `--check-pass` | Half-split panel still optional                             |
 
 ---
 
@@ -45,15 +45,15 @@ config/bob_free_throw.yaml (PPO)
 
 ### 1. Initial trajectory — Bob does not start knowing free throws
 
-**What helps today:** neutral actions `c≈[0,0,0]` → impulse `(0, +4, -6)` via `verticalBias` / `forwardBias` in `BobAgent.cs`, plus launch-direction shaping in `ApplyLaunchDirectionRewards`.
+**What helps today:** neutral actions `c≈[0,0,0]` → local impulse `(0, +4, +6)` via `verticalBias` / `forwardBias`, rotated by spawn facing (`transform.rotation * localImpulse`) into world toward-hoop (typically world −Z), plus launch-direction shaping in `ApplyLaunchDirectionRewards`.
 
 **What breaks the prior:**
 
-| Gap                  | Detail                                                                                                   |
-| -------------------- | -------------------------------------------------------------------------------------------------------- |
-| World vs local force | Impulse applied in world XYZ; Bob rotates per spawn (`GetSpawnFacingRotation`) but force does not follow |
-| No imitation prior   | No `.demo` file; YAML has no `behavioral_cloning` block                                                  |
-| No analytic seed     | No parabolic `v0` solver from spawn → rim for demos or heuristic warm-start                              |
+| Gap                | Detail                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------- |
+| Local bias sign    | With Bob-local impulse, `forwardBias` must be **+6** (local +Z toward hoop). World-era `−6` inverts aim |
+| No imitation prior | No `.demo` file; YAML has no `behavioral_cloning` block                                                 |
+| No analytic seed   | No parabolic `v0` solver from spawn → rim for demos or heuristic warm-start                             |
 
 **ML-Agents guidance:** For sparse rewards, pre-train with **Behavioral Cloning** or **GAIL** from demonstrations ([overview](https://docs.unity3d.com/Packages/com.unity.ml-agents@4.0/manual/ML-Agents-Overview.html)).
 
@@ -212,6 +212,38 @@ cd python && .venv/bin/python scripts/plot_learning_dashboard.py \
 | `python/scripts/plot_learning_dashboard.py`    | Economics / positive-miss / make-signature panels                                             |
 | `python/tests/test_unity_alignment.py`         | Guards if reward strings / obs count change                                                   |
 | `docs/results/bob_v4.1_learning_dashboard.png` | Refresh after validation train                                                                |
+
+---
+
+## Dev tools — adopt vs reject
+
+**Adopt (positive impact for Bob’s PPO loop):**
+
+| Tool                                                                     | Why                                                                                        |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| ML-Agents **StatsRecorder** (`BobTrainingStats`)                         | Toward-hoop, launch fy/fz, end-reason rates, success % in TensorBoard during connected PPO |
+| **DemonstrationRecorder** + `Bob → Demo → Enable Demonstration Recorder` | Records `Assets/Demos/bob_free_throw.demo` for Tier 2 BC                                   |
+| **`config/bob_free_throw_bc.yaml`**                                      | PPO + `behavioral_cloning` without breaking default `bob_free_throw.yaml`                  |
+| **`./scripts/tensorboard.sh`**                                           | One-command `results/` TensorBoard (dev only; audience = in-scene HUD)                     |
+| **`plot_learning_dashboard.py --check-pass`**                            | Tier 1.5 contrast gate from shot CSV                                                       |
+| Unity MCP + bob-rag                                                      | Already required for Editor / repo-grounded edits                                          |
+
+```bash
+./scripts/tensorboard.sh
+# BC after demos exist:
+CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.2 ./scripts/train.sh --force
+```
+
+**Reject (marginal or wrong stack for this project):**
+
+| Tool                                        | Why reject                                                     |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| Weights & Biases / Neptune / ClearML        | Overlap with CSV + dashboard + TensorBoard; extra account/deps |
+| Stable Baselines3 / Gymnasium skills        | Different env API — not Unity ML-Agents                        |
+| verl / LLM-RL / OpenClaw-RL skills          | LLM policy training — irrelevant                               |
+| Custom Ray RLlib trainers                   | Replaces `mlagents-learn`; breaks Docker `bob-train` path      |
+| SAC swap “just because”                     | Optional later; BC + contrast first                            |
+| Random marketplace `pytorch-patterns` skill | Generic; Bob’s `/bob-ml-agents-train` already owns the loop    |
 
 ---
 

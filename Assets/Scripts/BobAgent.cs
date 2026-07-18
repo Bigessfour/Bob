@@ -39,7 +39,9 @@ public class BobAgent : Agent
     public float verticalForceScale = 16f;
     public float verticalBias = 4f;
     public float forwardForceScale = 14f;
-    public float forwardBias = -6f;
+    // Local +Z is toward the hoop when spawn facing is applied; +6 maps neutral
+    // actions to the same world prior as the old world-space bias of -6.
+    public float forwardBias = 6f;
 
     private Rigidbody rb;
     private Renderer bobRenderer;
@@ -647,6 +649,7 @@ public class BobAgent : Agent
         }
 
         float zInput = Input.GetAxis("Vertical");
-        continuous[2] = zInput == 0f ? -0.5f : zInput;
+        // Local +Z is forward (toward hoop); default matches prior world −Z shot.
+        continuous[2] = zInput == 0f ? 0.5f : zInput;
     }
 }

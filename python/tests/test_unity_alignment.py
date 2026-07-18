@@ -607,8 +607,27 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "ArcQualityRewardScale = 0.02f" in layout
     assert "MissProximityRewardScale = 0.35f" in layout
     assert "transform.rotation * localImpulse" in agent
+    assert "forwardBias = 6f" in agent
+    assert "forwardBias = -6f" not in agent
+    # Heuristic default continuous[2] must match local +Z prior (not world-era -0.5).
+    assert "continuous[2] = zInput == 0f ? 0.5f : zInput" in agent
     assert "applyRimPlaneMissPenalty" in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
+
+    bob_prefab = (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").read_text()
+    arena_prefab = (repo_root / "Assets/Prefabs/Prefab_SimpleArena.prefab").read_text()
+    scene = (repo_root / SCENE_PATH).read_text()
+    for label, blob in (
+        ("Prefab_Bob", bob_prefab),
+        ("Prefab_SimpleArena", arena_prefab),
+        ("BobTraining.unity", scene),
+    ):
+        assert (
+            "forwardBias: 6" in blob
+        ), f"{label} must serialize forwardBias: 6 (local +Z)"
+        assert (
+            "forwardBias: -6" not in blob
+        ), f"{label} must not keep world-era forwardBias: -6"
 
 
 def test_plot_learning_dashboard_script_exists(repo_root: Path) -> None:
@@ -616,7 +635,24 @@ def test_plot_learning_dashboard_script_exists(repo_root: Path) -> None:
     assert script.is_file()
     text = script.read_text()
     assert "episode_net_rl" in text or "end_reason" in text
+    assert "evaluate_tier15_pass" in text or "--check-pass" in text
     assert "positive" in text.lower() or "economics" in text.lower()
+
+
+def test_bc_config_and_demo_recorder_menu(repo_root: Path) -> None:
+    bc = (repo_root / "config/bob_free_throw_bc.yaml").read_text()
+    assert "behavioral_cloning:" in bc
+    assert "Assets/Demos/bob_free_throw.demo" in bc
+    assert "strength: 0.5" in bc
+
+    menu = (
+        repo_root / "Assets/Scripts/Editor/BobDemonstrationRecorderMenu.cs"
+    ).read_text()
+    assert "DemonstrationRecorder" in menu
+    assert "Enable Demonstration Recorder" in menu
+
+    assert (repo_root / "Assets/Demos/.gitkeep").is_file()
+    assert (repo_root / "scripts/tensorboard.sh").is_file()
 
 
 def test_release_checklist_script_exists(repo_root: Path) -> None:
@@ -726,6 +762,8 @@ def test_success_graph_wiring(repo_root: Path) -> None:
     assert "SessionSuccessRate" in stats
     assert "RollingSuccessRate" in stats
     assert "BeginIteration" in stats
+    assert "StatsRecorder" in stats
+    assert "Environment/TowardHoop" in stats
 
     graph = (repo_root / "Assets/Scripts/BobTrainingSuccessGraph.cs").read_text()
     assert "BobTrainingStats" in graph

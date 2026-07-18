@@ -2,19 +2,35 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Shared typography and label strings for wall HUD and OnGUI fallback scoreboards.
+/// Shared typography, colors, and label strings for wall HUD, near-Bob float, and OnGUI fallback.
+/// Keeps long-run training readability consistent across all scoreboard surfaces.
 /// </summary>
 public static class BobScoreboardDisplay
 {
+    // --- Shared metric labels (wall + float + OnGUI) ---
     public const string EpisodesLabel = "Episodes";
     public const string SuccessLabel = "Success";
+    public const string RollingLabel = "Rolling";
     public const string ArcLabel = "Arc";
     public const string ScoreLabel = "Score";
+    public const string RewardsLabel = "Rewards";
+    public const string PenaltiesLabel = "Penalties";
+    public const string NetRlLabel = "Net RL";
+    public const string LastShotRlLabel = "Last shot RL";
 
-    public const int HeadlineFontSize = 36;
+    // --- Wall / shared body hierarchy (lab console + OnGUI) ---
+    public const int HeadlineFontSize = 34;
+    public const int WallMetricFontSize = 28;
     public const int BodyFontSize = 22;
-    public const int DetailFontSize = 16;
-    public const int TitleFontSize = 28;
+    public const int DetailFontSize = 17;
+    public const int TitleFontSize = 30;
+
+    // --- OnGUI fallback (warehouse scenes without world-space HUDs) ---
+    public const int OnGuiTitleFontSize = 17;
+    public const int OnGuiBodyFontSize = 14;
+    public const int OnGuiHighlightFontSize = 15;
+    public const float OnGuiPanelWidth = 340f;
+    public const float OnGuiPanelHeight = 248f;
 
     /// <summary>Near-Bob floating board — oversized for lab-camera readability.</summary>
     public const int FloatHeroFontSize = 72;
@@ -22,14 +38,22 @@ public static class BobScoreboardDisplay
     public const int FloatSuccessFontSize = 56;
     public const int FloatDetailFontSize = 36;
     public const int FloatTitleFontSize = 40;
-    public static readonly Vector2 FloatOutlineDistance = new(2.5f, -2.5f);
+    public static readonly Vector2 FloatOutlineDistance = new(3f, -3f);
 
     public const float CanvasReferencePixelsPerUnit = 100f;
+
     public static readonly Color HeadlineColor = Color.white;
-    public static readonly Color BodyColor = new(0.92f, 0.94f, 0.98f);
-    public static readonly Color ScoreAccentColor = new(1f, 0.82f, 0.35f);
-    public static readonly Color OutlineColor = Color.black;
-    public static readonly Vector2 OutlineDistance = new(1.2f, -1.2f);
+    public static readonly Color BodyColor = new(0.93f, 0.95f, 0.99f);
+    public static readonly Color MutedDetailColor = new(0.78f, 0.82f, 0.90f);
+    public static readonly Color ScoreAccentColor = new(1f, 0.84f, 0.32f);
+    public static readonly Color OutlineColor = new(0f, 0f, 0f, 0.92f);
+    public static readonly Color PanelBackgroundColor = new(0.03f, 0.04f, 0.07f, 0.90f);
+    public static readonly Color StatusConnectedColor = new(0.45f, 0.95f, 0.55f);
+    public static readonly Color StatusDisconnectedColor = new(1f, 0.55f, 0.45f);
+
+    /// <summary>Stronger outline for wall metrics during long training takes.</summary>
+    public static readonly Vector2 OutlineDistance = new(1.6f, -1.6f);
+    public static readonly Vector2 DetailOutlineDistance = new(1.0f, -1.0f);
 
     public static void ConfigureCanvasScaler(CanvasScaler scaler)
     {
@@ -57,17 +81,10 @@ public static class BobScoreboardDisplay
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Truncate;
 
-        var outline = text.GetComponent<Outline>();
-        if (outline == null)
-        {
-            outline = text.gameObject.AddComponent<Outline>();
-        }
-
-        outline.effectColor = OutlineColor;
-        outline.effectDistance = FloatOutlineDistance;
-        outline.useGraphicAlpha = true;
+        EnsureOutline(text, FloatOutlineDistance);
     }
 
+    /// <summary>Primary wall headline (title / key section).</summary>
     public static void ApplyReadableTextStyle(Text text, bool headline)
     {
         if (text == null)
@@ -77,20 +94,36 @@ public static class BobScoreboardDisplay
 
         text.color = headline ? HeadlineColor : BodyColor;
         text.fontSize = headline ? HeadlineFontSize : BodyFontSize;
-        if (headline)
+        text.fontStyle = headline ? FontStyle.Bold : FontStyle.Normal;
+        EnsureOutline(text, OutlineDistance);
+    }
+
+    /// <summary>Wall hero metrics: Episodes / Success — readable from LabHero camera.</summary>
+    public static void ApplyWallMetricTextStyle(Text text)
+    {
+        if (text == null)
         {
-            text.fontStyle = FontStyle.Bold;
+            return;
         }
 
-        var outline = text.GetComponent<Outline>();
-        if (outline == null)
+        text.color = HeadlineColor;
+        text.fontSize = WallMetricFontSize;
+        text.fontStyle = FontStyle.Bold;
+        EnsureOutline(text, OutlineDistance);
+    }
+
+    /// <summary>Basketball score accent — stands out vs RL reward lines.</summary>
+    public static void ApplyScoreAccentTextStyle(Text text, int fontSize = WallMetricFontSize)
+    {
+        if (text == null)
         {
-            outline = text.gameObject.AddComponent<Outline>();
+            return;
         }
 
-        outline.effectColor = OutlineColor;
-        outline.effectDistance = OutlineDistance;
-        outline.useGraphicAlpha = true;
+        text.color = ScoreAccentColor;
+        text.fontSize = fontSize;
+        text.fontStyle = FontStyle.Bold;
+        EnsureOutline(text, OutlineDistance);
     }
 
     public static void ApplyDetailTextStyle(Text text)
@@ -100,9 +133,30 @@ public static class BobScoreboardDisplay
             return;
         }
 
-        text.color = BodyColor;
+        text.color = MutedDetailColor;
         text.fontSize = DetailFontSize;
+        text.fontStyle = FontStyle.Normal;
+        EnsureOutline(text, DetailOutlineDistance);
+    }
 
+    public static void ApplyTitleTextStyle(Text text)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.color = BodyColor;
+        text.fontSize = TitleFontSize;
+        text.fontStyle = FontStyle.Bold;
+        EnsureOutline(text, OutlineDistance);
+    }
+
+    public static Color StatusColor(bool trainingConnected) =>
+        trainingConnected ? StatusConnectedColor : StatusDisconnectedColor;
+
+    private static void EnsureOutline(Text text, Vector2 distance)
+    {
         var outline = text.GetComponent<Outline>();
         if (outline == null)
         {
@@ -110,7 +164,7 @@ public static class BobScoreboardDisplay
         }
 
         outline.effectColor = OutlineColor;
-        outline.effectDistance = new Vector2(0.8f, -0.8f);
+        outline.effectDistance = distance;
         outline.useGraphicAlpha = true;
     }
 }

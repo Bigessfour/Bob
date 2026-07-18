@@ -20,12 +20,25 @@ python scripts/review_training_run.py --since 2026-07-17T22:40:00
 # Multi-panel learning dashboard (success, toward-hoop, end reasons)
 python scripts/plot_learning_dashboard.py --since 2026-07-17T22:59:00 \
   --output ../docs/results/bob_v4_learning.png
+
+# Tier 1.5 contrast gate (exit 0 = pass)
+python scripts/plot_learning_dashboard.py --since … --check-pass
+
+# Dev TensorBoard (Environment/* StatsRecorder + PPO curves)
+./scripts/tensorboard.sh
 ```
 
 | Plot                          | File                    |
 | ----------------------------- | ----------------------- |
 | Session success + arc         | `training_progress.png` |
 | Learning dashboard (3 panels) | `bob_v4_learning.png`   |
+
+## BC training (Tier 2)
+
+```bash
+# After Bob → Demo → Enable Demonstration Recorder + Play session:
+CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.2 ./scripts/train.sh --force
+```
 
 ## Run IDs
 

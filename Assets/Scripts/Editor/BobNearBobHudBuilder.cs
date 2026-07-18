@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Editor helper: large world-space floating scoreboard beside Bob at the free-throw line.
+/// Uses <see cref="BobScoreboardDisplay"/> float sizes/colors for rebuild consistency.
 /// </summary>
 public static class BobNearBobHudBuilder
 {
@@ -43,7 +44,7 @@ public static class BobNearBobHudBuilder
 
         var panel = CreateUiObject<RectTransform>("Panel", canvasGo.transform);
         var panelImage = panel.gameObject.AddComponent<Image>();
-        panelImage.color = new Color(0.03f, 0.04f, 0.07f, 0.94f);
+        panelImage.color = BobScoreboardDisplay.PanelBackgroundColor;
         panel.anchorMin = Vector2.zero;
         panel.anchorMax = Vector2.one;
         panel.offsetMin = Vector2.zero;
@@ -55,38 +56,39 @@ public static class BobNearBobHudBuilder
 
         y = PlaceTopRow(panel.transform, "TitleText", "BOB · LIVE",
             BobScoreboardDisplay.FloatTitleFontSize, FontStyle.Bold, pad, y, contentWidth, 48f,
-            new Color(0.92f, 0.94f, 1f));
-        y -= 12f;
+            BobScoreboardDisplay.BodyColor);
+        y -= 14f;
 
         y = PlaceTopRow(panel.transform, "EpisodesText", $"{BobScoreboardDisplay.EpisodesLabel}  0",
             BobScoreboardDisplay.FloatHeroFontSize, FontStyle.Bold, pad, y, contentWidth, 88f,
             BobScoreboardDisplay.HeadlineColor);
-        y -= 10f;
+        y -= 12f;
 
         y = PlaceTopRow(panel.transform, "ScoreText", $"{BobScoreboardDisplay.ScoreLabel}  0",
             BobScoreboardDisplay.FloatScoreFontSize, FontStyle.Bold, pad, y, contentWidth, 78f,
             BobScoreboardDisplay.ScoreAccentColor);
-        y -= 10f;
+        y -= 12f;
 
         y = PlaceTopRow(panel.transform, "SuccessText",
-            $"{BobScoreboardDisplay.SuccessLabel}  0%   ·   Rolling 0%",
+            $"{BobScoreboardDisplay.SuccessLabel}  0%   ·   {BobScoreboardDisplay.RollingLabel} 0%",
             BobScoreboardDisplay.FloatSuccessFontSize, FontStyle.Bold, pad, y, contentWidth, 70f,
             BobScoreboardDisplay.HeadlineColor);
-        y -= 10f;
+        y -= 12f;
 
         y = PlaceTopRow(panel.transform, "StatusText", "Inference fallback — start ./scripts/train.sh",
             BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
-            new Color(1f, 0.55f, 0.45f));
-        y -= 8f;
+            BobScoreboardDisplay.StatusDisconnectedColor);
+        y -= 10f;
 
-        y = PlaceTopRow(panel.transform, "LastShotText", "Last  +0.0 RL   ·   Arc 0%   ·   —",
+        y = PlaceTopRow(panel.transform, "LastShotText",
+            $"{BobScoreboardDisplay.LastShotRlLabel}  +0.0   ·   {BobScoreboardDisplay.ArcLabel} 0%   ·   —",
             BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
             BobScoreboardDisplay.BodyColor);
-        y -= 8f;
+        y -= 10f;
 
         PlaceTopRow(panel.transform, "LaunchText", "Launch a=(0,0,0)  F=(0,0,0)  toward 0.00",
             BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
-            BobScoreboardDisplay.BodyColor);
+            BobScoreboardDisplay.MutedDetailColor);
 
         hudRoot.AddComponent<BobNearBobTrainingHud>();
         if (hudRoot.GetComponent<CameraFacingBillboard>() == null)
