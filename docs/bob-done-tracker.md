@@ -90,10 +90,14 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 ### Phase 3 — Learning (priority **1**)
 
 - [x] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty (2026-07-17)
-- [ ] **`RUN_ID=bob-v4`** extended train (30+ min @ 20×, uninterrupted Play) + refresh `docs/results/training_progress.png`
-- [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), Bob-local impulse, optional curriculum
+- [x] **bob-v4 short PPO** — ~110k steps, 5/1001 makes (0.50%); diagnostic plots in `docs/results/`
+- [x] **Tier 1.5 / bob-v4.1** — `MadeBasket=7`, `ArcQualityRewardScale=0.02`, `MissProximityRewardScale=0.35`, Bob-local impulse, `RimPlaneMissPenalty=0.2` (**code 2026-07-17**)
+- [x] **Diagnostic dashboard v2** — economics / positive-miss / make-signature panels in `plot_learning_dashboard.py`
+- [ ] **Short validation train** `RUN_ID=bob-v4.1` + confirm rim_miss mean net ≪ make / positive-miss % drops
+- [ ] **Extended train** (30+ min @ 20× after Tier 1.5 pass) + refresh `docs/results/bob_v4.1_learning_dashboard.png`
+- [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), curriculum, power shaping
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
-- [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4 policy)
+- [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4.1 policy)
 
 ### Phase 3–4 — Production bar **I** (priorities **2**, **4**, **5**)
 

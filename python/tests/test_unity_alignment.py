@@ -200,7 +200,7 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     ).is_file()
     assert (repo_root / "Assets/Audio/sfx_score.wav").is_file()
     assert (
-        "MadeBasket = 3.0f"
+        "MadeBasket = 7.0f"
         in (repo_root / "Assets/Scripts/ArcAcademyRewards.cs").read_text()
     )
     assert "PlayScore" in (repo_root / "Assets/Scripts/HoopScoreZone.cs").read_text()
@@ -601,9 +601,22 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "NotifyEpisodeBegin" in agent
     assert "ResolveEpisodeAsMiss" in agent
     assert "MissProximityRewardScale" in layout
+    assert "RimPlaneMissPenalty" in layout
     assert "ShotResolveMaxSteps" in layout
     assert "PerStepDistancePenaltyScale" in layout
+    assert "ArcQualityRewardScale = 0.02f" in layout
+    assert "MissProximityRewardScale = 0.35f" in layout
+    assert "transform.rotation * localImpulse" in agent
+    assert "applyRimPlaneMissPenalty" in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
+
+
+def test_plot_learning_dashboard_script_exists(repo_root: Path) -> None:
+    script = repo_root / "python/scripts/plot_learning_dashboard.py"
+    assert script.is_file()
+    text = script.read_text()
+    assert "episode_net_rl" in text or "end_reason" in text
+    assert "positive" in text.lower() or "economics" in text.lower()
 
 
 def test_release_checklist_script_exists(repo_root: Path) -> None:
