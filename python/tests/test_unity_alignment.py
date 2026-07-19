@@ -604,14 +604,25 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "RimPlaneMissPenalty" in layout
     assert "ShotResolveMaxSteps" in layout
     assert "PerStepDistancePenaltyScale" in layout
-    assert "ArcQualityRewardScale = 0.02f" in layout
-    assert "MissProximityRewardScale = 0.35f" in layout
+    assert "ArcQualityRewardScale = 0.01f" in layout
+    assert "MissProximityRewardScale = 0.20f" in layout
+    assert "RimPlaneMissPenalty = 1.25f" in layout
+    assert "LaunchTowardHoopRewardScale = 0.20f" in layout
+    assert "LaunchUpwardRewardScale = 0.15f" in layout
+    assert "LaunchArcAlignRewardScale = 0.15f" in layout
     assert "transform.rotation * localImpulse" in agent
     assert "forwardBias = 6f" in agent
     assert "forwardBias = -6f" not in agent
     # Heuristic default continuous[2] must match local +Z prior (not world-era -0.5).
     assert "continuous[2] = zInput == 0f ? 0.5f : zInput" in agent
     assert "applyRimPlaneMissPenalty" in agent
+    # Tier 1.6+: proximity gated off for rim-plane misses; unified past-plane helpers
+    assert "!applyRimPlaneMissPenalty" in agent
+    assert "IsPastRimPlane" in agent
+    assert "rimHeight + 1.2f" not in agent
+    # rim_miss only via penalty flag — not ResolveMissReason dual path
+    assert 'return "rim_miss"' not in agent or agent.count('? "rim_miss"') >= 1
+    assert 'return "rim_miss";' not in agent
     assert (repo_root / "Assets/Scripts/HoopScoreZone.cs").is_file()
 
     bob_prefab = (repo_root / "Assets/Prefabs/Prefab_Bob.prefab").read_text()
@@ -767,9 +778,10 @@ def test_success_graph_wiring(repo_root: Path) -> None:
     assert "GetRecentEndReasons" in stats
 
     hud = (repo_root / "Assets/Scripts/BobTrainingHUD.cs").read_text()
-    assert "TextMeshProUGUI" in hud
+    assert "UnityEngine.UI" in hud
     assert "BobTrainingStats" in hud
     assert "GetRecentEndReasons" in hud
+    assert "TextMeshProUGUI" not in hud
 
     graph = (repo_root / "Assets/Scripts/BobTrainingSuccessGraph.cs").read_text()
     assert "BobTrainingStats" in graph

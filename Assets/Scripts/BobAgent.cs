@@ -23,6 +23,8 @@ using UnityEngine;
 /// bob-v4 Tier 1: episodes end when the shot resolves (rim miss, floor, settle, or step cap),
 /// with terminal miss proximity reward and gated per-step distance penalty.
 /// bob-v4.1: Bob-local impulse + stronger make / capped miss proximity / rim-plane miss penalty.
+/// bob-v4.2 / Tier 1.6+: no proximity on rim_miss; rim penalty exceeds launch shaping; past-plane
+/// timeouts count as rim_miss.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class BobAgent : Agent
@@ -210,7 +212,9 @@ public class BobAgent : Agent
             return;
         }
 
-        if (hoop != null)
+        // Unified rim_miss: never pay proximity; always apply rim-plane penalty.
+        // Proximity remains for floor / timeout / settled wild misses only.
+        if (hoop != null && !applyRimPlaneMissPenalty)
         {
             Vector3 pos = ObservationTransform.position;
             float xzDist = new Vector2(pos.x - hoop.position.x, pos.z - hoop.position.z).magnitude;
@@ -255,15 +259,7 @@ public class BobAgent : Agent
             return "settled";
         }
 
-        if (rimApproachSign != 0 && hoop != null)
-        {
-            float pastRim = rimApproachSign * (ObservationTransform.position.z - hoop.position.z);
-            if (pastRim >= ArcAcademyLayout.RimPlaneMissTolerance)
-            {
-                return "rim_miss";
-            }
-        }
-
+        // rim_miss is only labeled via applyRimPlaneMissPenalty (single definition).
         return "miss";
     }
 
@@ -292,7 +288,16 @@ public class BobAgent : Agent
 
         if (stepsSinceShot >= ArcAcademyLayout.ShotResolveMaxSteps)
         {
-            ResolveEpisodeAsMiss();
+            // Past-plane then timeout was farming proximity under a "timeout" label — treat as rim_miss.
+            if (IsPastRimPlane())
+            {
+                ResolveEpisodeAsMiss(applyRimPlaneMissPenalty: true);
+            }
+            else
+            {
+                ResolveEpisodeAsMiss();
+            }
+
             return true;
         }
 
@@ -310,29 +315,43 @@ public class BobAgent : Agent
 
         if (TryResolveBallSettled())
         {
-            ResolveEpisodeAsMiss();
+            // Settled past the rim plane without a make = rim_miss (same economics).
+            if (IsPastRimPlane())
+            {
+                ResolveEpisodeAsMiss(applyRimPlaneMissPenalty: true);
+            }
+            else
+            {
+                ResolveEpisodeAsMiss();
+            }
+
             return true;
         }
 
         return false;
     }
 
-    private bool TryResolveRimPlaneMiss()
+    /// <summary>True when the ball has crossed the rim plane along the approach axis.</summary>
+    private bool IsPastRimPlane()
     {
         if (hoop == null || rimApproachSign == 0)
         {
             return false;
         }
 
-        Vector3 pos = ObservationTransform.position;
-        float pastRim = rimApproachSign * (pos.z - hoop.position.z);
-        if (pastRim < ArcAcademyLayout.RimPlaneMissTolerance)
+        float pastRim = rimApproachSign * (ObservationTransform.position.z - hoop.position.z);
+        return pastRim >= ArcAcademyLayout.RimPlaneMissTolerance;
+    }
+
+    private bool TryResolveRimPlaneMiss()
+    {
+        if (!IsPastRimPlane())
         {
             return false;
         }
 
-        float rimHeight = hoop.position.y;
-        return pos.y <= rimHeight + 1.2f && pos.y >= ArcAcademyLayout.CourtFloorContactHeight;
+        // No upper height gate — high arcs past the rim still count as rim_miss (Tier 1.6 review).
+        return ObservationTransform.position.y >= ArcAcademyLayout.CourtFloorContactHeight;
     }
 
     private bool TryResolveFloorContact()

@@ -189,14 +189,14 @@ public static class ArcAcademyLayout
 
     public const float IdealArcApexRatio = 0.55f;
 
-    /// <summary>5x reduction — stops near-miss profitability.</summary>
-    public const float ArcQualityRewardScale = 0.02f;
+    /// <summary>Tier 1.6+: cut again — bob-v4.1 resume farmed arc + rim_miss (positive-miss 57%).</summary>
+    public const float ArcQualityRewardScale = 0.01f;
 
     /// <summary>Ideal upward weight when blending toward-hoop + up for launch-direction rewards.</summary>
     public const float IdealLaunchUpRatio = 0.62f;
 
-    /// <summary>Reward when horizontal impulse aims toward the hoop (XZ plane).</summary>
-    public const float LaunchTowardHoopRewardScale = 0.45f;
+    /// <summary>Reward when horizontal impulse aims toward the hoop (XZ plane). Cut so max launch ≪ rim penalty.</summary>
+    public const float LaunchTowardHoopRewardScale = 0.20f;
 
     /// <summary>Extra penalty scale when horizontal impulse points away from the hoop.</summary>
     public const float LaunchAwayFromHoopPenaltyScale = 0.85f;
@@ -208,13 +208,13 @@ public static class ArcAcademyLayout
     public const float LaunchRadicallyWrongFlatPenalty = 0.15f;
 
     /// <summary>Reward for positive vertical impulse (arching shot).</summary>
-    public const float LaunchUpwardRewardScale = 0.3f;
+    public const float LaunchUpwardRewardScale = 0.15f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;
 
     /// <summary>Reward when full impulse aligns with ideal arc direction (toward hoop + up).</summary>
-    public const float LaunchArcAlignRewardScale = 0.3f;
+    public const float LaunchArcAlignRewardScale = 0.15f;
 
     /// <summary>Penalty scale when impulse opposes the ideal arc direction.</summary>
     public const float LaunchArcMisalignPenaltyScale = 0.75f;
@@ -222,16 +222,17 @@ public static class ArcAcademyLayout
     /// <summary>Per-step penalty when ball velocity points away from the hoop mid-flight.</summary>
     public const float FlightAwayFromHoopPenaltyScale = 0.15f;
 
-    // bob-v4 Tier 1 — shot-resolved episodes + terminal miss proximity
-    /// <summary>Max miss terminal reward now low (~0.35).</summary>
-    public const float MissProximityRewardScale = 0.35f;
+    // bob-v4 Tier 1 / 1.6 — shot-resolved episodes + terminal miss proximity
+    /// <summary>Terminal miss proximity (floor/timeout only — not rim_miss).</summary>
+    public const float MissProximityRewardScale = 0.20f;
     public const float MissProximityMaxDist = 6f;
 
     /// <summary>
     /// Discourage rim parking when plane is crossed without a make.
-    /// Magnitude only — BobAgent applies <c>-RimPlaneMissPenalty</c> (effective −0.25).
+    /// Magnitude only — BobAgent applies <c>-RimPlaneMissPenalty</c>.
+    /// Set above max launch shaping (~0.50) so good-aim rim_miss stays net-negative.
     /// </summary>
-    public const float RimPlaneMissPenalty = 0.25f;
+    public const float RimPlaneMissPenalty = 1.25f;
 
     public const float PerStepDistancePenaltyScale = 0.002f;
     public const int ShotResolveMaxSteps = 75;
