@@ -12,7 +12,7 @@ using UnityEngine;
 /// </summary>
 public static class BobDemonstrationRecorderMenu
 {
-    private const string DemoName = "bob_free_throw";
+    private const string DemoName = "bobfreethrow";
     private const string DemoRelDir = "Assets/Demos";
 
     [MenuItem("Bob/Demo/Enable Demonstration Recorder")]
@@ -56,18 +56,20 @@ public static class BobDemonstrationRecorderMenu
             + DemoName
             + " dir="
             + absDir
-            + " BehaviorType=HeuristicOnly. Press Play, shoot ~40 good arcs "
-            + "(Space = more up; Vertical = forward). Stop Play when done; "
+            + " BehaviorType=HeuristicOnly. HOLD Space/Fire1 to shoot (make-island arc). "
+            + "E/Shift=micro elevation nudge, A/D=gentle lateral. Stop Play when done; "
             + "expect "
             + Path.Combine(absDir, DemoName + ".demo"));
         EditorUtility.DisplayDialog(
             "Bob demos",
             "DemonstrationRecorder enabled (HeuristicOnly).\n\n"
                 + "1. Press Play\n"
-                + "2. Shoot ~30–50 arcs toward the hoop (aim for make island)\n"
-                + "3. Stop Play\n"
-                + "4. Confirm Assets/Demos/bob_free_throw.demo exists\n"
-                + "5. CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.2 ./scripts/train.sh --force",
+                + "2. HOLD Space (or left mouse) to shoot — waits until you press (won't auto-fire)\n"
+                + "3. Default = make-island arc; E/Shift = tiny up/down nudge; A/D = slight lateral\n"
+                + "4. Record ~30–50 MAKES (not just attempts)\n"
+                + "5. Stop Play → Disable Demonstration Recorder\n"
+                + "6. Confirm Assets/Demos/bobfreethrow.demo exists\n"
+                + "7. CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.3 ./scripts/train.sh --force",
             "OK");
     }
 

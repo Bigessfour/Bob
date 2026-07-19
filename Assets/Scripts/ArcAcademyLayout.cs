@@ -210,6 +210,15 @@ public static class ArcAcademyLayout
     /// <summary>Reward for positive vertical impulse (arching shot).</summary>
     public const float LaunchUpwardRewardScale = 0.15f;
 
+    /// <summary>
+    /// bob-v4.3 make-island mean fy ≈ 8.6. Soft-penalize |fy − IdealLaunchFy| so PPO
+    /// does not farm unbounded upward shaping into timeouts / long rim floats.
+    /// </summary>
+    public const float IdealLaunchFy = 8.5f;
+
+    /// <summary>Per-unit |fy − IdealLaunchFy| penalty (keep ≪ MadeBasket / RimPlaneMissPenalty).</summary>
+    public const float LaunchPowerBandPenaltyScale = 0.04f;
+
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;
 

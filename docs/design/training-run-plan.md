@@ -20,12 +20,13 @@ Related: [ml-training-recommendations.md](ml-training-recommendations.md) · [ai
 | Interim learning gate (>5% rolling)          | **Not met** (~1% last 1k)                                                                                              |
 | Demo-done bar (70% / last 1k)                | **Not met**                                                                                                            |
 
-**Next RUN_ID:** **`bob-v4.2 --force`** after Unity recompile (new reward economics — do **not** resume bob-v4.1).
+**Next RUN_ID:** regulation FT only — do **not** move Bob off the free-throw line.
 
-| Goal                          | Command                                                                             |
-| ----------------------------- | ----------------------------------------------------------------------------------- |
-| Validate Tier 1.6 contrast    | `RUN_ID=bob-v4.2 ./scripts/train.sh --force` (short, then dashboard `--check-pass`) |
-| After demos recorded (Tier 2) | `CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.3 ./scripts/train.sh --force`   |
+| Goal                           | Command / action                                                                                     |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Quality make demos (preferred) | **Bob → Demo → Enable Demonstration Recorder** → confirmed makes at FT line → Disable → BC train     |
+| BC after quality demos         | `CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.6 ./scripts/train.sh --initialize-from=bob-v4.4` |
+| Discarded                      | `bob-v4.5` easy-range probe — aborted (spawn off FT line)                                            |
 
 ---
 

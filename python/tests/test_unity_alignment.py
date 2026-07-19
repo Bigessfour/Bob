@@ -610,11 +610,22 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "LaunchTowardHoopRewardScale = 0.20f" in layout
     assert "LaunchUpwardRewardScale = 0.15f" in layout
     assert "LaunchArcAlignRewardScale = 0.15f" in layout
+    assert "IdealLaunchFy = 8.5f" in layout
+    assert "LaunchPowerBandPenaltyScale = 0.04f" in layout
+    assert "LaunchPowerBandPenaltyScale" in agent
+    assert "TrainingRangeScale" not in layout
+    assert "TrainingImpulseRangeScale" not in agent
     assert "transform.rotation * localImpulse" in agent
     assert "forwardBias = 6f" in agent
     assert "forwardBias = -6f" not in agent
-    # Heuristic default continuous[2] must match local +Z prior (not world-era -0.5).
-    assert "continuous[2] = zInput == 0f ? 0.5f : zInput" in agent
+    # Heuristic make-island prior + micro E/Shift elevation deltas (not radical arcs).
+    assert "MakeIslandForward = 0.55f" in agent
+    assert "MakeIslandUp = 0.28f" in agent
+    assert "ElevationMicroDelta = 0.035f" in agent
+    assert "IsHeuristicDemoMode" in agent
+    assert "IsHeuristicShootHeld" in agent
+    assert "MakeIslandUp + ElevationMicroDelta" in agent
+    assert "MakeIslandUp - ElevationMicroDelta" in agent
     assert "applyRimPlaneMissPenalty" in agent
     # Tier 1.6+: proximity gated off for rim-plane misses; unified past-plane helpers
     assert "!applyRimPlaneMissPenalty" in agent
@@ -653,8 +664,14 @@ def test_plot_learning_dashboard_script_exists(repo_root: Path) -> None:
 def test_bc_config_and_demo_recorder_menu(repo_root: Path) -> None:
     bc = (repo_root / "config/bob_free_throw_bc.yaml").read_text()
     assert "behavioral_cloning:" in bc
-    assert "Assets/Demos/bob_free_throw.demo" in bc
+    # Recorder DemonstrationName "bob_free_throw" → bobfreethrow.demo on disk
+    assert "Assets/Demos/bobfreethrow.demo" in bc
     assert "strength: 0.5" in bc
+
+    probe_bc = (repo_root / "config/bob_free_throw_probe_4k_bc.yaml").read_text()
+    assert "behavioral_cloning:" in probe_bc
+    assert "Assets/Demos/bobfreethrow.demo" in probe_bc
+    assert "max_steps: 380000" in probe_bc
 
     menu = (
         repo_root / "Assets/Scripts/Editor/BobDemonstrationRecorderMenu.cs"
@@ -663,6 +680,7 @@ def test_bc_config_and_demo_recorder_menu(repo_root: Path) -> None:
     assert "Enable Demonstration Recorder" in menu
 
     assert (repo_root / "Assets/Demos/.gitkeep").is_file()
+    assert (repo_root / "Assets/Demos/bobfreethrow.demo").is_file()
     assert (repo_root / "scripts/tensorboard.sh").is_file()
 
 

@@ -1,5 +1,6 @@
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
@@ -428,6 +429,14 @@ public class BobAgent : Agent
 
         if (!shotImpulseThisEpisode)
         {
+            // Demo / HeuristicOnly: wait for Space (or Fire1) so the shot isn't taken on the
+            // first Academy step before the player can hold an arc. Heuristic defaults to the
+            // make-island prior; E/Shift only apply micro elevation deltas (see Heuristic).
+            if (IsHeuristicDemoMode() && !IsHeuristicShootHeld())
+            {
+                return;
+            }
+
             var c = actions.ContinuousActions;
 
             // === LOCAL IMPULSE (robust to spawn rotation/jitter) ===
@@ -613,6 +622,8 @@ public class BobAgent : Agent
         {
             float normalizedUp = Mathf.Clamp01(impulse.y / Mathf.Max(verticalForceScale + verticalBias, 0.01f));
             GiveReward(normalizedUp * ArcAcademyLayout.LaunchUpwardRewardScale);
+            float fyError = Mathf.Abs(impulse.y - ArcAcademyLayout.IdealLaunchFy);
+            GiveReward(-fyError * ArcAcademyLayout.LaunchPowerBandPenaltyScale);
         }
 
         Vector3 idealArcDir = (towardHoop + Vector3.up * ArcAcademyLayout.IdealLaunchUpRatio).normalized;
@@ -657,23 +668,46 @@ public class BobAgent : Agent
     {
         var continuous = actionsOut.ContinuousActions;
 
-        continuous[0] = Input.GetAxis("Horizontal");
+        // Local impulse: fx=c0*10, fy=c1*16+4, fz=c2*14+6 (then rotate by spawn facing).
+        // Make-island prior (~bob-v4.2): c≈(0, 0.28, 0.55) → F≈(0, 8.5, 13.7).
+        // E / Shift only nudge elevation (±ElevationMicroDelta → ±~0.56 fy) — not radical arcs.
+        // Old E=0.40 / Shift=0.10 jumped to fy≈10.4 / 5.6 and overshot the hoop.
+        const float MakeIslandUp = 0.28f;         // Space alone → fy ≈ 8.5
+        const float ElevationMicroDelta = 0.035f; // E → +Δ, Shift → −Δ
+        const float MakeIslandForward = 0.55f;    // Local +Z toward hoop
+        const float LateralScale = 0.25f;         // A/D max |c0|=0.25 → |fx|≈2.5
 
-        if (Input.GetKey(KeyCode.Space))
+        continuous[0] = Input.GetAxis("Horizontal") * LateralScale;
+
+        float zInput = Input.GetAxis("Vertical");
+        continuous[2] = zInput == 0f
+            ? MakeIslandForward
+            : Mathf.Clamp(0.45f + zInput * 0.35f, 0.15f, 1f);
+
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            continuous[1] = 1.0f;
+            continuous[1] = MakeIslandUp - ElevationMicroDelta; // ≈0.245 → fy ≈ 7.9
         }
-        else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        else if (Input.GetKey(KeyCode.E))
         {
-            continuous[1] = -0.6f;
+            continuous[1] = MakeIslandUp + ElevationMicroDelta; // ≈0.315 → fy ≈ 9.0
         }
         else
         {
-            continuous[1] = 0f;
+            continuous[1] = MakeIslandUp; // Space / default → fy ≈ 8.5
         }
+    }
 
-        float zInput = Input.GetAxis("Vertical");
-        // Local +Z is forward (toward hoop); default matches prior world −Z shot.
-        continuous[2] = zInput == 0f ? 0.5f : zInput;
+    private bool IsHeuristicDemoMode()
+    {
+        var behavior = GetComponent<BehaviorParameters>();
+        return behavior != null && behavior.BehaviorType == BehaviorType.HeuristicOnly;
+    }
+
+    private static bool IsHeuristicShootHeld()
+    {
+        return Input.GetKey(KeyCode.Space)
+               || Input.GetButton("Jump")
+               || Input.GetButton("Fire1");
     }
 }

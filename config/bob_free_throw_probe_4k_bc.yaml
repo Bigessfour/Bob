@@ -1,12 +1,11 @@
-# Tier 2 — PPO + behavioral cloning.
-# Prerequisites:
-#   1. Bob → Demo → Enable Demonstration Recorder
-#   2. Play; record ~30–50 heuristic free throws → Assets/Demos/bob_free_throw.demo
-#   3. Bob → Demo → Disable Demonstration Recorder (restore Default)
-#   4. CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.3 ./scripts/train.sh --force
-# Note: ML-Agents writes DemonstrationName "bob_free_throw" as bobfreethrow.demo (underscores stripped).
+# bob-v4.4 probe — ~4000 episodes + Tier 2 behavioral cloning.
+# After bob-v4.3: economics PASS, success ~1.2% stuck on rim_miss (78%).
+# Soft power-band shaping is in C# (IdealLaunchFy); this YAML adds BC prior.
 #
-# Default training still uses config/bob_free_throw.yaml (no BC).
+# Launch:
+#   RUN_ID=bob-v4.4 CONFIG=config/bob_free_throw_probe_4k_bc.yaml \
+#     ./scripts/train.sh --initialize-from=bob-v4.3
+# Unity: BehaviorType Default, DemonstrationRecorder.Record=false, Play ONCE after listen.
 
 behaviors:
   Bob:
@@ -32,11 +31,13 @@ behaviors:
         gamma: 0.99
         strength: 1.0
     behavioral_cloning:
+      # ML-Agents strips underscores from DemonstrationName → bobfreethrow.demo
       demo_path: Assets/Demos/bobfreethrow.demo
       strength: 0.5
-      steps: 100000
+      steps: 120000
     keep_checkpoints: 5
-    max_steps: 500000
+    # 4000 episodes × ~93 steps/episode ≈ 372000; 380000 ≈ ~4086 eps headroom
+    max_steps: 380000
     time_horizon: 64
     summary_freq: 5000
 

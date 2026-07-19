@@ -1,12 +1,9 @@
-# Tier 2 — PPO + behavioral cloning.
-# Prerequisites:
-#   1. Bob → Demo → Enable Demonstration Recorder
-#   2. Play; record ~30–50 heuristic free throws → Assets/Demos/bob_free_throw.demo
-#   3. Bob → Demo → Disable Demonstration Recorder (restore Default)
-#   4. CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.3 ./scripts/train.sh --force
-# Note: ML-Agents writes DemonstrationName "bob_free_throw" as bobfreethrow.demo (underscores stripped).
-#
-# Default training still uses config/bob_free_throw.yaml (no BC).
+# bob-v4.3 probe — ~4000 episodes (~93 steps/ep from bob-v4.2).
+# Same Tier 1.6 PPO as bob_free_throw.yaml; NO behavioral_cloning.
+# Launch:
+#   RUN_ID=bob-v4.3 CONFIG=config/bob_free_throw_probe_4k.yaml \
+#     ./scripts/train.sh --initialize-from=bob-v4.2
+# Then Unity Play ONCE after "Listening on port 5004".
 
 behaviors:
   Bob:
@@ -31,12 +28,9 @@ behaviors:
       extrinsic:
         gamma: 0.99
         strength: 1.0
-    behavioral_cloning:
-      demo_path: Assets/Demos/bobfreethrow.demo
-      strength: 0.5
-      steps: 100000
     keep_checkpoints: 5
-    max_steps: 500000
+    # 4000 episodes × ~93 steps/episode ≈ 372000; 380000 ≈ ~4086 eps headroom
+    max_steps: 380000
     time_horizon: 64
     summary_freq: 5000
 
