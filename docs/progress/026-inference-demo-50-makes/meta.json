@@ -1,0 +1,46 @@
+{
+  "label": "026-inference-demo-50-makes",
+  "captured_at_utc": "2026-07-20T18:06:00Z",
+  "user_intent": "InferenceOnly with bob-v4.8 Bob.onnx",
+  "unity_behavior_reported": "HeuristicOnly",
+  "training_connected": false,
+  "iterations": 50,
+  "basketball_points": 50,
+  "session_success_pct": 98.04,
+  "rolling_success_pct": 100.0,
+  "streak_makes": 50,
+  "duration_seconds": 76,
+  "actual_mode": "solver_prior_c0",
+  "shot_signature": {
+    "actions_c": [0.0, 0.0, 0.0],
+    "impulse_f": [0.0, 4.72, -3.184],
+    "end_reason": "swish",
+    "solver_match": 1.0
+  },
+  "note": "50/50 swish but all c=0 — same as HeuristicOnly solver demo, not PPO policy output.",
+  "validated_inference": {
+    "confirmed_at_utc": "2026-07-20T18:10:00Z",
+    "console": "BOB_INFERENCE_OK: BehaviorType=InferenceOnly model=Assets/Models/Bob.onnx",
+    "user_observed_success_pct": 35,
+    "training_reference": "bob-v4.8-tight-prior trailing-1k 34.5%",
+    "csv_block": {
+      "window": "2026-07-20T18:08:25Z to 18:10:39Z",
+      "eps": 87,
+      "success_pct": 31.0,
+      "nonzero_actions": 87
+    },
+    "status": "VALIDATED — PPO policy matches training metrics in Play"
+  },
+  "prior_session_same_play": {
+    "window": "2026-07-20T18:04:00Z to 18:04:44Z",
+    "eps": 23,
+    "success_pct": 52.2,
+    "nonzero_actions": 23,
+    "residual_mean": 0.788,
+    "likely": "brief InferenceOnly or Default before Play restart"
+  },
+  "csv_window": {
+    "since": "2026-07-20T18:04:44Z",
+    "until": "2026-07-20T18:06:00Z"
+  }
+}

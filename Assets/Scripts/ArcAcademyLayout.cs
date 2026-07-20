@@ -161,6 +161,22 @@ public static class ArcAcademyLayout
     public static Vector3 MainRimWorldPosition =>
         RimWorldPosition(HoopRootDefaultPosition, RimLocalDefaultPosition);
 
+    /// <summary>
+    /// Horizontal spawn-to-rim distance at regulation (m). Used for distance curriculum:
+    /// hoop slides toward +Z; spawn / free-throw line never moves (unlike aborted v4.5).
+    /// </summary>
+    public const float RegulationHorizontalShotMeters = 5.24f;
+
+    /// <summary>
+    /// World +Z offset applied to hoop root when <paramref name="distanceScale"/> &lt; 1
+    /// (brings rim closer while Bob stays at the line).
+    /// </summary>
+    public static float GetCurriculumHoopDeltaZ(float distanceScale)
+    {
+        float scale = Mathf.Clamp(distanceScale, 0.5f, 1f);
+        return (1f - scale) * RegulationHorizontalShotMeters;
+    }
+
     /// <summary>Court-level hero shot — Bob at the line, backboard + rim centered ahead.</summary>
     public static readonly Vector3 CameraPosition = new(2.0f, 1.55f, 0.6f);
     public static readonly Vector3 CameraLookAt = new(0f, 2.85f, -5.2f);
@@ -200,14 +216,14 @@ public static class ArcAcademyLayout
 
     public const float IdealArcApexRatio = 0.55f;
 
-    /// <summary>Tier 1.6+: cut again — bob-v4.1 resume farmed arc + rim_miss (positive-miss 57%).</summary>
-    public const float ArcQualityRewardScale = 0.01f;
+    /// <summary>Tier 1.6+: zero — bob-v4.6-residual positive-miss 35% from per-step arc credit.</summary>
+    public const float ArcQualityRewardScale = 0f;
 
     /// <summary>Ideal upward weight when blending toward-hoop + up for launch-direction rewards.</summary>
     public const float IdealLaunchUpRatio = 0.62f;
 
     /// <summary>Reward when horizontal impulse aims toward the hoop (XZ plane). Cut so max launch ≪ rim penalty.</summary>
-    public const float LaunchTowardHoopRewardScale = 0.20f;
+    public const float LaunchTowardHoopRewardScale = 0.08f;
 
     /// <summary>Extra penalty scale when horizontal impulse points away from the hoop.</summary>
     public const float LaunchAwayFromHoopPenaltyScale = 0.85f;
@@ -219,7 +235,7 @@ public static class ArcAcademyLayout
     public const float LaunchRadicallyWrongFlatPenalty = 0.15f;
 
     /// <summary>Reward for positive vertical impulse (arching shot).</summary>
-    public const float LaunchUpwardRewardScale = 0.15f;
+    public const float LaunchUpwardRewardScale = 0.06f;
 
     /// <summary>
     /// Fallback vertical band when the analytic solver fails (absolute impulse path only).
@@ -232,47 +248,49 @@ public static class ArcAcademyLayout
 
     /// <summary>
     /// Cosine similarity of chosen impulse vs <see cref="BobSwishLaunchSolver"/> ideal (max +scale).
-    /// Pulls PPO onto the high-arc manifold before the first make; must stay ≪ MadeBasket.
+    /// bob-v4.8: raised — policy was over-exploring (|c|≈0.52); low-residual shots make ~35%.
     /// </summary>
-    public const float IdealSolverMatchRewardScale = 0.45f;
+    public const float IdealSolverMatchRewardScale = 0.35f;
 
     /// <summary>Local X residual scale — PPO fine-tunes lateral aim around the solver prior.</summary>
-    public const float ResidualLateralScale = 2.8f;
+    public const float ResidualLateralScale = 1.0f;
 
     /// <summary>Local Y residual scale — small vertical corrections around ideal impulse.</summary>
-    public const float ResidualVerticalScale = 3.5f;
+    public const float ResidualVerticalScale = 1.25f;
 
     /// <summary>Local Z residual scale — small depth/speed corrections toward the hoop.</summary>
-    public const float ResidualForwardScale = 3.2f;
+    public const float ResidualForwardScale = 1.0f;
 
-    /// <summary>Hard clamp on world-space residual so PPO cannot override the analytic free throw.</summary>
-    public const float ResidualMaxMagnitude = 5.5f;
+    /// <summary>Normalize <see cref="BobAgent"/> speed observation (m/s).</summary>
+    public const float MaxObsSpeedMagnitude = 20f;
+
+    /// <summary>Hard clamp on world-space residual — bob-v4.8: |c| band 1.0 (was 2.0; heuristic c≈0 makes ~97%).</summary>
+    public const float ResidualMaxMagnitude = 1.0f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;
 
     /// <summary>Reward when full impulse aligns with ideal arc direction (toward hoop + up).</summary>
-    public const float LaunchArcAlignRewardScale = 0.15f;
+    public const float LaunchArcAlignRewardScale = 0.05f;
 
     /// <summary>Penalty scale when impulse opposes the ideal arc direction.</summary>
     public const float LaunchArcMisalignPenaltyScale = 0.75f;
 
     /// <summary>Per-step penalty when ball velocity points away from the hoop mid-flight.</summary>
-    public const float FlightAwayFromHoopPenaltyScale = 0.15f;
+    public const float FlightAwayFromHoopPenaltyScale = 0.25f;
 
     // bob-v4 Tier 1 / 1.6 — shot-resolved episodes + terminal miss proximity
-    /// <summary>Terminal miss proximity (floor/timeout only — not rim_miss).</summary>
-    public const float MissProximityRewardScale = 0.20f;
+    /// <summary>Terminal miss proximity (floor/timeout only — bob-v4.6.1: disabled).</summary>
+    public const float MissProximityRewardScale = 0f;
     public const float MissProximityMaxDist = 6f;
 
     /// <summary>
     /// Discourage rim parking when plane is crossed without a make.
-    /// Magnitude only — BobAgent applies <c>-RimPlaneMissPenalty</c>.
-    /// Set above max launch shaping (~0.50) so good-aim rim_miss stays net-negative.
+    /// bob-v4.6.1: doubled — positive-miss 35% on v4.6-residual probe.
     /// </summary>
-    public const float RimPlaneMissPenalty = 1.25f;
+    public const float RimPlaneMissPenalty = 2.5f;
 
-    public const float PerStepDistancePenaltyScale = 0.002f;
+    public const float PerStepDistancePenaltyScale = 0.004f;
     public const int ShotResolveMaxSteps = 75;
     public const float CourtFloorContactHeight = 0.38f;
     public const float BallSettledSpeedThreshold = 0.4f;

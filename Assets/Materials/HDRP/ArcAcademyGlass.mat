@@ -28,6 +28,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _REFRACTION_THIN
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
   - _BLENDMODE_ALPHA
@@ -141,7 +142,7 @@ Material:
     m_Floats:
     - _AORemapMax: 1
     - _AORemapMin: 0
-    - _ATDistance: 1
+    - _ATDistance: 0.3
     - _AddPrecomputedVelocity: 0
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -213,7 +214,7 @@ Material:
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
-    - _RefractionModel: 1
+    - _RefractionModel: 3
     - _Smoothness: 0.98
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
@@ -234,7 +235,7 @@ Material:
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
-    - _Thickness: 0.012
+    - _Thickness: 0.02
     - _TransmissionEnable: 1
     - _TransmissionMask: 1
     - _TransparentBackfaceEnable: 0
@@ -254,7 +255,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0.92, g: 0.95, b: 0.98, a: 0.18}
+    - _BaseColor: {r: 0.9, g: 0.94, b: 0.98, a: 0.32}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
@@ -265,7 +266,7 @@ Material:
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TransmittanceColor: {r: 0.82, g: 0.9, b: 0.96, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}

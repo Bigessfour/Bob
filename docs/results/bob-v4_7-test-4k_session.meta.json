@@ -1,0 +1,9 @@
+{
+  "run_id": "bob-v4.7-test-4k",
+  "config": "config/bob_free_throw_probe_4k_v47_test.yaml",
+  "init_from": "bob-v4.7-ext",
+  "started_at_utc": "2026-07-20T11:34:50",
+  "target_iterations": 4000,
+  "max_steps": 380000,
+  "time_scale": 20
+}

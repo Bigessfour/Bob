@@ -47,7 +47,7 @@ config/bob_free_throw.yaml (PPO)
 
 **What helps today:** neutral actions `c≈(0,0,0)` → **residual hybrid**: `BobSwishLaunchSolver` ideal impulse + zero residual (analytic swish prior at ~58°), with PPO learning small clamped corrections (`ResidualLateralScale` / `ResidualMaxMagnitude` in `ArcAcademyLayout`). Heuristic and BC demos emit residual ≈ 0. Legacy absolute bias path remains as solver fallback only.
 
-**Next probe after horizontal-rim + residual land:** `RUN_ID=bob-v4.6-residual` (short validation run before extended train).
+**Next RUN_ID:** `bob-v4.7-curriculum` — P0 solver retune, make-hunt BC, hoop-distance curriculum ([training-chronicle.md](design/training-chronicle.md)).
 
 **What breaks the prior:**
 

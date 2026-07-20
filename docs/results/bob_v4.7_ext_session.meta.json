@@ -1,0 +1,14 @@
+{
+  "run_id": "bob-v4.7-ext",
+  "config": "config/bob_free_throw_probe_v47_ext.yaml",
+  "init_from": "bob-v4.7-curriculum",
+  "started_at_utc": "2026-07-20T11:02:18",
+  "time_scale": 20,
+  "max_steps": 760000,
+  "goal": "Extend v4.7 toward demo-done bar (70% / last 1k training episodes)",
+  "capture_after_run": [
+    "python3 scripts/plot_learning_dashboard.py --since 2026-07-20T11:02:18 --title bob-v4.7-ext --output ../docs/results/bob_v4.7_ext_learning_dashboard.png --check-pass",
+    "python3 scripts/plot_run_comparison.py --window bob-v4:2026-07-17T22:59:00 --window bob-v4.6-residual:2026-07-20T00:30:00 --window bob-v4.7-curriculum:2026-07-20T03:06:00 --window bob-v4.7-ext:2026-07-20T11:02:18 --output ../docs/results/bob_ml_timeline_comparison.png",
+    "python3 scripts/plot_training_progress.py --since 2026-07-20T11:02:18 --output ../docs/results/bob_v4.7_ext_training_progress.png"
+  ]
+}

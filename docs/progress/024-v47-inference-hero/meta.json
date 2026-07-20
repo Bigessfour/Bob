@@ -1,0 +1,9 @@
+{
+  "label": "024-v47-inference-hero",
+  "mode": "inference",
+  "model": "Assets/Models/Bob.onnx",
+  "run_id": "bob-v4.7-ext",
+  "git_sha": "feature/bob-v4.7",
+  "captured_at_utc": "2026-07-20T11:34:00Z",
+  "notes": "InferenceOnly portfolio capture — v4.7-ext Bob-571627.onnx"
+}

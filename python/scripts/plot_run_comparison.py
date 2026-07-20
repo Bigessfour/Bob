@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Overlay rolling success % across timestamp windows (multi-run compare).
+r"""Overlay rolling success % across timestamp windows (multi-run compare).
 
 CSVs do not store run_id — pass explicit windows:
 
@@ -47,7 +47,6 @@ def parse_window(spec: str) -> tuple[str, str, str | None]:
     # Split on second ISO date if present (pattern ...:YYYY-)
     until = None
     since = rest
-    marker = ":20"  # next year-prefixed until after a full since
     # Find a second timestamp starting with YYYY- after the first complete ISO blob
     # Heuristic: since is first 19+ chars of ISO; if another ":YYYY-MM-DD" appears after index 19, it's until
     for i in range(19, len(rest) - 10):
@@ -82,7 +81,7 @@ def rolling_success(
 ) -> tuple[list[int], list[float]]:
     xs: list[int] = []
     ys: list[float] = []
-    for i, row in enumerate(rows):
+    for i, _row in enumerate(rows):
         a = max(0, i - window + 1)
         chunk = rows[a : i + 1]
         makes = sum(int(r["scored"]) for r in chunk)

@@ -1,0 +1,10 @@
+{
+  "run_id": "bob-v4.8-tight-prior",
+  "config": "config/bob_free_throw_probe_4k_v48_tight.yaml",
+  "init_from": "bob-v4.7-test-4k",
+  "started_at_utc": "2026-07-20T12:02:58",
+  "target_iterations": 4000,
+  "max_steps": 380000,
+  "time_scale": 20,
+  "hypothesis": "Tighter residual band — low-|c| shots make ~35% vs 13% overall"
+}
