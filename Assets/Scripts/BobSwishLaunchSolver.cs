@@ -6,8 +6,8 @@ using UnityEngine;
 /// </summary>
 public static class BobSwishLaunchSolver
 {
-    /// <summary>Steep lob (~65°) — apex well above rim; green ballistic preview reads as an upward curve.</summary>
-    public const float PreferredLaunchAngleDegrees = 65f;
+    /// <summary>Realistic free-throw lob (~58°) — apex above rim, descending entry.</summary>
+    public const float PreferredLaunchAngleDegrees = 58f;
 
     /// <summary>E / Shift nudge on launch angle (degrees).</summary>
     public const float AngleNudgeDegrees = 4f;
@@ -25,7 +25,7 @@ public static class BobSwishLaunchSolver
     public const float AimPastRimMeters = 0.10f;
 
     /// <summary>Speed boost to offset basketball linearDamping on the way to the rim.</summary>
-    public const float DampingCompensation = 1.38f;
+    public const float DampingCompensation = 1.18f;
 
     /// <summary>
     /// Solves launch velocity for a projectile under <see cref="Physics.gravity"/> that passes
@@ -127,5 +127,25 @@ public static class BobSwishLaunchSolver
             (local.y - verticalBias) / Mathf.Max(verticalForceScale, 0.01f), -1f, 1f);
         az = Mathf.Clamp(
             (local.z - forwardBias) / Mathf.Max(forwardForceScale, 0.01f), -1f, 1f);
+    }
+
+    /// <summary>
+    /// Maps a world-space residual impulse back into Bob's continuous actions
+    /// (local residual via spawn facing, divided by residual scales).
+    /// </summary>
+    public static void WorldResidualToActions(
+        Vector3 residualWorld,
+        Quaternion spawnRotation,
+        float lateralScale,
+        float verticalScale,
+        float forwardScale,
+        out float ax,
+        out float ay,
+        out float az)
+    {
+        Vector3 local = Quaternion.Inverse(spawnRotation) * residualWorld;
+        ax = Mathf.Clamp(local.x / Mathf.Max(lateralScale, 0.01f), -1f, 1f);
+        ay = Mathf.Clamp(local.y / Mathf.Max(verticalScale, 0.01f), -1f, 1f);
+        az = Mathf.Clamp(local.z / Mathf.Max(forwardScale, 0.01f), -1f, 1f);
     }
 }

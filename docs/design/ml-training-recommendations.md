@@ -45,15 +45,17 @@ config/bob_free_throw.yaml (PPO)
 
 ### 1. Initial trajectory — Bob does not start knowing free throws
 
-**What helps today:** neutral actions `c≈[0,0,0]` → local impulse `(0, +4, +6)` via `verticalBias` / `forwardBias`, rotated by spawn facing (`transform.rotation * localImpulse`) into world toward-hoop (typically world −Z), plus launch-direction shaping in `ApplyLaunchDirectionRewards`.
+**What helps today:** neutral actions `c≈(0,0,0)` → **residual hybrid**: `BobSwishLaunchSolver` ideal impulse + zero residual (analytic swish prior at ~58°), with PPO learning small clamped corrections (`ResidualLateralScale` / `ResidualMaxMagnitude` in `ArcAcademyLayout`). Heuristic and BC demos emit residual ≈ 0. Legacy absolute bias path remains as solver fallback only.
+
+**Next probe after horizontal-rim + residual land:** `RUN_ID=bob-v4.6-residual` (short validation run before extended train).
 
 **What breaks the prior:**
 
-| Gap                | Detail                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------- |
-| Local bias sign    | With Bob-local impulse, `forwardBias` must be **+6** (local +Z toward hoop). World-era `−6` inverts aim |
-| No imitation prior | No `.demo` file; YAML has no `behavioral_cloning` block                                                 |
-| No analytic seed   | No parabolic `v0` solver from spawn → rim for demos or heuristic warm-start                             |
+| Gap                | Detail                                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| Local bias sign    | Legacy absolute fallback only — residual hybrid uses solver prior, not bias alone             |
+| No imitation prior | No `.demo` file; YAML has no `behavioral_cloning` block                                       |
+| No analytic seed   | ~~No parabolic v0 solver~~ — **DONE:** `BobSwishLaunchSolver` + residual hybrid in `BobAgent` |
 
 **ML-Agents guidance:** For sparse rewards, pre-train with **Behavioral Cloning** or **GAIL** from demonstrations ([overview](https://docs.unity3d.com/Packages/com.unity.ml-agents@4.0/manual/ML-Agents-Overview.html)).
 

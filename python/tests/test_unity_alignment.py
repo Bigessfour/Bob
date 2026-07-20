@@ -651,13 +651,18 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "LaunchUpwardRewardScale = 0.15f" in layout
     assert "LaunchArcAlignRewardScale = 0.15f" in layout
     assert "IdealLaunchFy = 4.9f" in layout
-    assert "IdealSolverMatchRewardScale = 0.40f" in layout
+    assert "IdealSolverMatchRewardScale = 0.45f" in layout
     assert "LaunchPowerBandPenaltyScale = 0.04f" in layout
+    assert "ResidualLateralScale = 2.8f" in layout
+    assert "ResidualMaxMagnitude = 5.5f" in layout
+    assert "SquareHitMinApexRise = 1.1f" in layout
     assert "LaunchPowerBandPenaltyScale" in agent
     assert "IdealSolverMatchRewardScale" in agent
     assert "TrainingRangeScale" not in layout
     assert "TrainingImpulseRangeScale" not in agent
-    assert "transform.rotation * localImpulse" in agent
+    assert "idealImpulse + residualWorld" in agent
+    assert "ResidualMaxMagnitude" in agent
+    assert "transform.rotation * localImpulse" in agent  # solver-fallback path
     assert "forwardBias = 6f" in agent
     assert "forwardBias = -6f" not in agent
     # Heuristic uses analytic high-arc swish solver (not a flat make-island push).
@@ -666,11 +671,15 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "LeftControl" in agent
     assert "IdealFreeThrowKinematics" in agent
     assert (
-        "PreferredLaunchAngleDegrees"
+        "PreferredLaunchAngleDegrees = 58f"
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
         "TryComputeWorldImpulse"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert (
+        "WorldResidualToActions"
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
@@ -682,7 +691,7 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
-        "DampingCompensation = 1.38f"
+        "DampingCompensation = 1.18f"
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
@@ -690,6 +699,7 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert "pureExpert" in agent
+    assert "GetEffectiveLaunchAngleDegrees" in agent
     assert "IsDemonstrationRecording()" in agent
     assert (
         "EstimateFlightDuration"

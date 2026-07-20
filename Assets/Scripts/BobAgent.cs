@@ -23,16 +23,16 @@ using UnityEngine;
 /// maps that impulse into Bob’s continuous actions (local impulse + scales/biases).
 ///
 /// Observations (8): body pos, vector to hoop, horizontal velocity (vx, vz).
-/// Actions (3): local lateral / vertical / forward continuous impulse (once per episode).
+/// Actions (3): local residual corrections around the analytic free throw (once per episode).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class BobAgent : Agent
 {
     #region IdealFreeThrowKinematics
     // Ground truth for a proper free throw lives in BobSwishLaunchSolver:
-    //   Prefer 65° launch → apex above rim → descending entry through HoopScoreZone.
-    // Heuristic + demo recording emit that solution; PPO is shaped toward the same manifold
-    // via IdealSolverMatchRewardScale + MadeBasket ≫ near-miss shaping.
+    //   Prefer 58° launch → apex above rim → descending entry through HoopScoreZone.
+    // Neutral actions c≈(0,0,0) → idealImpulse + zero residual (analytic swish prior).
+    // PPO learns small residuals; shaped by IdealSolverMatchRewardScale + MadeBasket ≫ near-miss.
     #endregion
 
     [Header("Environment References")]
@@ -42,7 +42,7 @@ public class BobAgent : Agent
     [Tooltip("Optional basketball rigidbody — Bob stays at spawn and launches this body")]
     [SerializeField] private Rigidbody projectileBody;
 
-    [Header("Force Tuning (for Heuristic + initial training)")]
+    [Header("Force Tuning (fallback when analytic solver fails)")]
     public float lateralForceScale = 10f;
     public float verticalForceScale = 16f;
     public float verticalBias = 4f;
@@ -504,17 +504,42 @@ public class BobAgent : Agent
 
             var c = actions.ContinuousActions;
 
-            // === LOCAL IMPULSE (robust to spawn rotation/jitter) ===
-            float fx = c[0] * lateralForceScale;                           // local X (lateral)
-            float fy = c[1] * verticalForceScale + verticalBias;           // Y = world up
-            float fz = c[2] * forwardForceScale + forwardBias;             // local Z (forward)
+            // === HYBRID: analytic free-throw prior + clamped residual RL ===
+            Vector3 idealImpulse = Vector3.zero;
+            bool hasIdeal = BobSwishLaunchSolver.TryComputeWorldImpulse(
+                ObservationTransform.position,
+                hoop.position,
+                ActionRigidbody.mass,
+                GetEffectiveLaunchAngleDegrees(),
+                out idealImpulse);
 
-            Vector3 localImpulse = new Vector3(fx, fy, fz);
-            Vector3 worldImpulse = transform.rotation * localImpulse;      // Convert using Bob's facing
+            Vector3 worldImpulse;
+            if (hasIdeal)
+            {
+                float rx = c[0] * ArcAcademyLayout.ResidualLateralScale;
+                float ry = c[1] * ArcAcademyLayout.ResidualVerticalScale;
+                float rz = c[2] * ArcAcademyLayout.ResidualForwardScale;
+                Vector3 residualLocal = new Vector3(rx, ry, rz);
+                Vector3 residualWorld = transform.rotation * residualLocal;
+                if (residualWorld.magnitude > ArcAcademyLayout.ResidualMaxMagnitude)
+                {
+                    residualWorld = residualWorld.normalized * ArcAcademyLayout.ResidualMaxMagnitude;
+                }
+
+                worldImpulse = idealImpulse + residualWorld;
+            }
+            else
+            {
+                // Degenerate geometry — legacy absolute local impulse fallback.
+                float fx = c[0] * lateralForceScale;
+                float fy = c[1] * verticalForceScale + verticalBias;
+                float fz = c[2] * forwardForceScale + forwardBias;
+                Vector3 localImpulse = new Vector3(fx, fy, fz);
+                worldImpulse = transform.rotation * localImpulse;
+            }
 
             ActionRigidbody.AddForce(worldImpulse, ForceMode.Impulse);
 
-            // Preserve variable name for minimal downstream changes
             Vector3 impulse = worldImpulse;
 
             shotImpulseThisEpisode = true;
@@ -532,13 +557,7 @@ public class BobAgent : Agent
             float towardDot = ComputeTowardHoopDot(impulse);
             float launchAngleDeg = BobSwishLaunchSolver.LaunchAngleDegreesFromImpulse(impulse);
             float solverMatch = 0f;
-            Vector3 idealImpulse = Vector3.zero;
-            if (BobSwishLaunchSolver.TryComputeWorldImpulse(
-                    ObservationTransform.position,
-                    hoop.position,
-                    ActionRigidbody.mass,
-                    BobSwishLaunchSolver.PreferredLaunchAngleDegrees,
-                    out idealImpulse)
+            if (hasIdeal
                 && idealImpulse.sqrMagnitude > 0.01f
                 && impulse.sqrMagnitude > 0.01f)
             {
@@ -703,9 +722,14 @@ public class BobAgent : Agent
         }
         else
         {
-            float normalizedUp = Mathf.Clamp01(impulse.y / Mathf.Max(verticalForceScale + verticalBias, 0.01f));
+            bool hasIdeal = idealImpulse.sqrMagnitude > 0.01f;
+            float upDenom = hasIdeal
+                ? Mathf.Max(idealImpulse.y, 0.01f)
+                : Mathf.Max(verticalForceScale + verticalBias, 0.01f);
+            float normalizedUp = Mathf.Clamp01(impulse.y / upDenom);
             GiveReward(normalizedUp * ArcAcademyLayout.LaunchUpwardRewardScale);
-            float fyError = Mathf.Abs(impulse.y - ArcAcademyLayout.IdealLaunchFy);
+            float fyTarget = hasIdeal ? idealImpulse.y : ArcAcademyLayout.IdealLaunchFy;
+            float fyError = Mathf.Abs(impulse.y - fyTarget);
             GiveReward(-fyError * ArcAcademyLayout.LaunchPowerBandPenaltyScale);
         }
 
@@ -776,50 +800,53 @@ public class BobAgent : Agent
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var continuous = actionsOut.ContinuousActions;
-        const float LateralScale = 0.25f; // A/D max |c0|=0.25 → |fx|≈2.5
+        const float LateralScale = 0.25f; // A/D max |c0|=0.25 → small lateral residual
 
-        // Expert teacher: analytic high-arc free throw (BobSwishLaunchSolver).
-        // Default HeuristicAlways uses the 65° solution — perfect demos for BC.
-        // LeftCtrl = pure expert (no A/D lateral). E / Shift = ±AngleNudgeDegrees.
-        // Space / Fire1 still gates the shot unless DemonstrationRecorder.Record.
-        float angle = BobSwishLaunchSolver.PreferredLaunchAngleDegrees;
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        {
-            angle -= BobSwishLaunchSolver.AngleNudgeDegrees;
-        }
-        else if (Input.GetKey(KeyCode.E))
-        {
-            angle += BobSwishLaunchSolver.AngleNudgeDegrees;
-        }
-
+        // Residual hybrid: pure expert / BC demos emit zero correction (solver prior only).
+        // Manual Heuristic allows small A/D lateral residual; E/Shift nudge solver angle at launch.
         bool expertLock = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-        // Auto-recorded demos must emit the pure solver (no keyboard lateral drift).
         bool pureExpert = expertLock || IsDemonstrationRecording();
 
-        if (TryGetIdealWorldImpulse(angle, out Vector3 worldImpulse))
+        if (pureExpert)
         {
-            BobSwishLaunchSolver.WorldImpulseToActions(
-                worldImpulse,
-                transform.rotation,
-                lateralForceScale,
-                verticalForceScale,
-                verticalBias,
-                forwardForceScale,
-                forwardBias,
-                out float ax,
-                out float ay,
-                out float az);
-            continuous[0] = pureExpert ? ax : Input.GetAxis("Horizontal") * LateralScale;
-            continuous[1] = ay;
-            continuous[2] = az;
+            continuous[0] = 0f;
+            continuous[1] = 0f;
+            continuous[2] = 0f;
         }
         else
         {
-            // Solver failed (degenerate geometry) — soft lob fallback, not a flat push.
             continuous[0] = Input.GetAxis("Horizontal") * LateralScale;
-            continuous[1] = 0.08f;
-            continuous[2] = -0.22f;
+            continuous[1] = 0f;
+            continuous[2] = 0f;
         }
+    }
+
+    /// <summary>
+    /// Launch angle for the analytic solver — E/Shift nudge in Heuristic demo mode only.
+    /// </summary>
+    private float GetEffectiveLaunchAngleDegrees()
+    {
+        if (IsDemonstrationRecording())
+        {
+            return BobSwishLaunchSolver.PreferredLaunchAngleDegrees;
+        }
+
+        if (IsHeuristicDemoMode())
+        {
+            float angle = BobSwishLaunchSolver.PreferredLaunchAngleDegrees;
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            {
+                angle -= BobSwishLaunchSolver.AngleNudgeDegrees;
+            }
+            else if (Input.GetKey(KeyCode.E))
+            {
+                angle += BobSwishLaunchSolver.AngleNudgeDegrees;
+            }
+
+            return angle;
+        }
+
+        return BobSwishLaunchSolver.PreferredLaunchAngleDegrees;
     }
 
     private bool IsHeuristicDemoMode()

@@ -184,7 +184,7 @@ public static class ArcAcademyLayout
     /// Minimum apex rise (m) above release before a shooter's-square hit pays RL —
     /// blocks flat line-drives into the board from earning the curriculum bonus.
     /// </summary>
-    public const float SquareHitMinApexRise = 0.85f;
+    public const float SquareHitMinApexRise = 1.1f;
     public const float SpawnLateralJitter = 0.35f;
     /// <summary>
     /// Legacy name: soft cap on entry speed for swish classification.
@@ -222,19 +222,31 @@ public static class ArcAcademyLayout
     public const float LaunchUpwardRewardScale = 0.15f;
 
     /// <summary>
-    /// High-arch swish band from <see cref="BobSwishLaunchSolver"/> (~65° lob → fy≈4.9 at mass 0.6).
-    /// Soft-penalize |fy − IdealLaunchFy| so PPO does not farm flat backboard pushes.
+    /// Fallback vertical band when the analytic solver fails (absolute impulse path only).
+    /// Residual hybrid uses <see cref="BobSwishLaunchSolver"/> ideal.y for power-band shaping.
     /// </summary>
     public const float IdealLaunchFy = 4.9f;
 
-    /// <summary>Per-unit |fy − IdealLaunchFy| penalty (keep ≪ MadeBasket / RimPlaneMissPenalty).</summary>
+    /// <summary>Per-unit |fy − target| penalty (keep ≪ MadeBasket / RimPlaneMissPenalty).</summary>
     public const float LaunchPowerBandPenaltyScale = 0.04f;
 
     /// <summary>
     /// Cosine similarity of chosen impulse vs <see cref="BobSwishLaunchSolver"/> ideal (max +scale).
     /// Pulls PPO onto the high-arc manifold before the first make; must stay ≪ MadeBasket.
     /// </summary>
-    public const float IdealSolverMatchRewardScale = 0.40f;
+    public const float IdealSolverMatchRewardScale = 0.45f;
+
+    /// <summary>Local X residual scale — PPO fine-tunes lateral aim around the solver prior.</summary>
+    public const float ResidualLateralScale = 2.8f;
+
+    /// <summary>Local Y residual scale — small vertical corrections around ideal impulse.</summary>
+    public const float ResidualVerticalScale = 3.5f;
+
+    /// <summary>Local Z residual scale — small depth/speed corrections toward the hoop.</summary>
+    public const float ResidualForwardScale = 3.2f;
+
+    /// <summary>Hard clamp on world-space residual so PPO cannot override the analytic free throw.</summary>
+    public const float ResidualMaxMagnitude = 5.5f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;
