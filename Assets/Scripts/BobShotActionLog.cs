@@ -5,7 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// Per-shot launch + resolution log for offline run review (<c>summaries/bob_shots.csv</c>).
-/// Captures continuous actions, world impulse, hoop alignment, and training connection.
+/// Captures actions, impulse, launch angle, solver match, and descending-near-rim flag.
 /// </summary>
 public static class BobShotActionLog
 {
@@ -26,6 +26,9 @@ public static class BobShotActionLog
         public float TowardHoopDot;
         public bool TrainingConnected;
         public string TimestampUtc;
+        public float LaunchAngleDeg;
+        public float SolverMatch;
+        public bool DescendingNearRim;
     }
 
     public static string GetLogPath()
@@ -40,7 +43,9 @@ public static class BobShotActionLog
         float az,
         Vector3 impulse,
         float towardHoopDot,
-        bool trainingConnected)
+        bool trainingConnected,
+        float launchAngleDeg = 0f,
+        float solverMatch = 0f)
     {
         if (!Application.isPlaying)
         {
@@ -60,12 +65,27 @@ public static class BobShotActionLog
             TowardHoopDot = towardHoopDot,
             TrainingConnected = trainingConnected,
             TimestampUtc = DateTime.UtcNow.ToString("o"),
+            LaunchAngleDeg = launchAngleDeg,
+            SolverMatch = solverMatch,
+            DescendingNearRim = false,
         };
 
         Debug.Log(
             $"BOB_SHOT: ep={iteration} a=({ax:F2},{ay:F2},{az:F2}) " +
             $"impulse=({impulse.x:F1},{impulse.y:F1},{impulse.z:F1}) " +
+            $"angle={launchAngleDeg:F1}° match={solverMatch:F2} " +
             $"toward={towardHoopDot:F2} training={(trainingConnected ? 1 : 0)}");
+    }
+
+    /// <summary>Call while the ball is near the rim and descending (ideal entry kinematics).</summary>
+    public static void NoteDescendingNearRim()
+    {
+        if (!s_Pending.Active)
+        {
+            return;
+        }
+
+        s_Pending.DescendingNearRim = true;
     }
 
     /// <summary>Flush the pending launch with episode outcome (call when the shot resolves).</summary>
@@ -91,7 +111,8 @@ public static class BobShotActionLog
             {
                 writer.WriteLine(
                     "timestamp,iteration,training_connected,ax,ay,az,fx,fy,fz,toward_hoop_dot," +
-                    "scored,episode_net_rl,peak_arc_pct,end_reason");
+                    "scored,episode_net_rl,peak_arc_pct,end_reason," +
+                    "launch_angle_deg,solver_match,descending_near_rim");
             }
 
             var inv = CultureInfo.InvariantCulture;
@@ -109,7 +130,10 @@ public static class BobShotActionLog
                 scored ? "1" : "0",
                 episodeNetReward.ToString("F3", inv),
                 (peakArcQuality * 100f).ToString("F2", inv),
-                SanitizeCsv(endReason)));
+                SanitizeCsv(endReason),
+                s_Pending.LaunchAngleDeg.ToString("F1", inv),
+                s_Pending.SolverMatch.ToString("F3", inv),
+                s_Pending.DescendingNearRim ? "1" : "0"));
         }
         catch (Exception ex)
         {

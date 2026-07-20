@@ -45,15 +45,17 @@ config/bob_free_throw.yaml (PPO)
 
 ### 1. Initial trajectory — Bob does not start knowing free throws
 
-**What helps today:** neutral actions `c≈[0,0,0]` → local impulse `(0, +4, +6)` via `verticalBias` / `forwardBias`, rotated by spawn facing (`transform.rotation * localImpulse`) into world toward-hoop (typically world −Z), plus launch-direction shaping in `ApplyLaunchDirectionRewards`.
+**What helps today:** neutral actions `c≈(0,0,0)` → **residual hybrid**: `BobSwishLaunchSolver` ideal impulse + zero residual (analytic swish prior at ~58°), with PPO learning small clamped corrections (`ResidualLateralScale` / `ResidualMaxMagnitude` in `ArcAcademyLayout`). Heuristic and BC demos emit residual ≈ 0. Legacy absolute bias path remains as solver fallback only.
+
+**Next probe after horizontal-rim + residual land:** `RUN_ID=bob-v4.6-residual` (short validation run before extended train).
 
 **What breaks the prior:**
 
-| Gap                | Detail                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------- |
-| Local bias sign    | With Bob-local impulse, `forwardBias` must be **+6** (local +Z toward hoop). World-era `−6` inverts aim |
-| No imitation prior | No `.demo` file; YAML has no `behavioral_cloning` block                                                 |
-| No analytic seed   | No parabolic `v0` solver from spawn → rim for demos or heuristic warm-start                             |
+| Gap                | Detail                                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| Local bias sign    | Legacy absolute fallback only — residual hybrid uses solver prior, not bias alone             |
+| No imitation prior | No `.demo` file; YAML has no `behavioral_cloning` block                                       |
+| No analytic seed   | ~~No parabolic v0 solver~~ — **DONE:** `BobSwishLaunchSolver` + residual hybrid in `BobAgent` |
 
 **ML-Agents guidance:** For sparse rewards, pre-train with **Behavioral Cloning** or **GAIL** from demonstrations ([overview](https://docs.unity3d.com/Packages/com.unity.ml-agents@4.0/manual/ML-Agents-Overview.html)).
 
@@ -105,25 +107,23 @@ Plots: `docs/results/bob_v4_learning.png`, `python/scripts/plot_learning_dashboa
 2. ~~Terminal miss proximity~~ (`MissProximityRewardScale`)
 3. ~~Gate per-step distance penalty~~ (`IsShotInFlight` only)
 
-### Tier 1.5 — Reward contrast + local impulse (bob-v4.1) — **NEXT**
+### Tier 1.5 — Reward contrast + local impulse (bob-v4.1) — **DONE (code)**
 
-Concrete constants from repo empirics + [Grok external review](https://grok.com/share/bGVnYWN5LWNvcHk_d98db033-14f7-4c3f-85f3-94c76e15d323) (apply before another long train):
+Concrete constants applied; **bob-v4.1 resumed to 500k** (2026-07-18). Learning of aim/arc **yes**; make rate **~1%** last 1k. Economics: make ≫ rim_miss mean **pass**, but **positive-miss 57% FAIL** (near-miss farming). See [bob_v4.1_resume_500k_analysis.md](../results/bob_v4.1_resume_500k_analysis.md).
 
-| File                   | Change                        | Target value                                                                            |
-| ---------------------- | ----------------------------- | --------------------------------------------------------------------------------------- |
-| `ArcAcademyRewards.cs` | Raise make reward             | `MadeBasket = 7.0f` (was `3.0f`); slight `SwishBonus` bump (e.g. `0.75f`)               |
-| `ArcAcademyLayout.cs`  | Slash per-step arc pay        | `ArcQualityRewardScale = 0.02f` (was `0.1f`)                                            |
-| `ArcAcademyLayout.cs`  | Cap miss proximity            | `MissProximityRewardScale = 0.35f` (was `0.75f`) so max terminal miss ≪ make            |
-| `ArcAcademyLayout.cs`  | Optional rim-plane miss nudge | Add `RimPlaneMissPenalty` (~`0.15f–0.25f`) when rim plane crossed without score         |
-| `BobAgent.cs`          | Bob-local impulse             | `impulse = transform.rotation * localImpulse` (fixes world-vs-local under spawn jitter) |
+### Tier 1.6 — Stop rim_miss farming (bob-v4.2) — **CODE READY**
 
-**Pass check (short `RUN_ID=bob-v4.1` validation run):**
+| File                  | Change                                              | Target                                                              |
+| --------------------- | --------------------------------------------------- | ------------------------------------------------------------------- |
+| `BobAgent.cs`         | Skip miss proximity when `applyRimPlaneMissPenalty` | rim-plane miss is not paid for “closeness”                          |
+| `BobAgent.cs`         | Unify rim_miss via `IsPastRimPlane`                 | timeout/settled past plane → rim_miss + penalty; no label-only path |
+| `BobAgent.cs`         | Remove rim height +1.2 gate                         | high arcs past rim still rim_miss                                   |
+| `ArcAcademyLayout.cs` | `MissProximityRewardScale`                          | `0.20f` (floor/timeout only)                                        |
+| `ArcAcademyLayout.cs` | `RimPlaneMissPenalty`                               | `1.25f` (above max launch shaping ~0.50)                            |
+| `ArcAcademyLayout.cs` | Launch toward / up / arc-align                      | `0.20` / `0.15` / `0.15`                                            |
+| `ArcAcademyLayout.cs` | `ArcQualityRewardScale`                             | `0.01f`                                                             |
 
-1. Mean net RL for `rim_miss` ≪ make (and ideally **&lt; +0.5**).
-2. Fraction of misses with net RL &gt; 0 drops sharply from **~44%**.
-3. Dashboard economics panel shows clear make vs rim_miss separation (see [Data viz](#data-viz--diagnostic-dashboard)).
-
-**Workflow after edits:** Unity recompile → short train → `plot_learning_dashboard.py` → decide whether to extend or tweak.
+**Pass check (short `RUN_ID=bob-v4.2`):** positive-miss **≤25%**; rim_miss mean net **&lt; 0** preferred; make mean still ~+8. Then extend train / BC.
 
 ### Tier 2 — “Bob knows what a free throw is”
 

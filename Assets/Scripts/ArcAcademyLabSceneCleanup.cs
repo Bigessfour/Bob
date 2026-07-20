@@ -30,6 +30,28 @@ public static class ArcAcademyLabSceneCleanup
         HideByName("ComplexRenderGroup");
 
         HideLegacyDecorativeHoops();
+        DisableBehindHoopWallPhysics();
+    }
+
+    /// <summary>
+    /// Wall_South sits behind the hoop and reads as a second backboard when shots overshoot.
+    /// Keep the mesh for the lab shell; disable colliders so only the real board can rebound.
+    /// </summary>
+    private static void DisableBehindHoopWallPhysics()
+    {
+        var wall = GameObject.Find(SimpleArcAcademyArena.WallSouthName);
+        if (wall == null)
+        {
+            return;
+        }
+
+        foreach (var col in wall.GetComponents<Collider>())
+        {
+            if (col != null && col.enabled)
+            {
+                col.enabled = false;
+            }
+        }
     }
 
     /// <summary>

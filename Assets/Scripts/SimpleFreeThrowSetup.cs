@@ -301,8 +301,8 @@ public class SimpleFreeThrowSetup : MonoBehaviour
         ApplyWhiteMaterial(backboard.GetComponent<Renderer>());
 
         var rimGo = EnsureChildPrimitive(simple, ArcAcademyLayout.RimName, PrimitiveType.Cylinder,
-            ArcAcademyLayout.RimLocalOnHoopHead, new Vector3(0.9f, 0.03f, 0.9f));
-        rimGo.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            ArcAcademyLayout.RimLocalOnHoopHead, Vector3.one);
+        rimGo.localRotation = Quaternion.identity;
         ApplyMetalMaterial(rimGo.GetComponent<Renderer>());
 
         if (!rimGo.TryGetComponent(out CapsuleCollider rimCol))

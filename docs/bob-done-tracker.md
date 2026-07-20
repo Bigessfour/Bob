@@ -1,9 +1,9 @@
 # Bob — Done Tracker
 
-**Last updated:** 2026-07-17 · **Branch:** `main` · **Merged:** [#10](https://github.com/Bigessfour/Bob/pull/10), [#11](https://github.com/Bigessfour/Bob/pull/11) (Ollama AI Review)
+**Last updated:** 2026-07-18 · **Branch:** `main` · **Merged:** [#10](https://github.com/Bigessfour/Bob/pull/10), [#11](https://github.com/Bigessfour/Bob/pull/11) (Ollama AI Review)
 **Pin:** open this file in Cursor → right-click tab → **Pin Tab** (split beside Unity).
 
-North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md)
+North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md) · **Start training:** [design/training-run-plan.md](design/training-run-plan.md)
 
 ---
 
@@ -11,7 +11,7 @@ North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-
 
 **Infrastructure + polish: Done** — training handshake, dual HUD, audio, PlayMode score test, inference menus, hero + GIF artifacts on `feature/dual-hud-scoreboard`.
 
-**Learning demo: Blocked on bob-v4 train** — Tier 1 reward/episode code landed in `BobAgent.cs`; run **`RUN_ID=bob-v4`** next.
+**Learning demo: Blocked on Tier 1.6 → bob-v4.2** — bob-v4.1 hit 500k (~1% last 1k, positive-miss 57%); reward patch shipped — see [bob_v4.1_resume_500k_analysis.md](results/bob_v4.1_resume_500k_analysis.md).
 
 **Publish:** Static portfolio in-repo — `docs/portfolio-site/` + README links. **No AWS hosting.**
 
@@ -63,7 +63,12 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] Core loop in code (scene + agent + HUD + scoring)
 - [x] Dual HUD + audio + portfolio artifacts (hero `023`, GIF `023-training-gif`)
 - [x] PlayMode test: make → +1 `BasketballPoints` (`BobScoreIncrementPlayModeTest`)
-- [ ] **Visible learning** — rolling success **>5%**, rising plot ([ml-training-recommendations.md](design/ml-training-recommendations.md) Tier 1 + bob-v4) — **trainer running `bob-v4`**
+- [ ] **Visible learning** — interim **>5%** rolling, then demo-done **≥70% / last 1k** — next **`bob-v4.2 --force`** after Tier 1.6 ([training-run-plan.md](design/training-run-plan.md))
+- [x] **Tier 1.5 / bob-v4.1** — code + full 500k resume; aim↑ / makes ~1%; positive-miss **FAIL**
+- [x] **Tier 1.6 reward patch** — unified rim_miss; penalty **1.25**; launch scales cut; past-plane timeout/settled → rim_miss (**2026-07-18**)
+- [ ] **Short validation** `RUN_ID=bob-v4.2` — positive-miss ≤25%, then extend / BC
+- [x] **Diagnostic dashboard v2** — economics / positive-miss / make-signature panels in `plot_learning_dashboard.py`
+- [x] **bob-v4.1 extended to max_steps** — 500k; analysis in [bob_v4.1_resume_500k_analysis.md](results/bob_v4.1_resume_500k_analysis.md)
 - [x] Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main` on green CI
 - [x] Merge [PR #11](https://github.com/Bigessfour/Bob/pull/11) → `main` (Ollama AI Review)
 - [ ] README portfolio section links `docs/portfolio-site/` + latest hero/GIF/plot
@@ -91,14 +96,16 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 - [x] **Tier 1 ML fixes** in `BobAgent.cs` — shot-resolved `EndEpisode`, terminal miss proximity, gate per-step dist penalty (2026-07-17)
 - [x] **bob-v4 short PPO** — ~110k steps, 5/1001 makes (0.50%); diagnostic plots in `docs/results/`
-- [x] **Tier 1.5 / bob-v4.1** — `MadeBasket=7`, `SwishBonus=1`, `ArcQualityRewardScale=0.02`, `MissProximityRewardScale=0.35`, Bob-local impulse, `RimPlaneMissPenalty=0.25`, TMP `BobTrainingHUD` (**code 2026-07-18**)
+- [x] **Tier 1.5 / bob-v4.1** — contrast + local impulse; full **500k** resume (~1% last 1k; positive-miss **57% FAIL**)
 - [x] **Diagnostic dashboard v2** — economics / positive-miss / make-signature panels in `plot_learning_dashboard.py`
-- [ ] **Short validation train** `RUN_ID=bob-v4.1` + confirm rim_miss mean net ≪ make / positive-miss % drops
-- [ ] **Extended train** (30+ min @ 20× after Tier 1.5 pass) + refresh `docs/results/bob_v4.1_learning_dashboard.png`
+- [x] **bob-v4.1 → max_steps** — analysis [bob_v4.1_resume_500k_analysis.md](results/bob_v4.1_resume_500k_analysis.md)
+- [x] **Tier 1.6** — unified rim_miss; penalty **1.25**; launch scales cut; past-plane timeout/settled → rim_miss; arc 0.01
+- [ ] **bob-v4.2 short validation** — `--force` after recompile; positive-miss ≤25%, then extend toward **>5%** / **70%/1k**
 - [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), curriculum, power shaping — **recorder menu + `bob_free_throw_bc.yaml` scaffolded**; demos not recorded yet
+- [x] **Training run plan** — [design/training-run-plan.md](design/training-run-plan.md) (M5 Docker vs MPS, 70%/1k bar, plot commands)
 - [x] **Dev ML tools** — StatsRecorder → TensorBoard, `./scripts/tensorboard.sh`, demo recorder menus (reject W&B/SB3/LLM-RL)
 - [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
-- [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4.1 policy)
+- [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4.2+ policy)
 
 ### Phase 3–4 — Production bar **I** (priorities **2**, **4**, **5**)
 
@@ -122,11 +129,14 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ## Last run log
 
-| Date       | Run ID | train.sh | BOB_TRAINING_OK | Makes | Notes                                                                          |
-| ---------- | ------ | -------- | --------------- | ----- | ------------------------------------------------------------------------------ |
-| 2026-06-23 | bob-v0 | yes      | yes             | low   | Step 5000/10000; pre–launch-shaping                                            |
-| 2026-06-24 | bob-v2 | yes      | yes             | low   | 865 iter batchmode; plot refreshed                                             |
-| 2026-07-14 | bob-v3 | yes      | yes (brief)     | **0** | ~40k trainer steps; arc ~74%, net RL −163; **crashed** on communicator timeout |
+| Date       | Run ID   | train.sh | BOB_TRAINING_OK | Makes  | Notes                                                                          |
+| ---------- | -------- | -------- | --------------- | ------ | ------------------------------------------------------------------------------ |
+| 2026-06-23 | bob-v0   | yes      | yes             | low    | Step 5000/10000; pre–launch-shaping                                            |
+| 2026-06-24 | bob-v2   | yes      | yes             | low    | 865 iter batchmode; plot refreshed                                             |
+| 2026-07-14 | bob-v3   | yes      | yes (brief)     | **0**  | ~40k trainer steps; arc ~74%, net RL −163; **crashed** on communicator timeout |
+| 2026-07-17 | bob-v4   | yes      | yes             | 5/1001 | 0.50%; Tier 1 validated; profitable rim_miss                                   |
+| 2026-07-18 | bob-v4.1 | yes      | partial         | ~1.0%  | 500k done; aim↑; **positive-miss 57%** → Tier 1.6                              |
+| 2026-07-18 | bob-v4.2 | —        | —               | —      | Tier 1.6 code ready; train `--force` next                                      |
 
 ---
 
@@ -137,11 +147,20 @@ bash ./scripts/validate-scene.sh
 cd python && pytest tests/test_unity_alignment.py -q
 lsof -i :5004
 
-# After Tier 1 ML fixes land:
-RUN_ID=bob-v4 ./scripts/train.sh --force
+# After Unity recompile (Tier 1.6 rewards) — fresh run, do not resume bob-v4.1
+RUN_ID=bob-v4.2 ./scripts/train.sh --force
+# Play once → BOB_TRAINING_OK
+# Then:
+cd python && source .venv/bin/activate
+python scripts/plot_learning_dashboard.py --since <UTC_START> --check-pass \
+  --output ../docs/results/bob_v4.2_learning_dashboard.png
+python scripts/plot_run_comparison.py --window bob-v4.2:<UTC_START> --check-demo-bar
 # Play ONCE after Listening on port 5004 — do not touch scripts until done
 
-python scripts/plot_training_progress.py --output ../docs/results/training_progress.png
+cd python && source .venv/bin/activate
+python scripts/plot_learning_dashboard.py --since <UTC_START> \
+  --output ../docs/results/bob_v4.1_learning_dashboard.png
+python scripts/plot_run_comparison.py --window bob-v4.1:<UTC_START> --check-demo-bar
 ```
 
 ---

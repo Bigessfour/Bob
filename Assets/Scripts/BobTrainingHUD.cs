@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Modern screen-space training HUD (Canvas + TextMeshPro).
+/// Modern screen-space training HUD (Canvas + uGUI Text).
 /// Supplements lab wall/near-Bob HUDs and replaces the OnGUI scoreboard when present.
 /// Pulls live metrics from <see cref="BobTrainingStats"/> — no reward/episode logic here.
+/// Uses UnityEngine.UI.Text (not TMP) so it compiles against <c>Bob.asmdef</c> without a TMP ref.
 /// </summary>
 public class BobTrainingHUD : MonoBehaviour
 {
@@ -19,15 +19,15 @@ public class BobTrainingHUD : MonoBehaviour
     [Tooltip("Shown in the header; overridden by RUN_ID env var when set.")]
     [SerializeField] private string runId = "local";
 
-    private TextMeshProUGUI headerText;
-    private TextMeshProUGUI successText;
-    private TextMeshProUGUI economicsText;
-    private TextMeshProUGUI outcomesLabel;
+    private Text headerText;
+    private Text successText;
+    private Text economicsText;
+    private Text outcomesLabel;
     private readonly Image[] outcomeChips = new Image[OutcomeChipCount];
     private readonly Image[] graphBars = new Image[GraphBarCount];
 
     private float highlightTimer;
-    private TextMeshProUGUI highlightTarget;
+    private Text highlightTarget;
     private Color highlightBaseColor;
     private string lastSuccessKey = "";
     private string lastEconomicsKey = "";
@@ -97,8 +97,8 @@ public class BobTrainingHUD : MonoBehaviour
         string successKey =
             $"{stats.SessionSuccessRate:F4}|{stats.RollingSuccessRate:F4}|{stats.BasketballPoints}|{stats.TotalIterations}";
         successText.text =
-            $"<size=150%>{stats.SessionSuccessRate:P1}</size>  session\n" +
-            $"<size=130%>{stats.RollingSuccessRate:P1}</size>  rolling  ·  " +
+            $"<size=28>{stats.SessionSuccessRate:P1}</size>  session\n" +
+            $"<size=22>{stats.RollingSuccessRate:P1}</size>  rolling  ·  " +
             $"{BobScoreboardDisplay.ScoreLabel} {stats.BasketballPoints} / {stats.TotalIterations}";
 
         if (successKey != lastSuccessKey)
@@ -174,7 +174,6 @@ public class BobTrainingHUD : MonoBehaviour
 
             float value = i < series.Count ? Mathf.Clamp01(series[i]) : 0f;
             var rt = bar.rectTransform;
-            // Bars grow upward from the row baseline (anchored bottom).
             rt.anchorMin = new Vector2(rt.anchorMin.x, 0f);
             rt.anchorMax = new Vector2(rt.anchorMax.x, Mathf.Max(0.08f, value));
             bar.color = value > 0.01f ? GraphBar : ChipEmpty;
@@ -196,7 +195,7 @@ public class BobTrainingHUD : MonoBehaviour
         return BadRed;
     }
 
-    private void Pulse(TextMeshProUGUI target, Color baseColor)
+    private void Pulse(Text target, Color baseColor)
     {
         highlightTarget = target;
         highlightBaseColor = baseColor;
@@ -233,8 +232,9 @@ public class BobTrainingHUD : MonoBehaviour
         var canvas = canvasGo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
-        canvasGo.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        canvasGo.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920f, 1080f);
+        var scaler = canvasGo.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
         canvasGo.AddComponent<GraphicRaycaster>();
 
         var panelGo = new GameObject("Panel");
@@ -249,15 +249,15 @@ public class BobTrainingHUD : MonoBehaviour
         panelRt.sizeDelta = new Vector2(420f, 320f);
 
         float y = -14f;
-        headerText = CreateTmp(panelGo.transform, "HeaderText", 18f, FontStyles.Normal, y, 28f);
+        headerText = CreateLabel(panelGo.transform, "HeaderText", 18, FontStyle.Normal, y, 28f);
         y -= 34f;
-        successText = CreateTmp(panelGo.transform, "SuccessText", 22f, FontStyles.Bold, y, 64f);
+        successText = CreateLabel(panelGo.transform, "SuccessText", 22, FontStyle.Bold, y, 64f);
         y -= 70f;
-        economicsText = CreateTmp(panelGo.transform, "EconomicsText", 15f, FontStyles.Normal, y, 40f);
+        economicsText = CreateLabel(panelGo.transform, "EconomicsText", 15, FontStyle.Normal, y, 40f);
         economicsText.color = BobScoreboardDisplay.MutedDetailColor;
         y -= 44f;
 
-        outcomesLabel = CreateTmp(panelGo.transform, "OutcomesLabel", 14f, FontStyles.Normal, y, 22f);
+        outcomesLabel = CreateLabel(panelGo.transform, "OutcomesLabel", 14, FontStyle.Normal, y, 22f);
         outcomesLabel.color = BobScoreboardDisplay.MutedDetailColor;
         y -= 26f;
 
@@ -268,8 +268,8 @@ public class BobTrainingHUD : MonoBehaviour
         }
 
         y -= 36f;
-        var graphLabel = CreateTmp(panelGo.transform, "GraphLabel", 13f, FontStyles.Normal, y, 20f);
-        graphLabel.text = "Rolling success (placeholder)";
+        var graphLabel = CreateLabel(panelGo.transform, "GraphLabel", 13, FontStyle.Normal, y, 20f);
+        graphLabel.text = "Rolling success";
         graphLabel.color = BobScoreboardDisplay.MutedDetailColor;
         y -= 24f;
 
@@ -280,31 +280,33 @@ public class BobTrainingHUD : MonoBehaviour
         }
     }
 
-    private static TextMeshProUGUI CreateTmp(
+    private static Text CreateLabel(
         Transform parent,
         string name,
-        float fontSize,
-        FontStyles style,
+        int fontSize,
+        FontStyle style,
         float anchoredY,
         float height)
     {
         var go = new GameObject(name);
         go.transform.SetParent(parent, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.fontSize = fontSize;
-        tmp.fontStyle = style;
-        tmp.color = BobScoreboardDisplay.BodyColor;
-        tmp.alignment = TextAlignmentOptions.TopLeft;
-        tmp.enableWordWrapping = true;
-        tmp.richText = true;
-        tmp.raycastTarget = false;
-        var rt = tmp.rectTransform;
+        var text = go.AddComponent<Text>();
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.fontSize = fontSize;
+        text.fontStyle = style;
+        text.color = BobScoreboardDisplay.BodyColor;
+        text.alignment = TextAnchor.UpperLeft;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.supportRichText = true;
+        text.raycastTarget = false;
+        var rt = text.rectTransform;
         rt.anchorMin = new Vector2(0f, 1f);
         rt.anchorMax = new Vector2(1f, 1f);
         rt.pivot = new Vector2(0.5f, 1f);
         rt.anchoredPosition = new Vector2(0f, anchoredY);
         rt.sizeDelta = new Vector2(-28f, height);
-        return tmp;
+        return text;
     }
 
     private static RectTransform CreateRow(Transform parent, string name, float anchoredY, float height)

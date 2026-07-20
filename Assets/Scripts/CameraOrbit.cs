@@ -9,11 +9,11 @@ using UnityEngine;
 public class CameraOrbit : MonoBehaviour
 {
     [Header("Look-At Target (fixed pivot)")]
-    public Vector3 lookAtPoint = new Vector3(0f, 2f, -4.5f);
+    public Vector3 lookAtPoint = new Vector3(0f, 1.6f, -6.2f);
 
-    [Header("Default View (exact values from prompt / SimpleArcAcademyArena)")]
-    public Vector3 defaultPosition = new Vector3(13f, 3.2f, -3.5f);
-    public float defaultFov = 52f;
+    [Header("Default View (SimpleArcAcademyArena.LabCamera*)")]
+    public Vector3 defaultPosition = new Vector3(11f, 3.5f, -2.2f);
+    public float defaultFov = 55f;
 
     [Header("Orbit Tuning")]
     public float lookSensitivity = 2.5f;
@@ -33,6 +33,7 @@ public class CameraOrbit : MonoBehaviour
     private void Awake()
     {
         ResolveChildCamera();
+        SyncLabDefaults();
 
         // Compute initial spherical coords from the desired default (used for reset + limits)
         ComputeSphericalFromOffset(defaultPosition - lookAtPoint, out defaultYaw, out defaultPitch, out distance);
@@ -101,7 +102,7 @@ public class CameraOrbit : MonoBehaviour
     private void LateUpdate()
     {
         // Keep child camera exactly at local identity so:
-        // - rig reports the "at position (13,3.2,-3.5)" as requested
+        // - rig reports LabCameraPosition as the world pose
         // - Camera.main world values are authoritative for billboards / other readers
         if (childCamTransform != null)
         {
@@ -110,11 +111,22 @@ public class CameraOrbit : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Keep serialized orbit defaults aligned with <see cref="SimpleArcAcademyArena"/> LabHero
+    /// (overrides stale prefab/scene values from older (13, 3.2, -3.5) framing).
+    /// </summary>
+    public void SyncLabDefaults()
+    {
+        defaultPosition = SimpleArcAcademyArena.LabCameraPosition;
+        lookAtPoint = SimpleArcAcademyArena.LabCameraLookAt;
+        defaultFov = SimpleArcAcademyArena.LabCameraFieldOfView;
+    }
+
     public void ResetToDefault()
     {
         ResolveChildCamera();
+        SyncLabDefaults();
 
-        // Exact values per prompt
         transform.position = defaultPosition;
         Vector3 dir = (lookAtPoint - defaultPosition).normalized;
         transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
@@ -127,6 +139,8 @@ public class CameraOrbit : MonoBehaviour
         // Recompute spherical for orbit state
         Vector3 offset = defaultPosition - lookAtPoint;
         ComputeSphericalFromOffset(offset, out yaw, out pitch, out distance);
+        defaultYaw = yaw;
+        defaultPitch = pitch;
 
         // Re-assert child local zero (defensive)
         if (childCamTransform != null)

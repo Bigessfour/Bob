@@ -7,17 +7,19 @@ using UnityEngine;
 public static class TrainingHoopDetail
 {
     public const int RimSegmentCount = 12;
-    public const int NetStrandCount = 18;
+    public const int NetStrandCount = 26;
     public const float RimOuterRadius = 0.43f;
     public const float RimTubeRadius = 0.018f;
 
     // Regulation 42×72 backboard proportions (local units on 1.8 × 1.05 glass panel).
+    // Depths kept flush so the target reads as one product-style piece (not stacked layers).
     private const float GlassHalfWidth = 0.9f;
     private const float GlassHalfHeight = 0.525f;
-    private const float GlassFaceZ = 0.045f;
-    private const float FrameDepth = 0.035f;
+    private const float GlassFaceZ = 0.018f;
+    private const float FrameDepth = 0.022f;
     private const float MarkingLine = 0.022f;
-    private const float MarkingInset = 0.07f;
+    private const float MarkingInset = 0.06f;
+    private const float MarkingDepth = 0.008f;
 
     private static readonly string[] DisableUnderHoop =
     {
@@ -54,6 +56,30 @@ public static class TrainingHoopDetail
         EnsureVisualNet(rim);
         EnsureScoreTrigger(rim);
         EnsureHoopRenderersEnabled(rim);
+        EnsureHoopReflectionProbeCoverage();
+    }
+
+    /// <summary>
+    /// Repositions the court ReflectionProbe onto the free-throw lane so Thin glass
+    /// gets accurate probe fallback (Unity HDRP refractive material guidance).
+    /// </summary>
+    public static void EnsureHoopReflectionProbeCoverage()
+    {
+        var probeGo = GameObject.Find(ArcAcademyLayout.ReflectionProbeName);
+        if (probeGo == null || !probeGo.TryGetComponent(out ReflectionProbe probe))
+        {
+            return;
+        }
+
+        Vector3 rim = ArcAcademyLayout.MainRimWorldPosition;
+        probeGo.transform.position = new Vector3(
+            rim.x,
+            Mathf.Max(rim.y, 2.8f),
+            (rim.z + ArcAcademyLayout.FreeThrowLineWorldZ) * 0.5f);
+        probe.size = new Vector3(16f, 10f, 22f);
+        // Refresh after reposition; safe for Realtime/Baked (avoids ReflectionProbeMode
+        // enum resolution issues in the Bob runtime asmdef).
+        probe.RenderProbe();
     }
 
     /// <summary>
@@ -142,8 +168,10 @@ public static class TrainingHoopDetail
         }
 
         rim.localPosition = ArcAcademyLayout.RimLocalOnHoopHead;
-        rim.localRotation = Quaternion.Euler(90f, 0f, 0f);
-        rim.localScale = new Vector3(0.9f, 0.04f, 0.9f);
+        // FIBA/NCAA: ring top edge horizontal and parallel to the floor (not a vertical target).
+        // Torus + RimColliders lie in XZ with Y through the hole — identity rotation.
+        rim.localRotation = Quaternion.identity;
+        rim.localScale = Vector3.one;
     }
 
     public static void ConfigureRimColliders(GameObject rimGo)
@@ -191,8 +219,9 @@ public static class TrainingHoopDetail
 
             var seg = new GameObject($"RimSeg_{i}");
             seg.transform.SetParent(collidersRoot, false);
+            // Horizontal ring in XZ; capsule tangent follows the circle.
             seg.transform.localPosition = new Vector3(cos * RimOuterRadius, 0f, sin * RimOuterRadius);
-            seg.transform.localRotation = Quaternion.Euler(90f, angle * Mathf.Rad2Deg + 90f, 0f);
+            seg.transform.localRotation = Quaternion.Euler(0f, -angle * Mathf.Rad2Deg, 0f);
 
             var cap = seg.AddComponent<CapsuleCollider>();
             cap.direction = 2;
@@ -225,7 +254,7 @@ public static class TrainingHoopDetail
 
         if (backboard.TryGetComponent(out Renderer backboardRenderer))
         {
-            backboardRenderer.sharedMaterial = HoopVisualMaterials.CreateGymProGlassBackboard();
+            backboardRenderer.sharedMaterial = HoopVisualMaterials.CreateProductBackboard();
             backboardRenderer.enabled = true;
         }
 
@@ -237,13 +266,14 @@ public static class TrainingHoopDetail
         EnsureRegulationGlassMarkings(backboard);
         EnsureSteelRimSupport(backboard);
         EnsureTuffGuardPadding(backboard);
+        DeactivateLayeredBackboardExtras(backboard);
     }
 
     private static void EnsureAluminumFrame(Transform backboard)
     {
         var frameMat = HoopVisualMaterials.CreateFrameAluminum();
-        float frameZ = 0.02f;
-        float frameThickness = 0.07f;
+        float frameZ = 0.012f;
+        float frameThickness = 0.05f;
 
         EnsureDetailMesh(
             backboard,
@@ -273,26 +303,87 @@ public static class TrainingHoopDetail
 
     private static void EnsureRegulationGlassMarkings(Transform backboard)
     {
-        var markingMat = HoopVisualMaterials.CreateRegulationMarking();
-        float innerHalfW = GlassHalfWidth - MarkingInset;
-        float innerHalfH = GlassHalfHeight - MarkingInset;
+        var markingMat = HoopVisualMaterials.CreateProductMarking();
 
-        EnsureOutlineRect(
-            backboard,
-            "GlassBorder",
-            new Vector3(0f, 0f, GlassFaceZ),
-            new Vector2(innerHalfW * 2f, innerHalfH * 2f),
-            MarkingLine,
-            markingMat);
-
-        // 24×18" shooter's square on 72×42" board — centered above rim mount.
+        // Single readable backboard: shooter's square only (no nested GlassBorder frame
+        // that reads as a second/third board from the lab camera).
         EnsureOutlineRect(
             backboard,
             "TargetSquare",
-            new Vector3(0f, -0.08f, GlassFaceZ + 0.002f),
-            new Vector2(0.58f, 0.44f),
+            new Vector3(0f, -0.08f, GlassFaceZ + 0.001f),
+            new Vector2(0.64f, 0.48f),
             MarkingLine,
             markingMat);
+
+        // Hide any legacy GlassBorder strips left from older upgrades.
+        for (int i = 0; i < backboard.childCount; i++)
+        {
+            var ch = backboard.GetChild(i);
+            if (ch.name.StartsWith("GlassBorder") && ch.gameObject.activeSelf)
+            {
+                ch.gameObject.SetActive(false);
+            }
+        }
+
+        EnsureTargetSquareHitZone(backboard);
+    }
+
+    /// <summary>
+    /// Thin trigger covering the shooter's square so PPO can earn a small curriculum
+    /// reward for high-arc hits on the orange target box (≪ make reward).
+    /// Parent is HoopHead (not Backboard) so Backboard lossy scale does not distort the zone.
+    /// </summary>
+    public static void EnsureTargetSquareHitZone(Transform backboard)
+    {
+        if (backboard == null)
+        {
+            return;
+        }
+
+        var hoopHead = backboard.parent;
+        if (hoopHead == null)
+        {
+            hoopHead = backboard;
+        }
+
+        const string zoneName = "TargetSquareHitZone";
+        var zone = hoopHead.Find(zoneName);
+        if (zone == null)
+        {
+            zone = backboard.Find(zoneName);
+        }
+
+        if (zone == null)
+        {
+            var go = new GameObject(zoneName);
+            go.transform.SetParent(hoopHead, false);
+            zone = go.transform;
+        }
+        else if (zone.parent != hoopHead)
+        {
+            zone.SetParent(hoopHead, true);
+        }
+
+        // World pose: shooter's square center, slightly court-side of the flatter glass face.
+        zone.position = backboard.TransformPoint(new Vector3(0f, -0.08f, GlassFaceZ + 0.02f));
+        zone.rotation = backboard.rotation;
+        zone.localScale = Vector3.one;
+
+        if (!zone.TryGetComponent(out BoxCollider box))
+        {
+            box = zone.gameObject.AddComponent<BoxCollider>();
+        }
+
+        box.isTrigger = true;
+        box.size = new Vector3(0.64f, 0.48f, 0.12f);
+        box.center = Vector3.zero;
+
+        if (!zone.TryGetComponent(out HoopTargetSquareHit _))
+        {
+            zone.gameObject.AddComponent<HoopTargetSquareHit>();
+        }
+
+        BobPhysicsLayers.SetLayerRecursively(zone.gameObject, BobPhysicsLayers.TrainingArenaLayer);
     }
 
     private static void EnsureSteelRimSupport(Transform backboard)
@@ -301,78 +392,129 @@ public static class TrainingHoopDetail
         EnsureDetailMesh(
             backboard,
             "RimSupportBar",
-            new Vector3(0f, -0.02f, -0.015f),
-            new Vector3(0.42f, 0.06f, 0.04f),
+            new Vector3(0f, -0.035f, -0.015f),
+            new Vector3(0.46f, 0.07f, 0.048f),
             steelMat);
         EnsureDetailMesh(
             backboard,
             "RimSupportPlate",
-            new Vector3(0f, -0.02f, -0.04f),
-            new Vector3(0.22f, 0.14f, 0.025f),
+            new Vector3(0f, -0.035f, -0.04f),
+            new Vector3(0.24f, 0.15f, 0.028f),
+            steelMat);
+        EnsureDetailMesh(
+            backboard,
+            "RimSupportGusset_L",
+            new Vector3(-0.14f, -0.06f, -0.03f),
+            new Vector3(0.04f, 0.08f, 0.035f),
+            steelMat);
+        EnsureDetailMesh(
+            backboard,
+            "RimSupportGusset_R",
+            new Vector3(0.14f, -0.06f, -0.03f),
+            new Vector3(0.04f, 0.08f, 0.035f),
             steelMat);
     }
 
+    /// <summary>
+    /// Product-style target skips TuffGuard pads (they read as a third pane from the lab camera).
+    /// Deactivates any leftover pad meshes from older upgrades.
+    /// </summary>
     private static void EnsureTuffGuardPadding(Transform backboard)
     {
-        var padMat = HoopVisualMaterials.CreatePadVinyl();
-        float padZ = 0.055f;
-        float padDepth = 0.045f;
-
-        // Bottom segment split for molded goal relief (rim clearance notch).
-        EnsureDetailMesh(
+        DeactivateNamedChildren(
             backboard,
             "BackboardPad_Bottom_L",
-            new Vector3(-0.46f, -0.5f, padZ),
-            new Vector3(0.72f, 0.13f, padDepth),
-            padMat);
-        EnsureDetailMesh(
-            backboard,
             "BackboardPad_Bottom_R",
-            new Vector3(0.46f, -0.5f, padZ),
-            new Vector3(0.72f, 0.13f, padDepth),
-            padMat);
-
-        // Lower side wraps (PMCE / TuffGuard corner coverage).
-        EnsureDetailMesh(
-            backboard,
             "BackboardPad_Side_L",
-            new Vector3(-0.88f, -0.28f, padZ),
-            new Vector3(0.1f, 0.42f, padDepth),
-            padMat);
-        EnsureDetailMesh(
-            backboard,
             "BackboardPad_Side_R",
-            new Vector3(0.88f, -0.28f, padZ),
-            new Vector3(0.1f, 0.42f, padDepth),
-            padMat);
+            "BackboardPad_Corner_L",
+            "BackboardPad_Corner_R");
+    }
+
+    /// <summary>
+    /// Hide extruded lips / pads that stacked depth in front of the main glass collider.
+    /// </summary>
+    private static void DeactivateLayeredBackboardExtras(Transform backboard)
+    {
+        DeactivateNamedChildren(
+            backboard,
+            "BackboardFrame_Top_Lip",
+            "BackboardFrame_Bottom_Lip",
+            "BackboardFrame_Left_Lip",
+            "BackboardFrame_Right_Lip",
+            "BackboardPad_Side_L",
+            "BackboardPad_Side_R",
+            "BackboardPad_Corner_L",
+            "BackboardPad_Corner_R",
+            "BackboardPad_Bottom_L",
+            "BackboardPad_Bottom_R");
+
+        // Chamfer face strips from the old dual-depth outline (TargetSquare_*_Face).
+        for (int i = 0; i < backboard.childCount; i++)
+        {
+            var ch = backboard.GetChild(i);
+            if (ch.name.Contains("_Face") && ch.gameObject.activeSelf)
+            {
+                ch.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private static void DeactivateNamedChildren(Transform parent, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var child = parent.Find(name);
+            if (child != null && child.gameObject.activeSelf)
+            {
+                child.gameObject.SetActive(false);
+            }
+        }
     }
 
     private static void EnsureBreakawayRimAssembly(Transform rim)
     {
         var rimMat = HoopVisualMaterials.CreateRimOrange();
+        // Slightly thicker brackets/backplate so the breakaway reads as one solid unit with the tube.
         EnsureDetailMesh(
             rim,
             "RimBackplate",
-            new Vector3(0f, 0.02f, -0.13f),
-            new Vector3(0.32f, 0.18f, 0.16f),
+            new Vector3(0f, 0.02f, -0.14f),
+            new Vector3(0.36f, 0.20f, 0.18f),
             rimMat);
         EnsureDetailMesh(
             rim,
             "RimSpringCover",
-            new Vector3(0f, -0.02f, -0.11f),
-            new Vector3(0.24f, 0.08f, 0.1f),
+            new Vector3(0f, -0.015f, -0.12f),
+            new Vector3(0.26f, 0.09f, 0.11f),
             rimMat);
         EnsureDetailMesh(
             rim,
             "RimBracket_L",
-            new Vector3(-0.13f, 0.04f, -0.15f),
-            new Vector3(0.055f, 0.06f, 0.18f),
+            new Vector3(-0.14f, 0.035f, -0.15f),
+            new Vector3(0.065f, 0.07f, 0.20f),
             rimMat);
         EnsureDetailMesh(
             rim,
             "RimBracket_R",
-            new Vector3(0.13f, 0.04f, -0.15f),
-            new Vector3(0.055f, 0.06f, 0.18f),
+            new Vector3(0.14f, 0.035f, -0.15f),
+            new Vector3(0.065f, 0.07f, 0.20f),
+            rimMat);
+
+        // Small weld beads where brackets meet the rim tube.
+        EnsureDetailCylinder(
+            rim,
+            "RimWeld_L",
+            new Vector3(-0.14f, 0.01f, -0.05f),
+            new Vector3(0.026f, 0.014f, 0.026f),
+            Quaternion.Euler(0f, 0f, 90f),
+            rimMat);
+        EnsureDetailCylinder(
+            rim,
+            "RimWeld_R",
+            new Vector3(0.14f, 0.01f, -0.05f),
+            new Vector3(0.026f, 0.014f, 0.026f),
+            Quaternion.Euler(0f, 0f, 90f),
             rimMat);
     }
 
@@ -387,11 +529,13 @@ public static class TrainingHoopDetail
             float angle = i / (float)pigtailCount * Mathf.PI * 2f;
             float cos = Mathf.Cos(angle);
             float sin = Mathf.Sin(angle);
-            EnsureDetailMesh(
+            // Short radial cylinders read as welded hanger loops, not floating boxes.
+            EnsureDetailCylinder(
                 rim,
                 $"RimPigtail_{i}",
-                new Vector3(cos * pigtailRadius, -0.03f, sin * pigtailRadius),
-                new Vector3(0.018f, 0.018f, 0.018f),
+                new Vector3(cos * pigtailRadius, -0.028f, sin * pigtailRadius),
+                new Vector3(0.012f, 0.014f, 0.012f),
+                Quaternion.Euler(90f, angle * Mathf.Rad2Deg, 0f),
                 pigtailMat);
         }
     }
@@ -403,12 +547,120 @@ public static class TrainingHoopDetail
             return;
         }
 
+        EnsureRimTubeVisual(rim);
+    }
+
+    /// <summary>
+    /// Replaces the flat scaled-cylinder rim look with a procedural torus tube.
+    /// Physics stay on <c>RimColliders</c> capsules — this is visual-only.
+    /// </summary>
+    private static void EnsureRimTubeVisual(Transform rim)
+    {
         var rimMaterial = HoopVisualMaterials.CreateRimOrange();
-        if (rim.TryGetComponent(out Renderer rimRenderer))
+
+        // Hide the legacy flat cylinder on the rim root (keeps transform for physics children).
+        if (rim.TryGetComponent(out MeshRenderer rootRenderer))
         {
-            rimRenderer.sharedMaterial = rimMaterial;
-            rimRenderer.enabled = true;
+            rootRenderer.enabled = false;
         }
+
+        var visual = rim.Find("RimTubeVisual");
+        if (visual == null)
+        {
+            var go = new GameObject("RimTubeVisual");
+            go.transform.SetParent(rim, false);
+            go.AddComponent<MeshFilter>();
+            go.AddComponent<MeshRenderer>();
+            visual = go.transform;
+        }
+
+        visual.localPosition = Vector3.zero;
+        visual.localRotation = Quaternion.identity;
+        visual.localScale = Vector3.one;
+
+        if (!visual.TryGetComponent(out MeshFilter meshFilter))
+        {
+            meshFilter = visual.gameObject.AddComponent<MeshFilter>();
+        }
+
+        meshFilter.sharedMesh = GenerateTorus(
+            RimOuterRadius * 0.95f,
+            RimTubeRadius * 2.0f,
+            majorSegments: 36,
+            minorSegments: 14);
+
+        if (!visual.TryGetComponent(out MeshRenderer meshRenderer))
+        {
+            meshRenderer = visual.gameObject.AddComponent<MeshRenderer>();
+        }
+
+        meshRenderer.sharedMaterial = rimMaterial;
+        meshRenderer.enabled = true;
+    }
+
+    /// <summary>
+    /// Lightweight procedural torus (XZ plane, Y through the hole) for rim tube / net rings.
+    /// </summary>
+    private static Mesh GenerateTorus(
+        float majorRadius,
+        float minorRadius,
+        int majorSegments = 32,
+        int minorSegments = 12)
+    {
+        var mesh = new Mesh { name = "ProceduralTorus" };
+        int vertCount = (majorSegments + 1) * (minorSegments + 1);
+        var vertices = new Vector3[vertCount];
+        var normals = new Vector3[vertCount];
+        var uvs = new Vector2[vertCount];
+        var triangles = new int[majorSegments * minorSegments * 6];
+
+        for (int i = 0; i <= majorSegments; i++)
+        {
+            float majorAngle = i * Mathf.PI * 2f / majorSegments;
+            var majorCenter = new Vector3(
+                Mathf.Cos(majorAngle) * majorRadius,
+                0f,
+                Mathf.Sin(majorAngle) * majorRadius);
+
+            for (int j = 0; j <= minorSegments; j++)
+            {
+                float minorAngle = j * Mathf.PI * 2f / minorSegments;
+                var normal = new Vector3(
+                    Mathf.Cos(majorAngle) * Mathf.Cos(minorAngle),
+                    Mathf.Sin(minorAngle),
+                    Mathf.Sin(majorAngle) * Mathf.Cos(minorAngle));
+
+                int idx = i * (minorSegments + 1) + j;
+                vertices[idx] = majorCenter + normal * minorRadius;
+                normals[idx] = normal;
+                uvs[idx] = new Vector2(i / (float)majorSegments, j / (float)minorSegments);
+            }
+        }
+
+        int tri = 0;
+        for (int i = 0; i < majorSegments; i++)
+        {
+            for (int j = 0; j < minorSegments; j++)
+            {
+                int current = i * (minorSegments + 1) + j;
+                int next = (i + 1) * (minorSegments + 1) + j;
+
+                triangles[tri++] = current;
+                triangles[tri++] = current + 1;
+                triangles[tri++] = next;
+
+                triangles[tri++] = current + 1;
+                triangles[tri++] = next + 1;
+                triangles[tri++] = next;
+            }
+        }
+
+        mesh.vertices = vertices;
+        mesh.normals = normals;
+        mesh.uv = uvs;
+        mesh.triangles = triangles;
+        mesh.RecalculateBounds();
+        return mesh;
     }
 
     public static void EnsureScoreTrigger(Transform rim)
@@ -489,6 +741,7 @@ public static class TrainingHoopDetail
             return;
         }
 
+        var tubeVisual = rim.Find("RimTubeVisual");
         foreach (var renderer in rim.GetComponentsInChildren<Renderer>(true))
         {
             if (renderer.transform.name == ArcAcademyLayout.HoopSuccessName)
@@ -500,6 +753,13 @@ public static class TrainingHoopDetail
             var collidersRoot = rim.Find("RimColliders");
             if (collidersRoot != null && renderer.transform.IsChildOf(collidersRoot))
             {
+                continue;
+            }
+
+            // Prefer procedural torus — keep the legacy flat cylinder mesh hidden.
+            if (tubeVisual != null && renderer.transform == rim)
+            {
+                renderer.enabled = false;
                 continue;
             }
 
@@ -526,16 +786,28 @@ public static class TrainingHoopDetail
 
     private static void EnsureVisualNet(Transform rim)
     {
-        var netRoot = rim.Find("Net");
+        var hoopHead = rim.parent != null ? rim.parent : rim;
+        var netRoot = hoopHead.Find("Net");
+        if (netRoot == null)
+        {
+            netRoot = rim.Find("Net");
+        }
+
         if (netRoot == null)
         {
             var go = new GameObject("Net");
-            go.transform.SetParent(rim, false);
-            go.transform.localPosition = new Vector3(0f, -0.06f, 0f);
+            go.transform.SetParent(hoopHead, false);
             netRoot = go.transform;
         }
+        else if (netRoot.parent != hoopHead)
+        {
+            netRoot.SetParent(hoopHead, true);
+        }
 
-        netRoot.localPosition = new Vector3(0f, -0.06f, 0f);
+        // World-aligned under HoopHead. Horizontal rim (FIBA): net hangs down along -Y.
+        netRoot.position = rim.position;
+        netRoot.rotation = Quaternion.identity;
+        netRoot.localScale = Vector3.one;
 
         if (!netRoot.TryGetComponent(out HoopSwishVfx _))
         {
@@ -551,50 +823,125 @@ public static class TrainingHoopDetail
         StripNetPhysicsColliders(netRoot);
         ClearChildren(netRoot);
 
+        var netMat = HoopVisualMaterials.CreateOpaqueNet();
+        const float topRadius = 0.36f;
+        const float bottomRadius = 0.16f;
+        float midRadius = (topRadius + bottomRadius) * 0.5f;
+
         for (int i = 0; i < NetStrandCount; i++)
         {
             float angle = i / (float)NetStrandCount * Mathf.PI * 2f;
-            float topRadius = 0.36f;
-            float bottomRadius = 0.18f;
-            float midRadius = (topRadius + bottomRadius) * 0.5f;
-            var strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            strand.name = $"NetStrand_{i}";
-            strand.transform.SetParent(netRoot, false);
-            strand.transform.localPosition = new Vector3(
-                Mathf.Cos(angle) * midRadius,
-                -0.24f,
-                Mathf.Sin(angle) * midRadius);
-            strand.transform.localRotation = Quaternion.Euler(0f, angle * Mathf.Rad2Deg, 0f);
-            strand.transform.localScale = new Vector3(0.011f, 0.24f, 0.011f);
-            ApplyNetMaterial(strand.GetComponent<Renderer>());
-            var strandCollider = strand.GetComponent<Collider>();
-            if (Application.isPlaying) Object.Destroy(strandCollider); else Object.DestroyImmediate(strandCollider);
+            float cos = Mathf.Cos(angle);
+            float sin = Mathf.Sin(angle);
+
+            // Horizontal rim: circle in XZ, strands hang along -Y.
+            CreateNetStrand(
+                netRoot,
+                $"NetStrand_{i}_Top",
+                new Vector3(cos * ((topRadius + midRadius) * 0.5f), -0.13f, sin * ((topRadius + midRadius) * 0.5f)),
+                new Vector3(0.014f, 0.12f, 0.014f),
+                netMat);
+            CreateNetStrand(
+                netRoot,
+                $"NetStrand_{i}_Bot",
+                new Vector3(cos * ((midRadius + bottomRadius) * 0.5f), -0.35f, sin * ((midRadius + bottomRadius) * 0.5f)),
+                new Vector3(0.007f, 0.125f, 0.007f),
+                netMat);
+
+            if (i % 2 == 0)
+            {
+                float nextAngle = (i + 1) / (float)NetStrandCount * Mathf.PI * 2f;
+                float midAngle = (angle + nextAngle) * 0.5f;
+                float span = Mathf.Abs(Mathf.DeltaAngle(angle * Mathf.Rad2Deg, nextAngle * Mathf.Rad2Deg))
+                    * Mathf.Deg2Rad * midRadius;
+                EnsureDetailMesh(
+                    netRoot,
+                    $"NetCross_{i}",
+                    new Vector3(Mathf.Cos(midAngle) * midRadius, -0.24f, Mathf.Sin(midAngle) * midRadius),
+                    new Vector3(span * 0.95f, 0.006f, 0.006f),
+                    netMat);
+                var cross = netRoot.Find($"NetCross_{i}");
+                if (cross != null)
+                {
+                    cross.localRotation = Quaternion.Euler(0f, -midAngle * Mathf.Rad2Deg, 0f);
+                }
+            }
+
+            if (i % 4 == 0)
+            {
+                EnsureDetailMesh(
+                    netRoot,
+                    $"NetKnot_{i}",
+                    new Vector3(cos * midRadius, -0.24f, sin * midRadius),
+                    new Vector3(0.014f, 0.014f, 0.014f),
+                    netMat);
+            }
         }
 
-        EnsureNetRing(netRoot, "NetRing_Upper", -0.1f, 0.68f);
-        EnsureNetRing(netRoot, "NetRing_MidUpper", -0.16f, 0.58f);
-        EnsureNetRing(netRoot, "NetRing_Mid", -0.22f, 0.48f);
-        EnsureNetRing(netRoot, "NetRing_MidLower", -0.28f, 0.38f);
-        EnsureNetRing(netRoot, "NetRing_Lower", -0.34f, 0.28f);
+        EnsureNetRing(netRoot, "NetRing_Upper", -0.08f, topRadius, netMat);
+        EnsureNetRing(netRoot, "NetRing_MidUpper", -0.16f, Mathf.Lerp(topRadius, midRadius, 0.5f), netMat);
+        EnsureNetRing(netRoot, "NetRing_Mid", -0.24f, midRadius, netMat);
+        EnsureNetRing(netRoot, "NetRing_MidLower", -0.32f, Mathf.Lerp(midRadius, bottomRadius, 0.5f), netMat);
+        EnsureNetRing(netRoot, "NetRing_Lower", -0.40f, bottomRadius, netMat);
     }
 
-    private static void EnsureNetRing(Transform netRoot, string name, float localY, float radius)
+    private static void CreateNetStrand(
+        Transform netRoot,
+        string name,
+        Vector3 localPos,
+        Vector3 localScale,
+        Material netMat)
+    {
+        var strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        strand.name = name;
+        strand.transform.SetParent(netRoot, false);
+        strand.transform.localPosition = localPos;
+        strand.transform.localRotation = Quaternion.identity;
+        strand.transform.localScale = localScale;
+        ApplyNetMaterial(strand.GetComponent<Renderer>(), netMat);
+        var strandCollider = strand.GetComponent<Collider>();
+        if (Application.isPlaying) Object.Destroy(strandCollider); else Object.DestroyImmediate(strandCollider);
+    }
+
+    private static void EnsureNetRing(
+        Transform netRoot,
+        string name,
+        float localY,
+        float majorRadius,
+        Material netMat)
     {
         var ring = netRoot.Find(name);
         if (ring == null)
         {
-            var torus = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            torus.name = name;
-            torus.transform.SetParent(netRoot, false);
-            var torusCollider = torus.GetComponent<Collider>();
-            if (Application.isPlaying) Object.Destroy(torusCollider); else Object.DestroyImmediate(torusCollider);
-            ring = torus.transform;
+            var go = new GameObject(name);
+            go.transform.SetParent(netRoot, false);
+            go.AddComponent<MeshFilter>();
+            go.AddComponent<MeshRenderer>();
+            ring = go.transform;
         }
 
+        if (!ring.TryGetComponent(out MeshFilter meshFilter))
+        {
+            meshFilter = ring.gameObject.AddComponent<MeshFilter>();
+        }
+
+        if (!ring.TryGetComponent(out MeshRenderer meshRenderer))
+        {
+            meshRenderer = ring.gameObject.AddComponent<MeshRenderer>();
+        }
+
+        var legacyCollider = ring.GetComponent<Collider>();
+        if (legacyCollider != null)
+        {
+            if (Application.isPlaying) Object.Destroy(legacyCollider); else Object.DestroyImmediate(legacyCollider);
+        }
+
+        // Torus in XZ (Y through hole) — parallel to the horizontal rim.
         ring.localPosition = new Vector3(0f, localY, 0f);
-        ring.localRotation = Quaternion.Euler(90f, 0f, 0f);
-        ring.localScale = new Vector3(radius, 0.004f, radius);
-        ApplyNetMaterial(ring.GetComponent<Renderer>());
+        ring.localRotation = Quaternion.identity;
+        ring.localScale = Vector3.one;
+        meshFilter.sharedMesh = GenerateTorus(majorRadius, 0.0055f, 28, 8);
+        ApplyNetMaterial(meshRenderer, netMat);
     }
 
     private static void DisableIdleAnimators(Transform hoopRoot)
@@ -653,8 +1000,9 @@ public static class TrainingHoopDetail
     {
         float halfW = size.x * 0.5f;
         float halfH = size.y * 0.5f;
-        float depth = 0.012f;
+        float depth = MarkingDepth;
 
+        // Single flush strip per edge — no dual-depth face chamfer (reads as stacked layers).
         EnsureDetailMesh(
             parent,
             $"{prefix}_Top",
@@ -689,7 +1037,7 @@ public static class TrainingHoopDetail
         float lineWidth,
         Color color)
     {
-        EnsureOutlineRect(parent, prefix, center, size, lineWidth, HoopVisualMaterials.CreateRegulationMarking());
+        EnsureOutlineRect(parent, prefix, center, size, lineWidth, HoopVisualMaterials.CreateProductMarking());
     }
 
     private static void EnsureDetailMesh(
@@ -711,6 +1059,50 @@ public static class TrainingHoopDetail
         }
 
         child.localPosition = localPos;
+        child.localRotation = Quaternion.identity;
+        child.localScale = localScale;
+        child.gameObject.SetActive(true);
+
+        if (child.TryGetComponent(out Renderer renderer) && material != null)
+        {
+            renderer.sharedMaterial = material;
+            renderer.enabled = true;
+        }
+    }
+
+    private static void EnsureDetailCylinder(
+        Transform parent,
+        string name,
+        Vector3 localPos,
+        Vector3 localScale,
+        Quaternion localRot,
+        Material material)
+    {
+        var child = parent.Find(name);
+        if (child == null)
+        {
+            var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cylinder.name = name;
+            cylinder.transform.SetParent(parent, false);
+            var collider = cylinder.GetComponent<Collider>();
+            if (Application.isPlaying) Object.Destroy(collider); else Object.DestroyImmediate(collider);
+            child = cylinder.transform;
+        }
+        else if (child.TryGetComponent(out MeshFilter filter)
+                 && (filter.sharedMesh == null || filter.sharedMesh.name.IndexOf("Cube", System.StringComparison.Ordinal) >= 0))
+        {
+            // Upgrade legacy cube pigtails to cylinders without leaving kitbash boxes.
+            if (Application.isPlaying) Object.Destroy(child.gameObject); else Object.DestroyImmediate(child.gameObject);
+            var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cylinder.name = name;
+            cylinder.transform.SetParent(parent, false);
+            var collider = cylinder.GetComponent<Collider>();
+            if (Application.isPlaying) Object.Destroy(collider); else Object.DestroyImmediate(collider);
+            child = cylinder.transform;
+        }
+
+        child.localPosition = localPos;
+        child.localRotation = localRot;
         child.localScale = localScale;
         child.gameObject.SetActive(true);
 
@@ -782,14 +1174,14 @@ public static class TrainingHoopDetail
         renderer.sharedMaterial = mat;
     }
 
-    private static void ApplyNetMaterial(Renderer renderer)
+    private static void ApplyNetMaterial(Renderer renderer, Material netMat = null)
     {
         if (renderer == null)
         {
             return;
         }
 
-        renderer.sharedMaterial = HoopVisualMaterials.CreateOpaqueNet();
+        renderer.sharedMaterial = netMat != null ? netMat : HoopVisualMaterials.CreateOpaqueNet();
         renderer.enabled = true;
     }
 

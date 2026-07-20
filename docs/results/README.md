@@ -42,20 +42,21 @@ CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.2 ./scripts/train.sh --force
 
 ## Run IDs
 
-| Run ID       | Status   | Notes                                                                                                    |
-| ------------ | -------- | -------------------------------------------------------------------------------------------------------- |
-| bob-v2       | Done     | 865 iter batchmode (2026-06-24); plot baseline                                                           |
-| bob-v3       | Partial  | ~40k steps; **0% makes**, high arc; crashed on communicator timeout — **do not use for learning claims** |
-| **bob-v4**   | Partial  | ~110k steps, **5/1001 makes (0.50%)**; aim↑ but near-miss economics — see learning PNG                   |
-| **bob-v4.1** | **Next** | Tier 1.5 reward contrast + local impulse + diagnostic dashboard                                          |
+| Run ID       | Status     | Notes                                                                                                    |
+| ------------ | ---------- | -------------------------------------------------------------------------------------------------------- |
+| bob-v2       | Done       | 865 iter batchmode (2026-06-24); plot baseline                                                           |
+| bob-v3       | Partial    | ~40k steps; **0% makes**, high arc; crashed on communicator timeout — **do not use for learning claims** |
+| **bob-v4**   | Done       | ~110k steps, **5/1001 makes (0.50%)**; aim↑ but near-miss economics — see learning PNG                   |
+| **bob-v4.1** | **Resume** | ~102k steps; Tier 1.5 code + economics OK; success ~0.6% — extend toward gates below                     |
 
-## Success criteria (bob-v4 / bob-v4.1)
+## Success criteria (two bars)
 
-From [ml-training-recommendations.md](../design/ml-training-recommendations.md):
+Canonical runbook: [training-run-plan.md](../design/training-run-plan.md).
 
-- Rolling session success **>5%** over 30+ min uninterrupted Play
-- Tier 1.5 pass: rim_miss mean net RL ≪ make; positive-net-miss % drops from ~44%
-- Plots: `training_progress.png`, `bob_v4_learning.png`, then `bob_v4.1_learning_dashboard.png`
+- **Interim:** rolling success **>5%** over sustained Play @ 20×
+- **Demo-done (official):** **≥70%** success over the **last 1,000** connected episodes (`plot_run_comparison.py --check-demo-bar`)
+- Tier 1.5 economics: rim_miss mean net RL ≪ make; positive-net-miss % down from ~44%
+- Plots: `training_progress.png`, `bob_v4.1_learning_dashboard.png`, `run_comparison.png`
 
 ## Inputs
 
