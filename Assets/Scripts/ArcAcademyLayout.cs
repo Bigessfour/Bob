@@ -179,8 +179,19 @@ public static class ArcAcademyLayout
 
     public const float RimScoreRadius = 0.38f;
     public const float RimScoreHeight = 0.12f;
+
+    /// <summary>
+    /// Minimum apex rise (m) above release before a shooter's-square hit pays RL —
+    /// blocks flat line-drives into the board from earning the curriculum bonus.
+    /// </summary>
+    public const float SquareHitMinApexRise = 0.85f;
     public const float SpawnLateralJitter = 0.35f;
-    public const float SwishSpeedThreshold = 2.5f;
+    /// <summary>
+    /// Legacy name: soft cap on entry speed for swish classification.
+    /// Must be high enough for a real high-arc lob (~8–12 m/s at the rim); 2.5 made swishes impossible.
+    /// Primary swish rule is still: descending + no recent rim contact.
+    /// </summary>
+    public const float SwishSpeedThreshold = 18f;
 
     public const float MaxHoopOffsetX = 1.2f;
     public const float MaxHoopOffsetZ = 0.8f;
@@ -211,13 +222,19 @@ public static class ArcAcademyLayout
     public const float LaunchUpwardRewardScale = 0.15f;
 
     /// <summary>
-    /// bob-v4.3 make-island mean fy ≈ 8.6. Soft-penalize |fy − IdealLaunchFy| so PPO
-    /// does not farm unbounded upward shaping into timeouts / long rim floats.
+    /// High-arch swish band from <see cref="BobSwishLaunchSolver"/> (~65° lob → fy≈4.9 at mass 0.6).
+    /// Soft-penalize |fy − IdealLaunchFy| so PPO does not farm flat backboard pushes.
     /// </summary>
-    public const float IdealLaunchFy = 8.5f;
+    public const float IdealLaunchFy = 4.9f;
 
     /// <summary>Per-unit |fy − IdealLaunchFy| penalty (keep ≪ MadeBasket / RimPlaneMissPenalty).</summary>
     public const float LaunchPowerBandPenaltyScale = 0.04f;
+
+    /// <summary>
+    /// Cosine similarity of chosen impulse vs <see cref="BobSwishLaunchSolver"/> ideal (max +scale).
+    /// Pulls PPO onto the high-arc manifold before the first make; must stay ≪ MadeBasket.
+    /// </summary>
+    public const float IdealSolverMatchRewardScale = 0.40f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;

@@ -5,31 +5,36 @@ using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 /// <summary>
-/// BobAgent - the cheerful orange cube that learns to sink free throws at Arc Academy.
+/// BobAgent — orange cube free-throw learner (ML-Agents PPO, Behavior Name <c>Bob</c>).
 ///
-/// Bob uses continuous 3D force control with gravity to arc toward the hoop.
-/// Trained with PPO via ML-Agents. Behavior name must be "Bob" to match config/bob_free_throw.yaml.
+/// <para><b>Ideal free-throw kinematics</b> (what Bob must learn — not ricochet lottery):</para>
+/// <list type="number">
+/// <item>Single impulse from free-throw distance, then pure Rigidbody flight under gravity.</item>
+/// <item>Steep elevation (≈55–65°); <see cref="BobSwishLaunchSolver"/> uses 65° for a clear lob.</item>
+/// <item>Parabolic trajectory under <see cref="Physics.gravity"/>.</item>
+/// <item>Apex well above the rim (~3.05 m) so the ball is already descending
+/// (<c>linearVelocity.y &lt; 0</c>) when it reaches the rim’s horizontal plane.</item>
+/// <item>Enters the rim cylinder top-down. Clean swish is ideal; bank/rim-in still score
+/// via <see cref="HoopScoreZone"/>, but the skill target is the high-arc root — not luck bounces.</item>
+/// </list>
 ///
-/// Observations (8):
-///   - Body position (x,y,z) — basketball when projectileBody is set, else Bob
-///   - Relative vector to hoop (dx,dy,dz)
-///   - Horizontal velocity (vx, vz)
+/// Mathematical reference: <see cref="BobSwishLaunchSolver.TryComputeWorldImpulse"/> solves the
+/// high-arc speed for a given angle; <see cref="BobSwishLaunchSolver.WorldImpulseToActions"/>
+/// maps that impulse into Bob’s continuous actions (local impulse + scales/biases).
 ///
-/// Actions (3 continuous):
-///   - X force, Y force (lift), Z force (toward hoop)
-///
-/// Reward shaping at launch penalizes sideways/backward/downward impulses and rewards
-/// upward arc toward the hoop (see ApplyLaunchDirectionRewards).
-///
-/// bob-v4 Tier 1: episodes end when the shot resolves (rim miss, floor, settle, or step cap),
-/// with terminal miss proximity reward and gated per-step distance penalty.
-/// bob-v4.1: Bob-local impulse + stronger make / capped miss proximity / rim-plane miss penalty.
-/// bob-v4.2 / Tier 1.6+: no proximity on rim_miss; rim penalty exceeds launch shaping; past-plane
-/// timeouts count as rim_miss.
+/// Observations (8): body pos, vector to hoop, horizontal velocity (vx, vz).
+/// Actions (3): local lateral / vertical / forward continuous impulse (once per episode).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class BobAgent : Agent
 {
+    #region IdealFreeThrowKinematics
+    // Ground truth for a proper free throw lives in BobSwishLaunchSolver:
+    //   Prefer 65° launch → apex above rim → descending entry through HoopScoreZone.
+    // Heuristic + demo recording emit that solution; PPO is shaped toward the same manifold
+    // via IdealSolverMatchRewardScale + MadeBasket ≫ near-miss shaping.
+    #endregion
+
     [Header("Environment References")]
     [Tooltip("Rim transform on the Hoop assembly")]
     public Transform hoop;
@@ -59,6 +64,9 @@ public class BobAgent : Agent
     private int stepsSinceShot;
     private int settledStepCount;
     private int rimApproachSign;
+    private bool rimContactThisEpisode;
+    private bool squareHitRewardedThisEpisode;
+    private bool descendingNearRimThisEpisode;
     private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
     private Color baseEmissive = new(1f, 0.38f, 0f);
 
@@ -68,7 +76,25 @@ public class BobAgent : Agent
 
     private Rigidbody ActionRigidbody => UsesProjectile ? projectileBody : rb;
 
+    /// <summary>Ball rigidbody when Phase 1.5 projectile mode is active; otherwise null.</summary>
     public Rigidbody ProjectileBody => projectileBody;
+
+    /// <summary>
+    /// Ideal high-arc impulse from <see cref="BobSwishLaunchSolver"/> for previews / Heuristic.
+    /// </summary>
+    public bool TryGetIdealWorldImpulse(float launchAngleDegrees, out Vector3 worldImpulse)
+    {
+        worldImpulse = Vector3.zero;
+        Vector3 launchPos = ActionRigidbody != null
+            ? ActionRigidbody.position
+            : BasketballProjectileSetup.GetReleasePosition(transform.position, transform.rotation);
+        Vector3 rimPos = hoop != null ? hoop.position : ArcAcademyLayout.MainRimWorldPosition;
+        float mass = ActionRigidbody != null
+            ? ActionRigidbody.mass
+            : BasketballProjectileSetup.BallMass;
+        return BobSwishLaunchSolver.TryComputeWorldImpulse(
+            launchPos, rimPos, mass, launchAngleDegrees, out worldImpulse);
+    }
 
     public void ConfigureProjectileLauncher(Rigidbody body)
     {
@@ -126,6 +152,9 @@ public class BobAgent : Agent
         stepsSinceShot = 0;
         settledStepCount = 0;
         rimApproachSign = 0;
+        rimContactThisEpisode = false;
+        squareHitRewardedThisEpisode = false;
+        descendingNearRimThisEpisode = false;
         episodePeakArcQuality = 0f;
         shotPeakHeight = ObservationTransform.position.y;
         shotStartHeight = ObservationTransform.position.y;
@@ -182,6 +211,41 @@ public class BobAgent : Agent
         shotPeakHeight = shotStartHeight;
     }
 
+    /// <summary>
+    /// Ball entered the backboard shooter's square. Small curriculum RL reward once per
+    /// episode if the shot already peaked (high arch), always ≪ <see cref="ArcAcademyRewards.MadeBasket"/>.
+    /// </summary>
+    public void NotifyBackboardSquareHit()
+    {
+        if (squareHitRewardedThisEpisode || scoredThisEpisode)
+        {
+            return;
+        }
+
+        float apexRise = shotPeakHeight - shotStartHeight;
+        if (apexRise < ArcAcademyLayout.SquareHitMinApexRise)
+        {
+            return;
+        }
+
+        squareHitRewardedThisEpisode = true;
+        GiveReward(ArcAcademyRewards.BackboardSquareHit);
+    }
+
+    /// <summary>
+    /// Ball/Bob touched the rim this episode (for rim-out miss labeling / swish VFX).
+    /// No RL penalty — rim-in is a valid make; rim-out is simply a miss.
+    /// </summary>
+    public void NotifyRimContact()
+    {
+        if (rimContactThisEpisode || scoredThisEpisode)
+        {
+            return;
+        }
+
+        rimContactThisEpisode = true;
+    }
+
     public void RegisterMadeShot(bool swish = false)
     {
         if (scoredThisEpisode)
@@ -193,13 +257,8 @@ public class BobAgent : Agent
         scorePulseTimer = 0.5f;
         GetComponent<BobFaceExpression>()?.SetHappy();
 
-        float reward = ArcAcademyRewards.MadeBasket;
-        if (swish)
-        {
-            reward += ArcAcademyRewards.SwishBonus;
-        }
-
-        GiveReward(reward);
+        // Basketball rule: any path through the hoop is the same make reward.
+        GiveReward(ArcAcademyRewards.MadeBasket);
         FinalizeShotLog(scored: true, endReason: swish ? "swish" : "make");
         EndEpisode();
     }
@@ -248,6 +307,12 @@ public class BobAgent : Agent
         if (stepsSinceShot >= ArcAcademyLayout.ShotResolveMaxSteps)
         {
             return "timeout";
+        }
+
+        // Touched iron then never scored (fell outside / settled) — still a miss, not a point.
+        if (rimContactThisEpisode)
+        {
+            return "rim_out";
         }
 
         if (TryResolveFloorContact())
@@ -430,9 +495,9 @@ public class BobAgent : Agent
         if (!shotImpulseThisEpisode)
         {
             // Demo / HeuristicOnly: wait for Space (or Fire1) so the shot isn't taken on the
-            // first Academy step before the player can hold an arc. Heuristic defaults to the
-            // make-island prior; E/Shift only apply micro elevation deltas (see Heuristic).
-            if (IsHeuristicDemoMode() && !IsHeuristicShootHeld())
+            // first Academy step before the player can hold an arc. While DemonstrationRecorder
+            // is recording, auto-fire each episode (agent-friendly quality demo capture).
+            if (IsHeuristicDemoMode() && !IsHeuristicShootHeld() && !IsDemonstrationRecording())
             {
                 return;
             }
@@ -465,13 +530,29 @@ public class BobAgent : Agent
             }
 
             float towardDot = ComputeTowardHoopDot(impulse);
+            float launchAngleDeg = BobSwishLaunchSolver.LaunchAngleDegreesFromImpulse(impulse);
+            float solverMatch = 0f;
+            Vector3 idealImpulse = Vector3.zero;
+            if (BobSwishLaunchSolver.TryComputeWorldImpulse(
+                    ObservationTransform.position,
+                    hoop.position,
+                    ActionRigidbody.mass,
+                    BobSwishLaunchSolver.PreferredLaunchAngleDegrees,
+                    out idealImpulse)
+                && idealImpulse.sqrMagnitude > 0.01f
+                && impulse.sqrMagnitude > 0.01f)
+            {
+                solverMatch = Vector3.Dot(impulse.normalized, idealImpulse.normalized);
+            }
+
             int iteration = BobTrainingStats.Instance != null ? BobTrainingStats.Instance.TotalIterations : 0;
             bool training = BobTrainingConnectionMonitor.Instance != null
                             && BobTrainingConnectionMonitor.Instance.IsTrainingConnected;
             BobTrainingStats.Instance?.RecordLaunch(new Vector3(c[0], c[1], c[2]), impulse, towardDot);
-            BobShotActionLog.RecordLaunch(iteration, c[0], c[1], c[2], impulse, towardDot, training);
+            BobShotActionLog.RecordLaunch(
+                iteration, c[0], c[1], c[2], impulse, towardDot, training, launchAngleDeg, solverMatch);
 
-            ApplyLaunchDirectionRewards(impulse);
+            ApplyLaunchDirectionRewards(impulse, idealImpulse, solverMatch);
 
             GetComponent<BobProceduralAnimator>()?.NotifyShotImpulse();
             GetComponent<BobFaceExpression>()?.SetFocus();
@@ -489,6 +570,7 @@ public class BobAgent : Agent
         }
 
         ApplyFlightDirectionPenalties();
+        TrackDescendingNearRim();
 
         Vector3 toHoop = hoop.position - ObservationTransform.position;
         float xzDist = new Vector2(toHoop.x, toHoop.z).magnitude;
@@ -572,9 +654,10 @@ public class BobAgent : Agent
     }
 
     /// <summary>
-    /// Shapes the first shot each episode: reward upward arc toward the hoop, punish sideways/backward/downward launch.
+    /// Shapes the first shot each episode: toward-hoop + upward arc, plus attraction to the
+    /// analytic high-arc impulse manifold (<see cref="BobSwishLaunchSolver"/>).
     /// </summary>
-    private void ApplyLaunchDirectionRewards(Vector3 impulse)
+    private void ApplyLaunchDirectionRewards(Vector3 impulse, Vector3 idealImpulse, float solverMatch)
     {
         if (hoop == null)
         {
@@ -640,6 +723,32 @@ public class BobAgent : Agent
                 GiveReward(arcDot * ArcAcademyLayout.LaunchArcMisalignPenaltyScale);
             }
         }
+
+        // Attract policy to the solved high-arc direction (max ≪ MadeBasket).
+        if (idealImpulse.sqrMagnitude > 0.01f && solverMatch > 0f)
+        {
+            GiveReward(solverMatch * ArcAcademyLayout.IdealSolverMatchRewardScale);
+        }
+    }
+
+    /// <summary>
+    /// Marks whether the ball was descending while near the rim plane (ideal free-throw entry).
+    /// </summary>
+    private void TrackDescendingNearRim()
+    {
+        if (!shotImpulseThisEpisode || hoop == null || ActionRigidbody == null || descendingNearRimThisEpisode)
+        {
+            return;
+        }
+
+        Vector3 toRim = hoop.position - ObservationTransform.position;
+        float xz = new Vector2(toRim.x, toRim.z).magnitude;
+        if (xz <= ArcAcademyLayout.RimScoreRadius * 2.5f
+            && ActionRigidbody.linearVelocity.y < 0f)
+        {
+            descendingNearRimThisEpisode = true;
+            BobShotActionLog.NoteDescendingNearRim();
+        }
     }
 
     /// <summary>Penalizes mid-flight velocity that points away from the hoop.</summary>
@@ -667,34 +776,49 @@ public class BobAgent : Agent
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var continuous = actionsOut.ContinuousActions;
+        const float LateralScale = 0.25f; // A/D max |c0|=0.25 → |fx|≈2.5
 
-        // Local impulse: fx=c0*10, fy=c1*16+4, fz=c2*14+6 (then rotate by spawn facing).
-        // Make-island prior (~bob-v4.2): c≈(0, 0.28, 0.55) → F≈(0, 8.5, 13.7).
-        // E / Shift only nudge elevation (±ElevationMicroDelta → ±~0.56 fy) — not radical arcs.
-        // Old E=0.40 / Shift=0.10 jumped to fy≈10.4 / 5.6 and overshot the hoop.
-        const float MakeIslandUp = 0.28f;         // Space alone → fy ≈ 8.5
-        const float ElevationMicroDelta = 0.035f; // E → +Δ, Shift → −Δ
-        const float MakeIslandForward = 0.55f;    // Local +Z toward hoop
-        const float LateralScale = 0.25f;         // A/D max |c0|=0.25 → |fx|≈2.5
-
-        continuous[0] = Input.GetAxis("Horizontal") * LateralScale;
-
-        float zInput = Input.GetAxis("Vertical");
-        continuous[2] = zInput == 0f
-            ? MakeIslandForward
-            : Mathf.Clamp(0.45f + zInput * 0.35f, 0.15f, 1f);
-
+        // Expert teacher: analytic high-arc free throw (BobSwishLaunchSolver).
+        // Default HeuristicAlways uses the 65° solution — perfect demos for BC.
+        // LeftCtrl = pure expert (no A/D lateral). E / Shift = ±AngleNudgeDegrees.
+        // Space / Fire1 still gates the shot unless DemonstrationRecorder.Record.
+        float angle = BobSwishLaunchSolver.PreferredLaunchAngleDegrees;
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            continuous[1] = MakeIslandUp - ElevationMicroDelta; // ≈0.245 → fy ≈ 7.9
+            angle -= BobSwishLaunchSolver.AngleNudgeDegrees;
         }
         else if (Input.GetKey(KeyCode.E))
         {
-            continuous[1] = MakeIslandUp + ElevationMicroDelta; // ≈0.315 → fy ≈ 9.0
+            angle += BobSwishLaunchSolver.AngleNudgeDegrees;
+        }
+
+        bool expertLock = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+        // Auto-recorded demos must emit the pure solver (no keyboard lateral drift).
+        bool pureExpert = expertLock || IsDemonstrationRecording();
+
+        if (TryGetIdealWorldImpulse(angle, out Vector3 worldImpulse))
+        {
+            BobSwishLaunchSolver.WorldImpulseToActions(
+                worldImpulse,
+                transform.rotation,
+                lateralForceScale,
+                verticalForceScale,
+                verticalBias,
+                forwardForceScale,
+                forwardBias,
+                out float ax,
+                out float ay,
+                out float az);
+            continuous[0] = pureExpert ? ax : Input.GetAxis("Horizontal") * LateralScale;
+            continuous[1] = ay;
+            continuous[2] = az;
         }
         else
         {
-            continuous[1] = MakeIslandUp; // Space / default → fy ≈ 8.5
+            // Solver failed (degenerate geometry) — soft lob fallback, not a flat push.
+            continuous[0] = Input.GetAxis("Horizontal") * LateralScale;
+            continuous[1] = 0.08f;
+            continuous[2] = -0.22f;
         }
     }
 
@@ -702,6 +826,12 @@ public class BobAgent : Agent
     {
         var behavior = GetComponent<BehaviorParameters>();
         return behavior != null && behavior.BehaviorType == BehaviorType.HeuristicOnly;
+    }
+
+    private bool IsDemonstrationRecording()
+    {
+        var recorder = GetComponent<Unity.MLAgents.Demonstrations.DemonstrationRecorder>();
+        return recorder != null && recorder.Record;
     }
 
     private static bool IsHeuristicShootHeld()

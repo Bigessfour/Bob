@@ -993,8 +993,8 @@ public static class BobTrainingSceneBuilder
         rim.name = ArcAcademyLayout.RimName;
         rim.transform.SetParent(hoopHead.transform);
         rim.transform.localPosition = ArcAcademyLayout.RimLocalOnHoopHead;
-        rim.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-        rim.transform.localScale = new Vector3(0.9f, 0.04f, 0.9f);
+        rim.transform.localRotation = Quaternion.identity;
+        rim.transform.localScale = Vector3.one;
         ArcAcademyMaterialFactory.ApplyMaterial(rim, ArcAcademyMaterialFactory.GetRimOrange());
         Object.DestroyImmediate(rim.GetComponent<CapsuleCollider>());
         var rimRb = rim.AddComponent<Rigidbody>();
@@ -1275,16 +1275,25 @@ public static class BobTrainingSceneBuilder
 
     private static void CreateReflectionProbes(Transform parent)
     {
-        float midZ = (ArcAcademyLayout.CourtNearZ + ArcAcademyLayout.CourtFarZ) * 0.5f;
+        // Center the court probe on the free-throw lane so Thin glass + rim get useful reflections
+        // (Unity HDRP refractive material docs: object should sit in a Reflection Probe influence).
+        Vector3 rim = ArcAcademyLayout.MainRimWorldPosition;
+        Vector3 laneCenter = new(
+            rim.x,
+            Mathf.Max(rim.y, 2.8f),
+            (rim.z + ArcAcademyLayout.FreeThrowLineWorldZ) * 0.5f);
 
         var courtProbeGo = new GameObject(ArcAcademyLayout.ReflectionProbeName);
         courtProbeGo.transform.SetParent(parent);
-        courtProbeGo.transform.position = new Vector3(0f, 4f, midZ);
-        ConfigureReflectionProbe(courtProbeGo.AddComponent<ReflectionProbe>(), new Vector3(24f, 12f, 32f), 256);
+        courtProbeGo.transform.position = laneCenter;
+        ConfigureReflectionProbe(
+            courtProbeGo.AddComponent<ReflectionProbe>(),
+            new Vector3(16f, 10f, 22f),
+            256);
 
         var windowProbeGo = new GameObject(ArcAcademyLayout.ReflectionProbeWindowName);
         windowProbeGo.transform.SetParent(parent);
-        windowProbeGo.transform.position = new Vector3(-7.5f, 4f, midZ);
+        windowProbeGo.transform.position = new Vector3(-7.5f, 4f, laneCenter.z);
         ConfigureReflectionProbe(windowProbeGo.AddComponent<ReflectionProbe>(), new Vector3(8f, 6f, 4f), 512);
     }
 

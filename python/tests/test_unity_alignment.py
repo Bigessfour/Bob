@@ -199,11 +199,51 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
         repo_root / "Assets/Tests/PlayMode/BobScoreIncrementPlayModeTest.cs"
     ).is_file()
     assert (repo_root / "Assets/Audio/sfx_score.wav").is_file()
+    rewards = (repo_root / "Assets/Scripts/ArcAcademyRewards.cs").read_text()
+    assert "MadeBasket = 7.0f" in rewards
+    assert "BackboardSquareHit = 1.0f" in rewards
+    assert "SwishBonus = 0f" in rewards
+    assert "RimContactPenalty = 0f" in rewards
     assert (
-        "MadeBasket = 7.0f"
-        in (repo_root / "Assets/Scripts/ArcAcademyRewards.cs").read_text()
+        "NotifyBackboardSquareHit"
+        in (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    )
+    assert (
+        "HoopTargetSquareHit"
+        in (repo_root / "Assets/Scripts/HoopTargetSquareHit.cs").read_text()
+    )
+    assert (
+        "EnsureTargetSquareHitZone"
+        in (repo_root / "Assets/Scripts/TrainingHoopDetail.cs").read_text()
+    )
+    assert (
+        "SquareHitMinApexRise"
+        in (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
+    )
+    assert (
+        "a make is a make" in rewards.lower()
+        or "Any path through the hoop"
+        in (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    )
+    assert "NotifyRimContact" in (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    assert (
+        "NotifyRimContact"
+        in (repo_root / "Assets/Scripts/HoopRimContact.cs").read_text()
+    )
+    assert 'return "rim_out"' in (repo_root / "Assets/Scripts/BobAgent.cs").read_text()
+    assert (
+        "SwishSpeedThreshold = 18f"
+        in (repo_root / "Assets/Scripts/ArcAcademyLayout.cs").read_text()
     )
     assert "PlayScore" in (repo_root / "Assets/Scripts/HoopScoreZone.cs").read_text()
+    assert (
+        "IsFallingThroughHoop"
+        in (repo_root / "Assets/Scripts/HoopScoreZone.cs").read_text()
+    )
+    assert (
+        "linearVelocity.y <= -minDownwardSpeed"
+        in (repo_root / "Assets/Scripts/HoopScoreZone.cs").read_text()
+    )
     assert (
         "BobAudioFeedbackBuilder.EnsureInScene"
         in (
@@ -610,22 +650,64 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "LaunchTowardHoopRewardScale = 0.20f" in layout
     assert "LaunchUpwardRewardScale = 0.15f" in layout
     assert "LaunchArcAlignRewardScale = 0.15f" in layout
-    assert "IdealLaunchFy = 8.5f" in layout
+    assert "IdealLaunchFy = 4.9f" in layout
+    assert "IdealSolverMatchRewardScale = 0.40f" in layout
     assert "LaunchPowerBandPenaltyScale = 0.04f" in layout
     assert "LaunchPowerBandPenaltyScale" in agent
+    assert "IdealSolverMatchRewardScale" in agent
     assert "TrainingRangeScale" not in layout
     assert "TrainingImpulseRangeScale" not in agent
     assert "transform.rotation * localImpulse" in agent
     assert "forwardBias = 6f" in agent
     assert "forwardBias = -6f" not in agent
-    # Heuristic make-island prior + micro E/Shift elevation deltas (not radical arcs).
-    assert "MakeIslandForward = 0.55f" in agent
-    assert "MakeIslandUp = 0.28f" in agent
-    assert "ElevationMicroDelta = 0.035f" in agent
+    # Heuristic uses analytic high-arc swish solver (not a flat make-island push).
+    assert "BobSwishLaunchSolver" in agent
+    assert "TryGetIdealWorldImpulse" in agent
+    assert "LeftControl" in agent
+    assert "IdealFreeThrowKinematics" in agent
+    assert (
+        "PreferredLaunchAngleDegrees"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert (
+        "TryComputeWorldImpulse"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert (
+        "AimAboveRimMeters = 0.18f"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert (
+        "AimPastRimMeters = 0.10f"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert (
+        "DampingCompensation = 1.38f"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert (
+        "LaunchAngleDegreesFromImpulse"
+        in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
+    )
+    assert "pureExpert" in agent
+    assert "IsDemonstrationRecording()" in agent
+    assert (
+        "EstimateFlightDuration"
+        in (repo_root / "Assets/Scripts/BobShotArcPreview.cs").read_text()
+    )
+    assert (
+        "IdealFreeThrowArc"
+        in (repo_root / "Assets/Scripts/BobShotArcPreview.cs").read_text()
+    )
+    assert (
+        "launch_angle_deg"
+        in (repo_root / "Assets/Scripts/BobShotActionLog.cs").read_text()
+    )
+    assert "MakeIslandUp" not in agent
+    assert "MakeIslandForward" not in agent
     assert "IsHeuristicDemoMode" in agent
     assert "IsHeuristicShootHeld" in agent
-    assert "MakeIslandUp + ElevationMicroDelta" in agent
-    assert "MakeIslandUp - ElevationMicroDelta" in agent
+    assert "IsDemonstrationRecording" in agent
     assert "applyRimPlaneMissPenalty" in agent
     # Tier 1.6+: proximity gated off for rim-plane misses; unified past-plane helpers
     assert "!applyRimPlaneMissPenalty" in agent

@@ -39,8 +39,8 @@ public static class BobDemonstrationRecorderMenu
         recorder.Record = true;
         recorder.DemonstrationName = DemoName;
         recorder.DemonstrationDirectory = absDir;
-        // ~40 free-throw episodes × ~75 steps ≈ 3000; allow headroom for recording session.
-        recorder.NumStepsToRecord = 4000;
+        // ~50 free-throw episodes × ~80 steps ≈ 4000; allow headroom for make hunting.
+        recorder.NumStepsToRecord = 8000;
 
         var behavior = bob.GetComponent<BehaviorParameters>();
         if (behavior != null)
@@ -56,20 +56,19 @@ public static class BobDemonstrationRecorderMenu
             + DemoName
             + " dir="
             + absDir
-            + " BehaviorType=HeuristicOnly. HOLD Space/Fire1 to shoot (make-island arc). "
-            + "E/Shift=micro elevation nudge, A/D=gentle lateral. Stop Play when done; "
-            + "expect "
+            + " BehaviorType=HeuristicOnly. Auto-fires make-island while Record=true "
+            + "(or HOLD Space for manual). Stop Play when done; expect "
             + Path.Combine(absDir, DemoName + ".demo"));
         EditorUtility.DisplayDialog(
             "Bob demos",
             "DemonstrationRecorder enabled (HeuristicOnly).\n\n"
-                + "1. Press Play\n"
-                + "2. HOLD Space (or left mouse) to shoot — waits until you press (won't auto-fire)\n"
-                + "3. Default = make-island arc; E/Shift = tiny up/down nudge; A/D = slight lateral\n"
-                + "4. Record ~30–50 MAKES (not just attempts)\n"
-                + "5. Stop Play → Disable Demonstration Recorder\n"
-                + "6. Confirm Assets/Demos/bobfreethrow.demo exists\n"
-                + "7. CONFIG=config/bob_free_throw_bc.yaml RUN_ID=bob-v4.3 ./scripts/train.sh --force",
+                + "1. Press Play — shots auto-fire on the empirical make island\n"
+                + "2. Optional: HOLD Space for manual control; E/Shift micro nudge\n"
+                + "3. Prefer sessions with many MAKES (check HUD score)\n"
+                + "4. Stop Play → Disable Demonstration Recorder\n"
+                + "5. Confirm Assets/Demos/bobfreethrow.demo exists\n"
+                + "6. CONFIG=config/bob_free_throw_probe_4k_bc.yaml RUN_ID=bob-v4.6 "
+                + "./scripts/train.sh --initialize-from=bob-v4.4",
             "OK");
     }
 

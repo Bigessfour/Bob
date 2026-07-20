@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Tracks recent Bob or basketball collisions with the rim for swish detection.
+/// Tracks recent Bob or basketball collisions with the rim for swish detection,
+/// and notifies the owning agent once so PPO can learn to avoid rim contact.
 /// </summary>
 public class HoopRimContact : MonoBehaviour
 {
@@ -21,13 +22,23 @@ public class HoopRimContact : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.GetComponent<BobAgent>() == null
-            && collision.collider.GetComponent<SimpleBasketball>() == null)
+        BobAgent agent = null;
+        if (collision.collider.TryGetComponent(out SimpleBasketball ball) && ball.Owner != null)
+        {
+            agent = ball.Owner;
+        }
+        else if (collision.collider.TryGetComponent(out BobAgent bob))
+        {
+            agent = bob;
+        }
+
+        if (agent == null)
         {
             return;
         }
 
         lastProjectileContactTime = Time.time;
         swishVfx?.PlayRimContact();
+        agent.NotifyRimContact();
     }
 }

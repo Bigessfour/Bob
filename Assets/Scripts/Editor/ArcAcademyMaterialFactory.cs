@@ -150,12 +150,8 @@ public static class ArcAcademyMaterialFactory
 
     public static Material CreateRimOrangeMaterial()
     {
-        var mat = CreateHdrpLit(
-            HoopVisualMaterials.RimOrangeColor,
-            HoopVisualMaterials.RimSmoothness,
-            HoopVisualMaterials.RimMetallic);
-        SetEmissive(mat, HoopVisualMaterials.RimOrangeColor, HoopVisualMaterials.RimEmissiveIntensity);
-        return mat;
+        // Prefer shared runtime factory so Coat Mask + emissive stay in sync.
+        return HoopVisualMaterials.CreateRimOrange();
     }
 
     public static Material CreateTranslucentNetMaterial()
@@ -165,7 +161,7 @@ public static class ArcAcademyMaterialFactory
 
     public static Material CreateOpaqueNetMaterial()
     {
-        return CreateHdrpLit(HoopVisualMaterials.NetWhiteColor, HoopVisualMaterials.NetSmoothness, 0f);
+        return HoopVisualMaterials.CreateOpaqueNet();
     }
 
     /// <summary>Updates committed rim/net .mat assets when colors change (Editor refresh).</summary>

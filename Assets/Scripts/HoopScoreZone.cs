@@ -1,12 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// Trigger volume at the rim — awards a made basket when Bob or the basketball enters while moving downward.
+/// Trigger volume at the rim — awards a made basket only when the ball (or Bob)
+/// enters while falling top → bottom through the hoop cylinder.
+/// Sideways skim, upward poke, or rim-out without full passage = no point.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class HoopScoreZone : MonoBehaviour
 {
-    [Tooltip("Maximum upward speed (m/s) allowed for a made basket.")]
+    [Tooltip("Minimum downward speed (m/s) required — ball must be falling through the hoop.")]
     public float minDownwardSpeed = 0.5f;
 
     [SerializeField] private HoopRimContact rimContact;
@@ -44,6 +46,20 @@ public class HoopScoreZone : MonoBehaviour
         TryScoreBob(other);
     }
 
+    /// <summary>
+    /// True only when velocity is clearly downward (falling through the hoop toward the floor).
+    /// </summary>
+    private bool IsFallingThroughHoop(Rigidbody rb)
+    {
+        if (rb == null)
+        {
+            return false;
+        }
+
+        // World Y must be negative enough: top → bottom through the cylinder.
+        return rb.linearVelocity.y <= -minDownwardSpeed;
+    }
+
     private bool TryScoreBasketball(Collider other)
     {
         if (!other.TryGetComponent(out SimpleBasketball basketball) || basketball.Owner == null)
@@ -52,14 +68,14 @@ public class HoopScoreZone : MonoBehaviour
         }
 
         var rb = other.attachedRigidbody;
-        if (rb != null && rb.linearVelocity.y > minDownwardSpeed)
+        // Consumed this collider either way so Bob path is not double-tried.
+        if (!IsFallingThroughHoop(rb))
         {
             return true;
         }
 
         bool rimHit = rimContact != null && rimContact.HadRecentProjectileContact;
         bool swish = !rimHit
-                     && rb != null
                      && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
 
         if (swish)
@@ -69,10 +85,8 @@ public class HoopScoreZone : MonoBehaviour
             BobAudioFeedback.Instance?.PlaySwish();
         }
 
-        var agent = basketball.Owner;
-        RecordBasketballPointAndNotify(agent, swish);
+        RecordBasketballPointAndNotify(basketball.Owner, swish);
         BobAudioFeedback.Instance?.PlayScore();
-
         return true;
     }
 
@@ -85,14 +99,13 @@ public class HoopScoreZone : MonoBehaviour
         }
 
         var rb = other.attachedRigidbody;
-        if (rb != null && rb.linearVelocity.y > minDownwardSpeed)
+        if (!IsFallingThroughHoop(rb))
         {
             return;
         }
 
         bool rimHit = rimContact != null && rimContact.HadRecentProjectileContact;
         bool swish = !rimHit
-                     && rb != null
                      && rb.linearVelocity.magnitude <= ArcAcademyLayout.SwishSpeedThreshold;
 
         if (swish)
@@ -109,12 +122,9 @@ public class HoopScoreZone : MonoBehaviour
     /// <summary>
     /// Records the canonical basketball point (for scoreboard, success rate, CSV) on every make,
     /// independent of whether the rich ArcAcademyManager feedback path is present.
-    /// This makes scoring robust for the minimal free-throw trainer path and any fallback.
     /// </summary>
     private void RecordBasketballPointAndNotify(BobAgent agent, bool swish)
     {
-        // Authoritative make detection site: always increment the basketball score metric.
-        // Success rate, HUDs, and session log derive from this (see BobTrainingStats + what-finished-looks-like.md).
         BobTrainingStats.Instance?.RecordBasketballPoint();
 
         if (ArcAcademyManager.Instance != null)
