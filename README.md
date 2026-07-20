@@ -133,6 +133,20 @@ docker run --rm bob-train
 
 Workspace settings in [`.vscode/`](.vscode/). See [docs/cursor-setup.md](docs/cursor-setup.md) for extension and interpreter setup.
 
+## Learning results (bob-v4.7)
+
+**Interim gate cleared:** rolling success **>5%**. **Best run (bob-v4.8-tight-prior):** session **34.43%**, trailing-1k **34.5%**.
+
+| Artifact                | Path                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| ML timeline (multi-run) | [`docs/results/bob_ml_timeline_comparison.png`](docs/results/bob_ml_timeline_comparison.png)           |
+| v4.7-ext dashboard      | [`docs/results/bob_v4_7-ext_learning_dashboard.png`](docs/results/bob_v4_7-ext_learning_dashboard.png) |
+| Chronicle + method log  | [`docs/design/training-chronicle.md`](docs/design/training-chronicle.md)                               |
+| Portfolio site          | [`docs/portfolio-site/index.html`](docs/portfolio-site/index.html)                                     |
+| Inference model         | `Assets/Models/Bob.onnx` (from `results/bob-v4.7-ext/Bob.onnx`)                                        |
+
+Post-run capture: `./scripts/capture-ml-run.sh <run_id> <utc_start>`
+
 ## Timeline (Part-Time)
 
 | Week | Focus                                           |

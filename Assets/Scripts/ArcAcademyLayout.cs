@@ -248,24 +248,24 @@ public static class ArcAcademyLayout
 
     /// <summary>
     /// Cosine similarity of chosen impulse vs <see cref="BobSwishLaunchSolver"/> ideal (max +scale).
-    /// bob-v4.6.1: cut — policy already on solver manifold; was farming launch credit.
+    /// bob-v4.8: raised — policy was over-exploring (|c|≈0.52); low-residual shots make ~35%.
     /// </summary>
-    public const float IdealSolverMatchRewardScale = 0.20f;
+    public const float IdealSolverMatchRewardScale = 0.35f;
 
     /// <summary>Local X residual scale — PPO fine-tunes lateral aim around the solver prior.</summary>
-    public const float ResidualLateralScale = 1.5f;
+    public const float ResidualLateralScale = 1.0f;
 
     /// <summary>Local Y residual scale — small vertical corrections around ideal impulse.</summary>
-    public const float ResidualVerticalScale = 2.0f;
+    public const float ResidualVerticalScale = 1.25f;
 
     /// <summary>Local Z residual scale — small depth/speed corrections toward the hoop.</summary>
-    public const float ResidualForwardScale = 1.5f;
+    public const float ResidualForwardScale = 1.0f;
 
     /// <summary>Normalize <see cref="BobAgent"/> speed observation (m/s).</summary>
     public const float MaxObsSpeedMagnitude = 20f;
 
-    /// <summary>Hard clamp on world-space residual — bob-v4.7: tighter band around solver prior.</summary>
-    public const float ResidualMaxMagnitude = 2.0f;
+    /// <summary>Hard clamp on world-space residual — bob-v4.8: |c| band 1.0 (was 2.0; heuristic c≈0 makes ~97%).</summary>
+    public const float ResidualMaxMagnitude = 1.0f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;

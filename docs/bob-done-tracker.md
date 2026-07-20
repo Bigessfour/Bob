@@ -1,17 +1,17 @@
 # Bob — Done Tracker
 
-**Last updated:** 2026-07-18 · **Branch:** `main` · **Merged:** [#10](https://github.com/Bigessfour/Bob/pull/10), [#11](https://github.com/Bigessfour/Bob/pull/11) (Ollama AI Review)
+**Last updated:** 2026-07-20 · **Branch:** `feature/bob-v4.1-local-impulse-sign` · **Status:** **Portfolio complete (v4.8)**
 **Pin:** open this file in Cursor → right-click tab → **Pin Tab** (split beside Unity).
 
-North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · E2E runbook: [design/ai-warehouse-ops.md](design/ai-warehouse-ops.md) · **Start training:** [design/training-run-plan.md](design/training-run-plan.md)
+North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · Chronicle: [design/training-chronicle.md](design/training-chronicle.md) · Timeline: [design/ml-project-timeline.md](design/ml-project-timeline.md)
 
 ---
 
 ## MVP verdict
 
-**Infrastructure + polish: Done** — training handshake, dual HUD, audio, PlayMode score test, inference menus, hero + GIF artifacts on `feature/dual-hud-scoreboard`.
+**Infrastructure + polish: Done** — training handshake, dual HUD, audio, PlayMode score test, inference menus, hero captures, portfolio site.
 
-**Learning demo: Blocked on Tier 1.6 → bob-v4.2** — bob-v4.1 hit 500k (~1% last 1k, positive-miss 57%); reward patch shipped — see [bob_v4.1_resume_500k_analysis.md](results/bob_v4.1_resume_500k_analysis.md).
+**Learning demo: Done (portfolio scope)** — **bob-v4.8-tight-prior** @ **34.5%** trailing-1k; **InferenceOnly Play validated ~35%** (`Assets/Models/Bob.onnx`). Interim **>5%** gate passed. Demo-done **70%/1k** not pursued — see [ml-project-timeline.md](design/ml-project-timeline.md).
 
 **Publish:** Static portfolio in-repo — `docs/portfolio-site/` + README links. **No AWS hosting.**
 
@@ -63,7 +63,7 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] Core loop in code (scene + agent + HUD + scoring)
 - [x] Dual HUD + audio + portfolio artifacts (hero `023`, GIF `023-training-gif`)
 - [x] PlayMode test: make → +1 `BasketballPoints` (`BobScoreIncrementPlayModeTest`)
-- [ ] **Visible learning** — interim **>5%** rolling, then demo-done **≥70% / last 1k** — next **`bob-v4.2 --force`** after Tier 1.6 ([training-run-plan.md](design/training-run-plan.md))
+- [x] **Visible learning** — interim **>5%** rolling (**bob-v4.7-curriculum 10.93%**, ext roll **25%**)
 - [x] **Tier 1.5 / bob-v4.1** — code + full 500k resume; aim↑ / makes ~1%; positive-miss **FAIL**
 - [x] **Tier 1.6 reward patch** — unified rim_miss; penalty **1.25**; launch scales cut; past-plane timeout/settled → rim_miss (**2026-07-18**)
 - [ ] **Short validation** `RUN_ID=bob-v4.2` — positive-miss ≤25%, then extend / BC

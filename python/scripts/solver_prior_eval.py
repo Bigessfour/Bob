@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate solver-prior quality from bob_shots.csv (residual ≈ 0 proxy).
+r"""Evaluate solver-prior quality from bob_shots.csv (residual ≈ 0 proxy).
 
 Usage:
   cd python && .venv/bin/python scripts/solver_prior_eval.py \\

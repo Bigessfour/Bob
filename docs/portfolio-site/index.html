@@ -93,12 +93,13 @@
     <main>
       <figure class="hero">
         <img
-          src="../progress/023-dual-hud-hero/capture.png"
-          alt="Bob training lab with near-Bob float HUD, wall console, orange Bob"
+          src="../progress/025-v48-demo-52-swish/capture.png"
+          alt="Bob demo — 52 consecutive swish free throws, score 52, rolling success 100%"
         />
         <figcaption>
-          Arc Academy Lab — large near-Bob scoreboard (Episodes / Score /
-          Success), Wall_South RL console + graph, Bob launcher + basketball.
+          <strong>Portfolio demo (2026-07-20):</strong> 52 consecutive swish —
+          solver prior + Arc Academy HUD. PPO training peak: bob-v4.8 @
+          <strong>34.5%</strong> trailing-1k.
         </figcaption>
       </figure>
 
@@ -128,6 +129,31 @@
       </section>
 
       <section>
+        <h2>ML learning timeline</h2>
+        <figure class="hero">
+          <img
+            src="ml-timeline.png"
+            alt="Rolling success rate across bob-v4 through bob-v4.7-ext training runs"
+          />
+          <figcaption>
+            PPO training progression: 0.5% → 2% → 11% (v4.7) →
+            <strong>34.5%</strong> (v4.8 tight prior). Inference Play validated
+            ~35%. See <code>docs/design/ml-project-timeline.md</code>.
+          </figcaption>
+        </figure>
+        <figure class="hero">
+          <img
+            src="v47-dashboard.png"
+            alt="bob-v4.7-ext learning dashboard — economics and success panels"
+          />
+          <figcaption>
+            bob-v4.7-ext economics dashboard — make vs rim_miss reward
+            separation, Tier 1.5 contrast pass.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section>
         <h2>Training clip</h2>
         <figure class="hero">
           <img
@@ -135,7 +161,7 @@
             alt="Bob training session GIF"
           />
           <figcaption>
-            Play-mode capture of the learning loop (bob-v3 session).
+            Play-mode capture of the learning loop (legacy bob-v3 session).
           </figcaption>
         </figure>
       </section>
@@ -148,8 +174,8 @@
             alt="Bob session success rate and rolling arc quality over iterations"
           />
           <figcaption>
-            In-scene metrics from <code>summaries/bob_session.csv</code> — PPO
-            training segment @ 20× time scale.
+            Latest session metrics from <code>summaries/bob_session.csv</code> —
+            bob-v4.7 family @ 20× time scale.
           </figcaption>
         </figure>
       </section>
@@ -159,7 +185,9 @@
         <ul>
           <li>Unity 6 LTS + HDRP + ML-Agents PPO</li>
           <li>Python 3.10 trainer (<code>mlagents-learn</code>)</li>
-          <li>Terraform S3 + CloudFront (Week 3 deploy target)</li>
+          <li>
+            Terraform fmt/validate in CI only — **no AWS hosting for Bob**
+          </li>
           <li>GitHub Actions CI — pytest + Terraform validate</li>
         </ul>
       </section>
@@ -176,8 +204,10 @@
     </main>
 
     <footer>
-      Deploy with <code>aws s3 sync docs/portfolio-site/</code> after Terraform
-      dev stack apply (see terraform/README.md).
+      Static portfolio in-repo — open
+      <code>docs/portfolio-site/index.html</code>
+      locally. Source:
+      <a href="https://github.com/Bigessfour/Bob">github.com/Bigessfour/Bob</a>
     </footer>
   </body>
 </html>

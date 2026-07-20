@@ -2,8 +2,8 @@
 
 > **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) (workflow) · [What Finished Looks Like](docs/what-finished-looks-like.md) (product) · [Visual vision](docs/design/visual-vision.md) (look)
 
-**Status:** Phase 3–4 — polish on `feature/dual-hud-scoreboard` ([PR #10](https://github.com/Bigessfour/Bob/pull/10)); **learning blocked on ML Tier 1** ([ml-training-recommendations.md](docs/design/ml-training-recommendations.md))
-**Branch:** `feature/dual-hud-scoreboard`
+**Status:** **Portfolio complete (v4.8)** — visible learning **0.5% → 34.5%**; inference validated **~35%** in Play
+**Branch:** `feature/bob-v4.1-local-impulse-sign` (PR pending merge)
 **Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + GitHub Actions (+ Terraform CI validate only; **no AWS hosting**)
 
@@ -11,40 +11,34 @@
 
 ## Current Milestone
 
-**Phase 3 — Learning demo (blocked on reward redesign)**
+**Phase 3–4 — Portfolio demo complete**
 
-MVP loop + Arc Academy Lab + dual HUD are implemented. **bob-v2/v3** show high arc, **0% makes** — implement [ml-training-recommendations.md](docs/design/ml-training-recommendations.md) Tier 1, then **`RUN_ID=bob-v4`**. Behavior Name **`Bob`**, **8** obs, **3** actions until obs tier ships.
+MVP loop + Arc Academy Lab + dual HUD + **bob-v4.8 PPO** (`Assets/Models/Bob.onnx`). Behavior Name **`Bob`**, **13** obs, **3** actions (residual hybrid). See [ml-project-timeline.md](docs/design/ml-project-timeline.md).
 
 **Product definition:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md)
 
-## Build Status (2026-07-14)
+## Build Status (2026-07-20)
 
-| Area               | Status                                                                                          |
-| ------------------ | ----------------------------------------------------------------------------------------------- |
-| Unity scene        | `BobTraining.unity` — dual HUD: `NearBobTrainingHud` + Wall_South lab console                   |
-| Scene validation   | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                                               |
-| Offline regression | `pytest tests/test_unity_alignment.py` — **35/35**                                              |
-| Phase 3 training   | **bob-v2** plot done; **bob-v3** partial (~40k steps, 0% makes) — **use bob-v4 after ML fixes** |
-| ML evaluation      | [docs/design/ml-training-recommendations.md](docs/design/ml-training-recommendations.md)        |
-| Progress gallery   | Hero `023-dual-hud-hero` + GIF `023-training-gif`                                               |
+| Area               | Status                                                                    |
+| ------------------ | ------------------------------------------------------------------------- |
+| Unity scene        | `BobTraining.unity` — dual HUD + v4.8 trained policy                      |
+| Scene validation   | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                         |
+| Offline regression | `pytest tests/test_unity_alignment.py` — **40/40**                        |
+| PPO training peak  | **bob-v4.8-tight-prior** — **34.5%** trailing-1k; inference Play **~35%** |
+| Portfolio          | `docs/portfolio-site/` + progress captures `025`/`026` + ML timeline PNGs |
+| ML chronicle       | [docs/design/training-chronicle.md](docs/design/training-chronicle.md)    |
 
-## Next Actions
+## Next Actions (vNext — optional)
 
 **Live checklist:** [docs/bob-done-tracker.md](docs/bob-done-tracker.md)
-**14-day priority stack:** [docs/planning/next-14-days.md](docs/planning/next-14-days.md)
 
-| P   | Action                                                | Status             |
-| --- | ----------------------------------------------------- | ------------------ |
-| 1   | ML Tier 1 in `BobAgent.cs` → `RUN_ID=bob-v4`          | Not started (code) |
-| 2   | `build-standalone.sh` + Recorder + hero video scripts | Not started        |
-| 3   | `BobGameStateMachine.cs` + juice pass                 | Partial            |
-| 4   | `release-checklist.sh` + CI extension                 | Not started        |
-| 5   | Cursor workflow (rules, RAG, skills)                  | Partial            |
-
-1. Implement **ML Tier 1** in `BobAgent.cs` (shot-resolved episode, miss proximity)
-2. **`RUN_ID=bob-v4`** train + refresh `docs/results/training_progress.png`
-3. Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main`
-4. README + `docs/portfolio-site/` synced with latest artifacts
+| P   | Action                                               | Status       |
+| --- | ---------------------------------------------------- | ------------ |
+| 1   | Merge feature branch → `main`                        | This PR      |
+| 2   | Record 5–8 min portfolio video (`docs/demo-package`) | Optional     |
+| 3   | v4.9 tighter residual toward 70%/1k                  | Deferred     |
+| 4   | Standalone build + Recorder hero video               | Deferred     |
+| 5   | AWS / CloudFront hosting                             | Out of scope |
 
 ## Links
 

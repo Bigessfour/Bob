@@ -651,10 +651,12 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "LaunchUpwardRewardScale = 0.06f" in layout
     assert "LaunchArcAlignRewardScale = 0.05f" in layout
     assert "IdealLaunchFy = 4.9f" in layout
-    assert "IdealSolverMatchRewardScale = 0.20f" in layout
+    assert "IdealSolverMatchRewardScale = 0.35f" in layout
     assert "LaunchPowerBandPenaltyScale = 0.04f" in layout
-    assert "ResidualLateralScale = 1.5f" in layout
-    assert "ResidualMaxMagnitude = 2.0f" in layout
+    assert "ResidualLateralScale = 1.0f" in layout
+    assert "ResidualVerticalScale = 1.25f" in layout
+    assert "ResidualForwardScale = 1.0f" in layout
+    assert "ResidualMaxMagnitude = 1.0f" in layout
     assert (
         "BobCurriculum" in (repo_root / "Assets/Scripts/BobCurriculum.cs").read_text()
     )
@@ -740,6 +742,9 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
         ("Prefab_SimpleArena", arena_prefab),
         ("BobTraining.unity", scene),
     ):
+        assert (
+            f"VectorObservationSize: {EXPECTED_VECTOR_OBSERVATIONS}" in blob
+        ), f"{label} must serialize VectorObservationSize: {EXPECTED_VECTOR_OBSERVATIONS}"
         assert (
             "forwardBias: 6" in blob
         ), f"{label} must serialize forwardBias: 6 (local +Z)"

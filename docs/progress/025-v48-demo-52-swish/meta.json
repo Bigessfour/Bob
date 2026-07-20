@@ -1,0 +1,27 @@
+{
+  "label": "025-v48-demo-52-swish",
+  "captured_at_utc": "2026-07-20T17:59:11Z",
+  "mode": "HeuristicOnly",
+  "model_asset": "Assets/Models/Bob.onnx",
+  "training_connected": false,
+  "watch_mode_paused": true,
+  "iterations": 53,
+  "basketball_points": 52,
+  "session_success_pct": 98.11,
+  "rolling_success_pct": 100.0,
+  "streak_makes": 52,
+  "duration_seconds": 76,
+  "shot_signature": {
+    "actions_c": [0.0, 0.0, 0.0],
+    "impulse_f": [0.0, 4.72, -3.184],
+    "launch_angle_deg": 56.0,
+    "end_reason": "swish",
+    "solver_match": 1.0
+  },
+  "policy_note": "HeuristicOnly with solver prior c≈0 (not PPO inference). Product demo: perfect swish streak showcases v4.7 solver + lab HUD.",
+  "training_policy_reference": "bob-v4.8-tight-prior — 34.5% trailing-1k under PPO",
+  "csv_window": {
+    "since": "2026-07-20T17:57:53Z",
+    "until": "2026-07-20T17:59:10Z"
+  }
+}
