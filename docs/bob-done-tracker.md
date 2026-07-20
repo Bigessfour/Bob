@@ -129,14 +129,18 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 ## Last run log
 
-| Date       | Run ID   | train.sh | BOB_TRAINING_OK | Makes  | Notes                                                                          |
-| ---------- | -------- | -------- | --------------- | ------ | ------------------------------------------------------------------------------ |
-| 2026-06-23 | bob-v0   | yes      | yes             | low    | Step 5000/10000; pre–launch-shaping                                            |
-| 2026-06-24 | bob-v2   | yes      | yes             | low    | 865 iter batchmode; plot refreshed                                             |
-| 2026-07-14 | bob-v3   | yes      | yes (brief)     | **0**  | ~40k trainer steps; arc ~74%, net RL −163; **crashed** on communicator timeout |
-| 2026-07-17 | bob-v4   | yes      | yes             | 5/1001 | 0.50%; Tier 1 validated; profitable rim_miss                                   |
-| 2026-07-18 | bob-v4.1 | yes      | partial         | ~1.0%  | 500k done; aim↑; **positive-miss 57%** → Tier 1.6                              |
-| 2026-07-18 | bob-v4.2 | —        | —               | —      | Tier 1.6 code ready; train `--force` next                                      |
+| Date       | Run ID              | train.sh | BOB_TRAINING_OK | Makes     | Notes                                                                                             |
+| ---------- | ------------------- | -------- | --------------- | --------- | ------------------------------------------------------------------------------------------------- |
+| 2026-06-23 | bob-v0              | yes      | yes             | low       | Step 5000/10000; pre–launch-shaping                                                               |
+| 2026-06-24 | bob-v2              | yes      | yes             | low       | 865 iter batchmode; plot refreshed                                                                |
+| 2026-07-14 | bob-v3              | yes      | yes (brief)     | **0**     | ~40k trainer steps; arc ~74%, net RL −163; **crashed** on communicator timeout                    |
+| 2026-07-17 | bob-v4              | yes      | yes             | 5/1001    | 0.50%; Tier 1 validated; profitable rim_miss                                                      |
+| 2026-07-18 | bob-v4.1            | yes      | partial         | ~1.0%     | 500k done; aim↑; **positive-miss 57%** → Tier 1.6                                                 |
+| 2026-07-20 | bob-v4.6-residual   | yes      | yes             | **2.08%** | 4035 eps; residual hybrid; positive-miss 35% FAIL                                                 |
+| 2026-07-20 | bob-v4.6.1          | —        | —               | —         | Anti-farming; interrupted                                                                         |
+| 2026-07-20 | bob-v4.7-curriculum | —        | —               | _pending_ | Solver retune + curriculum + make-hunt BC — [training-chronicle.md](design/training-chronicle.md) |
+
+Full timeline: **[design/training-chronicle.md](design/training-chronicle.md)**
 
 ---
 

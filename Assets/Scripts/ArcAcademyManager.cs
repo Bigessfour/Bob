@@ -106,11 +106,13 @@ public class ArcAcademyManager : MonoBehaviour
     /// </summary>
     public void PrepareEpisode(int stage = -1)
     {
+        BobCurriculum.RefreshFromEnvironment(movableHoop);
+
         if (randomizeEpisodeLayout)
         {
             RandomizeEpisode(stage);
         }
-        else
+        else if (movableHoop == null || BobCurriculum.CurrentDistanceScale >= 0.999f)
         {
             SetupForTraining();
         }

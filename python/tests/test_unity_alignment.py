@@ -10,7 +10,7 @@ from pathlib import Path
 EXPECTED_BEHAVIOR_NAME = "Bob"
 EXPECTED_BEHAVIOR_TYPE = "Default"
 EXPECTED_BEHAVIOR_TYPE_ENUM = 0
-EXPECTED_VECTOR_OBSERVATIONS = 11
+EXPECTED_VECTOR_OBSERVATIONS = 13
 EXPECTED_CONTINUOUS_ACTIONS = 3
 
 SCENE_PATH = Path("Assets/Scenes/BobTraining.unity")
@@ -43,7 +43,7 @@ def test_yaml_trainer_is_ppo(trainer_config: dict) -> None:
 def test_unity_agent_constants_documented() -> None:
     """Constants mirror Assets/Scripts/BobAgent.cs and scene builder."""
     assert EXPECTED_BEHAVIOR_TYPE == "Default"
-    assert EXPECTED_VECTOR_OBSERVATIONS == 11
+    assert EXPECTED_VECTOR_OBSERVATIONS == 13
     assert EXPECTED_CONTINUOUS_ACTIONS == 3
 
 
@@ -653,8 +653,12 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "IdealLaunchFy = 4.9f" in layout
     assert "IdealSolverMatchRewardScale = 0.20f" in layout
     assert "LaunchPowerBandPenaltyScale = 0.04f" in layout
-    assert "ResidualLateralScale = 2.8f" in layout
-    assert "ResidualMaxMagnitude = 5.5f" in layout
+    assert "ResidualLateralScale = 1.5f" in layout
+    assert "ResidualMaxMagnitude = 2.0f" in layout
+    assert (
+        "BobCurriculum" in (repo_root / "Assets/Scripts/BobCurriculum.cs").read_text()
+    )
+    assert "GetCurriculumHoopDeltaZ" in layout
     assert "SquareHitMinApexRise = 1.1f" in layout
     assert "LaunchPowerBandPenaltyScale" in agent
     assert "IdealSolverMatchRewardScale" in agent
@@ -671,7 +675,7 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "LeftControl" in agent
     assert "IdealFreeThrowKinematics" in agent
     assert (
-        "PreferredLaunchAngleDegrees = 58f"
+        "PreferredLaunchAngleDegrees = 56f"
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
@@ -687,11 +691,11 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
-        "AimPastRimMeters = 0.10f"
+        "AimPastRimMeters = 0.05f"
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (
-        "DampingCompensation = 1.18f"
+        "DampingCompensation = 1.08f"
         in (repo_root / "Assets/Scripts/BobSwishLaunchSolver.cs").read_text()
     )
     assert (

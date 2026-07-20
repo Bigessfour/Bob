@@ -111,6 +111,31 @@ public class MovableHoop : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Regulation-distance curriculum: move hoop toward the shooter on +Z; spawn stays fixed.
+    /// </summary>
+    public void ApplyCurriculumDistance(float distanceScale)
+    {
+        ResolveReferences();
+        float deltaZ = ArcAcademyLayout.GetCurriculumHoopDeltaZ(distanceScale);
+        transform.position = defaultRootPosition + new Vector3(0f, 0f, deltaZ);
+        targetSwivelYaw = 0f;
+        targetArmPitch = 0f;
+
+        if (hoopHeadTransform != null && hoopHeadTransform.parent == transform)
+        {
+            hoopHeadTransform.localPosition = ArcAcademyLayout.StationaryHoopHeadLocalPosition;
+            hoopHeadTransform.localRotation = Quaternion.identity;
+        }
+
+        if (rimTransform != null)
+        {
+            rimTransform.localPosition = defaultRimLocalPosition;
+        }
+
+        SnapPoseImmediate();
+    }
+
     public void RandomizePose(int curriculumStage)
     {
         if (stationaryForTraining)

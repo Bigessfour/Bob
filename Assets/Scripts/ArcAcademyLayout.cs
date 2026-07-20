@@ -161,6 +161,22 @@ public static class ArcAcademyLayout
     public static Vector3 MainRimWorldPosition =>
         RimWorldPosition(HoopRootDefaultPosition, RimLocalDefaultPosition);
 
+    /// <summary>
+    /// Horizontal spawn-to-rim distance at regulation (m). Used for distance curriculum:
+    /// hoop slides toward +Z; spawn / free-throw line never moves (unlike aborted v4.5).
+    /// </summary>
+    public const float RegulationHorizontalShotMeters = 5.24f;
+
+    /// <summary>
+    /// World +Z offset applied to hoop root when <paramref name="distanceScale"/> &lt; 1
+    /// (brings rim closer while Bob stays at the line).
+    /// </summary>
+    public static float GetCurriculumHoopDeltaZ(float distanceScale)
+    {
+        float scale = Mathf.Clamp(distanceScale, 0.5f, 1f);
+        return (1f - scale) * RegulationHorizontalShotMeters;
+    }
+
     /// <summary>Court-level hero shot — Bob at the line, backboard + rim centered ahead.</summary>
     public static readonly Vector3 CameraPosition = new(2.0f, 1.55f, 0.6f);
     public static readonly Vector3 CameraLookAt = new(0f, 2.85f, -5.2f);
@@ -237,19 +253,19 @@ public static class ArcAcademyLayout
     public const float IdealSolverMatchRewardScale = 0.20f;
 
     /// <summary>Local X residual scale — PPO fine-tunes lateral aim around the solver prior.</summary>
-    public const float ResidualLateralScale = 2.8f;
+    public const float ResidualLateralScale = 1.5f;
 
     /// <summary>Local Y residual scale — small vertical corrections around ideal impulse.</summary>
-    public const float ResidualVerticalScale = 3.5f;
+    public const float ResidualVerticalScale = 2.0f;
 
     /// <summary>Local Z residual scale — small depth/speed corrections toward the hoop.</summary>
-    public const float ResidualForwardScale = 3.2f;
+    public const float ResidualForwardScale = 1.5f;
 
     /// <summary>Normalize <see cref="BobAgent"/> speed observation (m/s).</summary>
     public const float MaxObsSpeedMagnitude = 20f;
 
-    /// <summary>Hard clamp on world-space residual so PPO cannot override the analytic free throw.</summary>
-    public const float ResidualMaxMagnitude = 5.5f;
+    /// <summary>Hard clamp on world-space residual — bob-v4.7: tighter band around solver prior.</summary>
+    public const float ResidualMaxMagnitude = 2.0f;
 
     /// <summary>Penalty scale for downward launch impulse (multiplies negative fy).</summary>
     public const float LaunchDownwardPenaltyScale = 0.6f;

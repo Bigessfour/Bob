@@ -6,8 +6,8 @@ using UnityEngine;
 /// </summary>
 public static class BobSwishLaunchSolver
 {
-    /// <summary>Realistic free-throw lob (~58°) — apex above rim, descending entry.</summary>
-    public const float PreferredLaunchAngleDegrees = 58f;
+    /// <summary>Realistic free-throw lob (~56°) — apex above rim, descending entry.</summary>
+    public const float PreferredLaunchAngleDegrees = 56f;
 
     /// <summary>E / Shift nudge on launch angle (degrees).</summary>
     public const float AngleNudgeDegrees = 4f;
@@ -22,10 +22,10 @@ public static class BobSwishLaunchSolver
     /// Extra depth past rim center toward the backboard — short vacuum solutions
     /// become front-rim misses once linearDamping bleeds speed.
     /// </summary>
-    public const float AimPastRimMeters = 0.10f;
+    public const float AimPastRimMeters = 0.05f;
 
     /// <summary>Speed boost to offset basketball linearDamping on the way to the rim.</summary>
-    public const float DampingCompensation = 1.18f;
+    public const float DampingCompensation = 1.08f;
 
     /// <summary>
     /// Solves launch velocity for a projectile under <see cref="Physics.gravity"/> that passes
