@@ -1130,7 +1130,7 @@ public static class BobTrainingSceneBuilder
         behavior.BehaviorName = "Bob";
         behavior.BehaviorType = BehaviorType.Default;
         behavior.TeamId = 0;
-        behavior.BrainParameters.VectorObservationSize = 8;
+        behavior.BrainParameters.VectorObservationSize = 11;
         behavior.BrainParameters.NumStackedVectorObservations = 1;
         behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(3);
 

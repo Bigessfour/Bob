@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 /// One-click minimal free-throw trainer setup for BobTraining.unity.
 ///
 /// Press Play after setup — Bob (launcher) receives PPO actions and launches the basketball.
-/// Behavior name Bob, 8 observations, 3 continuous actions (unchanged YAML contract).
+/// Behavior name Bob, 11 observations, 3 continuous actions (unchanged YAML contract).
 ///
 /// Editor test steps:
 /// 1. TrainingArena → SimpleFreeThrowSetup → "Setup Minimal Trainer" (or Bob → Setup → Simple Free Throw Trainer)

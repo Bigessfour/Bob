@@ -22,7 +22,7 @@ using UnityEngine;
 /// high-arc speed for a given angle; <see cref="BobSwishLaunchSolver.WorldImpulseToActions"/>
 /// maps that impulse into Bob’s continuous actions (local impulse + scales/biases).
 ///
-/// Observations (8): body pos, vector to hoop, horizontal velocity (vx, vz).
+/// Observations (11): body pos, vector to hoop, velocity (vx, vy, vz), speed, shot phase.
 /// Actions (3): local residual corrections around the analytic free throw (once per episode).
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
@@ -466,13 +466,21 @@ public class BobAgent : Agent
         {
             Vector3 v = ActionRigidbody.linearVelocity;
             sensor.AddObservation(v.x);
+            sensor.AddObservation(v.y);
             sensor.AddObservation(v.z);
+            float speedNorm = Mathf.Clamp01(
+                v.magnitude / Mathf.Max(ArcAcademyLayout.MaxObsSpeedMagnitude, 0.01f));
+            sensor.AddObservation(speedNorm);
         }
         else
         {
             sensor.AddObservation(0f);
             sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
         }
+
+        sensor.AddObservation(shotImpulseThisEpisode ? 1f : 0f);
     }
 
     public override void OnActionReceived(ActionBuffers actions)

@@ -468,9 +468,9 @@ public static class BobSceneValidator
             return;
         }
 
-        if (behavior.BrainParameters.VectorObservationSize != 8)
+        if (behavior.BrainParameters.VectorObservationSize != 11)
         {
-            Debug.LogError("VALIDATE_FAIL: Expected 8 vector observations");
+            Debug.LogError("VALIDATE_FAIL: Expected 11 vector observations");
             EditorApplication.Exit(1);
             return;
         }
@@ -639,10 +639,10 @@ public static class BobSceneValidator
             return;
         }
 
-        if (behavior.BrainParameters.VectorObservationSize != 8
+        if (behavior.BrainParameters.VectorObservationSize != 11
             || behavior.BrainParameters.ActionSpec.NumContinuousActions != 3)
         {
-            Debug.LogError("VALIDATE_FAIL: Minimal trainer requires 8 observations and 3 continuous actions");
+            Debug.LogError("VALIDATE_FAIL: Minimal trainer requires 11 observations and 3 continuous actions");
             EditorApplication.Exit(1);
             return;
         }
@@ -836,10 +836,10 @@ public static class BobSceneValidator
             return;
         }
 
-        if (behavior.BrainParameters.VectorObservationSize != 8
+        if (behavior.BrainParameters.VectorObservationSize != 11
             || behavior.BrainParameters.ActionSpec.NumContinuousActions != 3)
         {
-            Debug.LogError("VALIDATE_FAIL: Simple arena requires 8 observations and 3 continuous actions");
+            Debug.LogError("VALIDATE_FAIL: Simple arena requires 11 observations and 3 continuous actions");
             EditorApplication.Exit(1);
             return;
         }

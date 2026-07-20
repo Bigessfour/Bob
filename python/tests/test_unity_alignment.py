@@ -10,7 +10,7 @@ from pathlib import Path
 EXPECTED_BEHAVIOR_NAME = "Bob"
 EXPECTED_BEHAVIOR_TYPE = "Default"
 EXPECTED_BEHAVIOR_TYPE_ENUM = 0
-EXPECTED_VECTOR_OBSERVATIONS = 8
+EXPECTED_VECTOR_OBSERVATIONS = 11
 EXPECTED_CONTINUOUS_ACTIONS = 3
 
 SCENE_PATH = Path("Assets/Scenes/BobTraining.unity")
@@ -43,7 +43,7 @@ def test_yaml_trainer_is_ppo(trainer_config: dict) -> None:
 def test_unity_agent_constants_documented() -> None:
     """Constants mirror Assets/Scripts/BobAgent.cs and scene builder."""
     assert EXPECTED_BEHAVIOR_TYPE == "Default"
-    assert EXPECTED_VECTOR_OBSERVATIONS == 8
+    assert EXPECTED_VECTOR_OBSERVATIONS == 11
     assert EXPECTED_CONTINUOUS_ACTIONS == 3
 
 
@@ -200,7 +200,7 @@ def test_simple_arc_academy_wiring(repo_root: Path) -> None:
     ).is_file()
     assert (repo_root / "Assets/Audio/sfx_score.wav").is_file()
     rewards = (repo_root / "Assets/Scripts/ArcAcademyRewards.cs").read_text()
-    assert "MadeBasket = 7.0f" in rewards
+    assert "MadeBasket = 8.0f" in rewards
     assert "BackboardSquareHit = 1.0f" in rewards
     assert "SwishBonus = 0f" in rewards
     assert "RimContactPenalty = 0f" in rewards
@@ -644,14 +644,14 @@ def test_bob_court_layout_in_agent(repo_root: Path) -> None:
     assert "RimPlaneMissPenalty" in layout
     assert "ShotResolveMaxSteps" in layout
     assert "PerStepDistancePenaltyScale" in layout
-    assert "ArcQualityRewardScale = 0.01f" in layout
-    assert "MissProximityRewardScale = 0.20f" in layout
-    assert "RimPlaneMissPenalty = 1.25f" in layout
-    assert "LaunchTowardHoopRewardScale = 0.20f" in layout
-    assert "LaunchUpwardRewardScale = 0.15f" in layout
-    assert "LaunchArcAlignRewardScale = 0.15f" in layout
+    assert "ArcQualityRewardScale = 0f" in layout
+    assert "MissProximityRewardScale = 0f" in layout
+    assert "RimPlaneMissPenalty = 2.5f" in layout
+    assert "LaunchTowardHoopRewardScale = 0.08f" in layout
+    assert "LaunchUpwardRewardScale = 0.06f" in layout
+    assert "LaunchArcAlignRewardScale = 0.05f" in layout
     assert "IdealLaunchFy = 4.9f" in layout
-    assert "IdealSolverMatchRewardScale = 0.45f" in layout
+    assert "IdealSolverMatchRewardScale = 0.20f" in layout
     assert "LaunchPowerBandPenaltyScale = 0.04f" in layout
     assert "ResidualLateralScale = 2.8f" in layout
     assert "ResidualMaxMagnitude = 5.5f" in layout

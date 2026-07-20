@@ -16,7 +16,7 @@ public static class ArcAcademyRewards
     /// pass through the cylinder. Identical for swish / rim-in / bank.
     /// Must dominate dense launch/arc shaping and miss penalties (Tier 1.5).
     /// </summary>
-    public const float MadeBasket = 7.0f;
+    public const float MadeBasket = 8.0f;
 
     /// <summary>
     /// Hit inside the backboard shooter's square (orange target box). Curriculum only —

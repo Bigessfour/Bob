@@ -67,8 +67,8 @@ public static class BobDemonstrationRecorderMenu
                 + "3. Prefer sessions with many MAKES (check HUD score)\n"
                 + "4. Stop Play → Disable Demonstration Recorder\n"
                 + "5. Confirm Assets/Demos/bobfreethrow.demo exists\n"
-                + "6. CONFIG=config/bob_free_throw_probe_4k_bc.yaml RUN_ID=bob-v4.6 "
-                + "./scripts/train.sh --initialize-from=bob-v4.4",
+                + "6. CONFIG=config/bob_free_throw_probe_5k_residual_bc.yaml "
+                + "RUN_ID=bob-v4.6-residual ./scripts/train.sh --force",
             "OK");
     }
 
