@@ -24,6 +24,10 @@
 
 ## To demo trained PPO (not solver)
 
-1. **Bob → Demo → Enable Inference Only** (Behavior **InferenceOnly**)
-2. Load `Assets/Models/Bob.onnx` from `results/bob-v4.8-tight-prior/`
-3. Play without `./scripts/train.sh` — expect ~30–35% makes, non-zero actions
+1. **Stop Play.**
+2. **Bob → Demo → Prepare Classmate Showcase (Inference ONNX)**
+3. Console: `BOB_INFERENCE_OK` — HUD chip **INFERENCE · Bob**, not SOLVER
+4. Play — expect ~30–35% makes, launch actions **not** all `c=0`
+
+Talk track: [docs/showcase-capture.md](../../showcase-capture.md).
+

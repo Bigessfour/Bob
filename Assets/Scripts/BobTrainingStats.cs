@@ -62,6 +62,10 @@ public class BobTrainingStats : MonoBehaviour
 
         Instance = this;
         BobPhysicsLayers.EnsureCollisionMatrix();
+        if (GetComponent<BobShowcaseMode>() == null)
+        {
+            gameObject.AddComponent<BobShowcaseMode>();
+        }
         ResetSession();
     }
 

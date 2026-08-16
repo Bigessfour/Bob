@@ -10,7 +10,7 @@ using UnityEngine;
 /// <para><b>Ideal free-throw kinematics</b> (what Bob must learn — not ricochet lottery):</para>
 /// <list type="number">
 /// <item>Single impulse from free-throw distance, then pure Rigidbody flight under gravity.</item>
-/// <item>Steep elevation (≈55–65°); <see cref="BobSwishLaunchSolver"/> uses 65° for a clear lob.</item>
+/// <item>Steep elevation (≈55–65°); <see cref="BobSwishLaunchSolver"/> uses 56° for a regulation lob.</item>
 /// <item>Parabolic trajectory under <see cref="Physics.gravity"/>.</item>
 /// <item>Apex well above the rim (~3.05 m) so the ball is already descending
 /// (<c>linearVelocity.y &lt; 0</c>) when it reaches the rim’s horizontal plane.</item>
@@ -35,6 +35,12 @@ public class BobAgent : Agent
     // Neutral actions c≈(0,0,0) → idealImpulse + zero residual (analytic swish prior).
     // PPO learns small residuals; shaped by IdealSolverMatchRewardScale + MadeBasket ≫ near-miss.
     #endregion
+
+    /// <summary>
+    /// PlayMode tests set this so a triggered make does not call <see cref="Agent.EndEpisode"/>.
+    /// Runtime training/inference always leaves this false.
+    /// </summary>
+    public bool SuppressEpisodeEnd { get; set; }
 
     [Header("Environment References")]
     [Tooltip("Rim transform on the Hoop assembly")]
@@ -261,7 +267,10 @@ public class BobAgent : Agent
         // Basketball rule: any path through the hoop is the same make reward.
         GiveReward(ArcAcademyRewards.MadeBasket);
         FinalizeShotLog(scored: true, endReason: swish ? "swish" : "make");
-        EndEpisode();
+        if (!SuppressEpisodeEnd)
+        {
+            EndEpisode();
+        }
     }
 
     private void ResolveEpisodeAsMiss(

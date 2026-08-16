@@ -1,6 +1,6 @@
 # Bob — Done Tracker
 
-**Last updated:** 2026-07-20 · **Branch:** `feature/bob-v4.1-local-impulse-sign` · **Status:** **Portfolio complete (v4.8)**
+**Last updated:** 2026-08-16 · **Branch:** `feature/classmate-showcase` · **Status:** **Classmate-showcase ready (v4.8)**
 **Pin:** open this file in Cursor → right-click tab → **Pin Tab** (split beside Unity).
 
 North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-right-looks-like.md](what-right-looks-like.md) · ML fixes: [design/ml-training-recommendations.md](design/ml-training-recommendations.md) · Chronicle: [design/training-chronicle.md](design/training-chronicle.md) · Timeline: [design/ml-project-timeline.md](design/ml-project-timeline.md)
@@ -13,7 +13,7 @@ North Star: [what-finished-looks-like.md](what-finished-looks-like.md) · [what-
 
 **Learning demo: Done (portfolio scope)** — **bob-v4.8-tight-prior** @ **34.5%** trailing-1k; **InferenceOnly Play validated ~35%** (`Assets/Models/Bob.onnx`). Interim **>5%** gate passed. Demo-done **70%/1k** not pursued — see [ml-project-timeline.md](design/ml-project-timeline.md).
 
-**Publish:** Static portfolio in-repo — `docs/portfolio-site/` + README links. **No AWS hosting.**
+**Publish:** Static portfolio in-repo — `docs/portfolio-site/story.html` + `index.html` + README. **No AWS hosting.** HUD chip names Inference vs Solver so the 50/50 streak cannot be mislabeled.
 
 ---
 
@@ -63,15 +63,15 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] Core loop in code (scene + agent + HUD + scoring)
 - [x] Dual HUD + audio + portfolio artifacts (hero `023`, GIF `023-training-gif`)
 - [x] PlayMode test: make → +1 `BasketballPoints` (`BobScoreIncrementPlayModeTest`)
-- [x] **Visible learning** — interim **>5%** rolling (**bob-v4.7-curriculum 10.93%**, ext roll **25%**)
+- [x] **Visible learning** — interim **>5%** rolling (**bob-v4.7-curriculum 10.93%**, v4.8 trail-1k **34.5%**)
 - [x] **Tier 1.5 / bob-v4.1** — code + full 500k resume; aim↑ / makes ~1%; positive-miss **FAIL**
 - [x] **Tier 1.6 reward patch** — unified rim_miss; penalty **1.25**; launch scales cut; past-plane timeout/settled → rim_miss (**2026-07-18**)
-- [ ] **Short validation** `RUN_ID=bob-v4.2` — positive-miss ≤25%, then extend / BC
+- [x] **v4.6–v4.8 residual + curriculum** — superseded bob-v4.2 probe; contrast pass at v4.8 (positive-miss **0.2%**)
 - [x] **Diagnostic dashboard v2** — economics / positive-miss / make-signature panels in `plot_learning_dashboard.py`
 - [x] **bob-v4.1 extended to max_steps** — 500k; analysis in [bob_v4.1_resume_500k_analysis.md](results/bob_v4.1_resume_500k_analysis.md)
 - [x] Merge [PR #10](https://github.com/Bigessfour/Bob/pull/10) → `main` on green CI
 - [x] Merge [PR #11](https://github.com/Bigessfour/Bob/pull/11) → `main` (Ollama AI Review)
-- [ ] README portfolio section links `docs/portfolio-site/` + latest hero/GIF/plot
+- [x] README + `docs/portfolio-site/story.html` synced to v4.8 / honest demos
 
 ---
 
@@ -100,11 +100,12 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 - [x] **Diagnostic dashboard v2** — economics / positive-miss / make-signature panels in `plot_learning_dashboard.py`
 - [x] **bob-v4.1 → max_steps** — analysis [bob_v4.1_resume_500k_analysis.md](results/bob_v4.1_resume_500k_analysis.md)
 - [x] **Tier 1.6** — unified rim_miss; penalty **1.25**; launch scales cut; past-plane timeout/settled → rim_miss; arc 0.01
-- [ ] **bob-v4.2 short validation** — `--force` after recompile; positive-miss ≤25%, then extend toward **>5%** / **70%/1k**
-- [ ] **Tier 2** — BC demos (`Assets/Demos/bob_free_throw.demo`), curriculum, power shaping — **recorder menu + `bob_free_throw_bc.yaml` scaffolded**; demos not recorded yet
+- [x] **v4.6 residual → v4.8 tight-prior** — 2.08% → 10.93% → **34.5%**; 70%/1k **not pursued**
+- [x] **Tier 2** — BC make-hunt demos + hoop curriculum shipped in v4.7
 - [x] **Training run plan** — [design/training-run-plan.md](design/training-run-plan.md) (M5 Docker vs MPS, 70%/1k bar, plot commands)
 - [x] **Dev ML tools** — StatsRecorder → TensorBoard, `./scripts/tensorboard.sh`, demo recorder menus (reject W&B/SB3/LLM-RL)
-- [x] Inference demo menus — `Bob → Demo → Enable Inference Only`
+- [x] Inference demo menus — `Bob → Demo → Prepare Classmate Showcase` / `Prepare Solver Wow`
+- [x] Honest HUD chip — `BobShowcaseMode` (replaces "Inference fallback" lie)
 - [x] Training GIF scaffold — `docs/progress/023-training-gif/capture.gif` (re-capture after bob-v4.2+ policy)
 
 ### Phase 3–4 — Production bar **I** (priorities **2**, **4**, **5**)
@@ -117,12 +118,13 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 
 - [x] Merge **PR #10** → `main`
 - [x] Merge **PR #11** → `main` (Ollama AI Review)
-- [ ] README portfolio section + `docs/portfolio-site/` synced with latest GIF/plot/hero
+- [x] README portfolio section + `docs/portfolio-site/story.html` synced with v4.8
+- [ ] Record classmate QuickTime — [showcase-capture.md](showcase-capture.md) (**local Unity**)
 
 ### Code / test debt
 
 - [ ] EditMode tests for reward calculation (`BobAgentTests.cs`) — see [testing-strategy.md](testing-strategy.md)
-- [ ] PlayMode test: full make via `HoopScoreZone` trigger (beyond `RecordBasketballPoint` unit path)
+- [x] PlayMode test: full make via `HoopScoreZone` trigger (`BobScoreZonePhysicsPlayModeTest`)
 - [ ] Minimal trainer path: wire `ArcAcademyScorePopup` in `EnsureCoreMvpComponents`
 
 ---
@@ -138,7 +140,9 @@ Full analysis: **[design/ml-training-recommendations.md](design/ml-training-reco
 | 2026-07-18 | bob-v4.1            | yes      | partial         | ~1.0%     | 500k done; aim↑; **positive-miss 57%** → Tier 1.6                                                 |
 | 2026-07-20 | bob-v4.6-residual   | yes      | yes             | **2.08%** | 4035 eps; residual hybrid; positive-miss 35% FAIL                                                 |
 | 2026-07-20 | bob-v4.6.1          | —        | —               | —         | Anti-farming; interrupted                                                                         |
-| 2026-07-20 | bob-v4.7-curriculum | —        | —               | _pending_ | Solver retune + curriculum + make-hunt BC — [training-chronicle.md](design/training-chronicle.md) |
+| 2026-07-20 | bob-v4.7-curriculum | —        | —               | **10.93%** | Solver retune + curriculum + make-hunt BC                                   |
+| 2026-07-20 | bob-v4.8-tight-prior | yes     | yes             | **34.5%**  | Trail-1k; InferenceOnly Play ~31–35%; **portfolio peak**                    |
+| 2026-08-16 | classmate-showcase   | —        | —               | —          | Honest HUD + menus + story.html — no new PPO                                |
 
 Full timeline: **[design/training-chronicle.md](design/training-chronicle.md)**
 

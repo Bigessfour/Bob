@@ -75,7 +75,7 @@ public static class BobNearBobHudBuilder
             BobScoreboardDisplay.HeadlineColor);
         y -= 12f;
 
-        y = PlaceTopRow(panel.transform, "StatusText", "Inference fallback — start ./scripts/train.sh",
+        y = PlaceTopRow(panel.transform, "StatusText", "Mode ?",
             BobScoreboardDisplay.FloatDetailFontSize, FontStyle.Normal, pad, y, contentWidth, 44f,
             BobScoreboardDisplay.StatusDisconnectedColor);
         y -= 10f;

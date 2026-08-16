@@ -97,12 +97,11 @@ public class BobWallTrainingHud : MonoBehaviour
                 $"{BobScoreboardDisplay.ArcLabel} avg: {stats.RollingAverageArcQuality:P0}";
         }
 
-        var monitor = BobTrainingConnectionMonitor.Instance;
+        var showcase = BobShowcaseMode.Evaluate();
         if (statusText != null)
         {
-            statusText.text = monitor != null ? monitor.StatusLabel : "Play mode";
-            statusText.color = BobScoreboardDisplay.StatusColor(
-                monitor != null && monitor.IsTrainingConnected);
+            statusText.text = showcase.label;
+            statusText.color = BobShowcaseMode.HudColor(showcase.kind);
         }
 
         if (rewardsText != null)

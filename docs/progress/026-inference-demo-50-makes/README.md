@@ -2,7 +2,7 @@
 
 ## Validated inference run (confirmed)
 
-After **Bob → Demo → Enable Inference Only** and console:
+After **Bob → Demo → Prepare Classmate Showcase** and console:
 
 `BOB_INFERENCE_OK: BehaviorType=InferenceOnly model=Assets/Models/Bob.onnx`
 
@@ -45,6 +45,9 @@ Unity reported `behavior=HeuristicOnly` when checked — the menu may not persis
 ## Fix checklist
 
 1. Stop Play
-2. Bob → Demo → **Enable Inference Only**
+2. Bob → Demo → **Prepare Classmate Showcase (Inference ONNX)**
 3. Console: `BOB_INFERENCE_OK: BehaviorType=InferenceOnly model=Assets/Models/Bob.onnx`
-4. Play once — HUD should **not** show only identical c=0 every shot
+4. HUD chip **INFERENCE** (green), not **SOLVER** (amber)
+5. Play once — HUD should **not** show only identical c=0 every shot
+
+The old HUD string “Inference fallback” was a lie (Default without a trainer). `BobShowcaseMode` replaced it.
