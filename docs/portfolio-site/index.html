@@ -85,8 +85,13 @@
     <header>
       <h1>Bob</h1>
       <p class="tagline">
-        An orange cube learning free throws with Unity ML-Agents PPO — AI
-        Warehouse lab style.
+        Residual PPO around a 56° analytic prior — Unity ML-Agents, AI
+        Warehouse lab style. Honest scoring: <strong>0.5% → 34.5%</strong>.
+      </p>
+      <p>
+        <a href="story.html"><strong>Read the story →</strong></a>
+        &nbsp;·&nbsp;
+        <a href="../showcase-capture.md">Video / talk recipe</a>
       </p>
     </header>
 
@@ -97,11 +102,31 @@
           alt="Bob demo — 52 consecutive swish free throws, score 52, rolling success 100%"
         />
         <figcaption>
-          <strong>Portfolio demo (2026-07-20):</strong> 52 consecutive swish —
-          solver prior + Arc Academy HUD. PPO training peak: bob-v4.8 @
-          <strong>34.5%</strong> trailing-1k.
+          <strong>Solver wow (HeuristicOnly, c≈0):</strong> 52 consecutive
+          swish — proves the lab, hoop cylinder, and analytic prior. This is
+          <em>not</em> the trained policy. PPO peak is
+          <strong>34.5%</strong> (v4.8) — see
+          <a href="story.html">the story</a>.
         </figcaption>
       </figure>
+
+      <section>
+        <h2>Two demos — do not mix them</h2>
+        <ul>
+          <li>
+            <strong>SOLVER</strong> — HeuristicOnly, launch residuals ≈ 0,
+            near-100% swish. Environment proof.
+          </li>
+          <li>
+            <strong>INFERENCE</strong> — v4.8 ONNX, residuals non-zero, about
+            one make in three. The learned policy.
+          </li>
+        </ul>
+        <p>
+          Full narrative (started 0.5%, method, ended 34.5%):
+          <a href="story.html">How Bob learned free throws</a>.
+        </p>
+      </section>
 
       <section>
         <h2>What you see in Play</h2>

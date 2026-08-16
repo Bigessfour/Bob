@@ -2,11 +2,35 @@
 
 ![CI](https://github.com/Bigessfour/Bob/actions/workflows/ci.yml/badge.svg)
 
-A fun Deep Reinforcement Learning demo where **Bob** — a cheerful orange cube — learns to shoot perfect free throws in a 3D basketball court. Inspired by AI Warehouse training videos, this project showcases an entertaining learning curve with visual training progress, ideal for a portfolio piece.
+A Deep Reinforcement Learning demo where **Bob** — an orange cube — learns free throws in a Unity 6 HDRP lab. Residual PPO around an analytic 56° prior took honest scoring from **0.5% → 34.5%**.
 
-**Live demo:** Portfolio write-up at [`docs/portfolio-site/`](docs/portfolio-site/) — link from README; no AWS hosting required.
+**Classmates who do not have Unity:** read the story, then watch the video (when recorded). You do not need Unity 6 HDRP.
 
-**Project status:** See [PROJECT.md](PROJECT.md) | **Product:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) | **Visual:** [docs/design/visual-vision.md](docs/design/visual-vision.md) | **Workflow:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) | **Agents:** [AGENTS.md](AGENTS.md)
+| Artifact | What it is |
+| --- | --- |
+| **[How Bob learned](docs/portfolio-site/story.html)** | Blog: started here → method → ended here |
+| **[Portfolio splash](docs/portfolio-site/index.html)** | Lab hero + timeline plots |
+| **[Video / talk recipe](docs/showcase-capture.md)** | Solver wow vs InferenceOnly — do not mix them |
+| **ONNX** | `Assets/Models/Bob.onnx` — **bob-v4.8-tight-prior**, trail-1k **34.5%** |
+
+**Project status:** [PROJECT.md](PROJECT.md) · **Product:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md) · **Visual:** [docs/design/visual-vision.md](docs/design/visual-vision.md) · **Workflow:** [docs/what-right-looks-like.md](docs/what-right-looks-like.md) · **Agents:** [AGENTS.md](AGENTS.md)
+
+---
+
+## One sentence for the room
+
+Bob does not invent the throw from noise. `BobSwishLaunchSolver` proposes a 56° impulse; a 3-action network learns a **clamped residual**. A make only counts if the ball **falls through** the rim cylinder. Training: **0.5% → 34.5%**. Play InferenceOnly matches at ~31–35%. The 50/50 swish streak is the **solver**, not the net.
+
+## Classmate showcase (Editor)
+
+Play **stopped**, scene `BobTraining.unity`:
+
+| Menu | HUD chip | What you are allowed to say |
+| --- | --- | --- |
+| **Bob → Demo → Prepare Solver Wow** | **SOLVER (heuristic c≈0)** | Physics + score zone work. Near-100% is the prior. |
+| **Bob → Demo → Prepare Classmate Showcase** | **INFERENCE · Bob** + console `BOB_INFERENCE_OK` | Learned residual policy. ~1 make in 3. Actions are **not** all zero. |
+
+Do **not** live-train. Do **not** claim 70%. Do **not** call the 50/50 streak inference ([026 write-up](docs/progress/026-inference-demo-50-makes/)).
 
 ---
 
@@ -133,17 +157,18 @@ docker run --rm bob-train
 
 Workspace settings in [`.vscode/`](.vscode/). See [docs/cursor-setup.md](docs/cursor-setup.md) for extension and interpreter setup.
 
-## Learning results (bob-v4.7)
+## Learning results (bob-v4.8)
 
-**Interim gate cleared:** rolling success **>5%**. **Best run (bob-v4.8-tight-prior):** session **34.43%**, trailing-1k **34.5%**.
+**Interim gate cleared:** rolling success **>5%**. **Best run (bob-v4.8-tight-prior):** session **34.43%**, trailing-1k **34.5%**. Play InferenceOnly **~31–35%**. The 70%/1k bar is **deferred** — residual RL around a good controller is the result.
 
 | Artifact                | Path                                                                                                   |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| Classmate story         | [`docs/portfolio-site/story.html`](docs/portfolio-site/story.html)                                     |
 | ML timeline (multi-run) | [`docs/results/bob_ml_timeline_comparison.png`](docs/results/bob_ml_timeline_comparison.png)           |
-| v4.7-ext dashboard      | [`docs/results/bob_v4_7-ext_learning_dashboard.png`](docs/results/bob_v4_7-ext_learning_dashboard.png) |
+| v4.8 dashboard          | [`docs/results/bob_v4_8-tight-prior_learning_dashboard.png`](docs/results/bob_v4_8-tight-prior_learning_dashboard.png) |
 | Chronicle + method log  | [`docs/design/training-chronicle.md`](docs/design/training-chronicle.md)                               |
 | Portfolio site          | [`docs/portfolio-site/index.html`](docs/portfolio-site/index.html)                                     |
-| Inference model         | `Assets/Models/Bob.onnx` (from `results/bob-v4.7-ext/Bob.onnx`)                                        |
+| Inference model         | `Assets/Models/Bob.onnx` (**v4.8-tight-prior**, not v4.7)                                              |
 
 Post-run capture: `./scripts/capture-ml-run.sh <run_id> <utc_start>`
 

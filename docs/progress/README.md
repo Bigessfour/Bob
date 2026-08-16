@@ -35,3 +35,11 @@ See [unity-dev.md](../unity-dev.md#progress-screenshots) for details.
 | 020 | 2026-06-23 | lab-hud-south-v1               | play | ![lab-hud-south-v1](020-2026-06-23-lab-hud-south-v1/capture.png)                             |
 | 021 | 2026-06-23 | bob-visual-v1                  | play | ![bob-visual-v1](021-2026-06-23-bob-visual-v1/capture.png)                                   |
 | 022 | 2026-06-24 | lab-hero-v2                    | play | ![lab-hero-v2](022-2026-06-24-lab-hero-v2/capture.png)                                       |
+| 023 | 2026-06-24 | dual-hud-hero                  | play | ![dual-hud-hero](023-dual-hud-hero/capture.png)                                             |
+| 023 | 2026-06-24 | training-gif                   | play | ![training-gif](023-training-gif/capture.gif)                                               |
+| 024 | 2026-07-20 | v47-inference-hero             | play | ![v47-inference-hero](024-v47-inference-hero/capture.png)                                   |
+| 025 | 2026-07-20 | v48-demo-52-swish (**SOLVER**) | play | ![v48-solver-wow](025-v48-demo-52-swish/capture.png)                                        |
+| 026 | 2026-07-20 | inference-demo-50-makes        | note | [README](026-inference-demo-50-makes/README.md) — 50/50 was **heuristic**, not ONNX         |
+
+Classmate capture recipe: [../showcase-capture.md](../showcase-capture.md). Story: [../portfolio-site/story.html](../portfolio-site/story.html).
+

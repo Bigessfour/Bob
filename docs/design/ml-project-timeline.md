@@ -25,9 +25,10 @@
 | Artifact                  | Path                                               | When to refresh                  |
 | ------------------------- | -------------------------------------------------- | -------------------------------- |
 | Multi-run success overlay | `docs/results/bob_ml_timeline_comparison.png`      | After each major run             |
-| Per-run dashboard         | `docs/results/bob_v4.7_ext_learning_dashboard.png` | After run completes              |
-| Session progress          | `docs/results/bob_v4.7_ext_training_progress.png`  | After run completes              |
+| Per-run dashboard         | `docs/results/bob_v4_8-tight-prior_learning_dashboard.png` | After run completes        |
+| Session progress          | `docs/results/bob_v4_8-tight-prior_training_progress.png`  | After run completes        |
 | Chronological log         | [training-chronicle.md](training-chronicle.md)     | After every `./scripts/train.sh` |
+| Classmate story           | [`docs/portfolio-site/story.html`](../portfolio-site/story.html) | When the narrative changes |
 | Checkpoints               | `results/<run_id>/Bob/*.onnx`                      | Auto from trainer                |
 
 ---
@@ -49,12 +50,17 @@
 
 ## Inference demo (no trainer)
 
-Load `results/bob-v4.7-curriculum/Bob.onnx` (or latest ext checkpoint) → Behavior **Default** → Play. Scoreboard shows iterations, makes, rolling success — audience sees learning without TensorBoard.
+**Stop Play.** **Bob → Demo → Prepare Classmate Showcase (Inference ONNX)** → console `BOB_INFERENCE_OK` → HUD chip **INFERENCE · Bob**. Model is `Assets/Models/Bob.onnx` (**v4.8-tight-prior**). Expect ~31–35% makes and **non-zero** launch residuals.
+
+Solver wow is a different menu (`Prepare Solver Wow`). Behavior **Default** without a trainer is **not** a trained-policy demo.
+
+Talk track + QuickTime recipe: [showcase-capture.md](../showcase-capture.md).
 
 ---
 
 ## References
 
-- [training-run-plan.md](training-run-plan.md) — interim >5% and demo-done 70%/1k bars
+- [training-run-plan.md](training-run-plan.md) — interim >5% gate; **70%/1k deferred** after v4.8
 - [ml-training-recommendations.md](ml-training-recommendations.md) — Tier 1–3 method changes
 - [what-finished-looks-like.md](../what-finished-looks-like.md) — product north star
+- [story.html](../portfolio-site/story.html) — classmate narrative

@@ -46980,7 +46980,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Inference fallback \u2014 start ./scripts/train.sh"
+  m_Text: "Mode ?"
 --- !u!1 &2286599663237632587
 GameObject:
   m_ObjectHideFlags: 0

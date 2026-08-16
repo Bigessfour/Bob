@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>How Bob learned free throws — residual PPO</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1220;
+        --panel: #152033;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --accent: #f97316;
+        --ok: #4ade80;
+        --warn: #fbbf24;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.65;
+      }
+      header, main, footer {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+      h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+      h2 { font-size: 1.25rem; margin-top: 2.2rem; }
+      .tagline { color: var(--muted); margin: 0 0 1.5rem; }
+      figure {
+        margin: 1.25rem 0;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--panel);
+      }
+      figure img { display: block; width: 100%; height: auto; }
+      figcaption { padding: 0.7rem 1rem; color: var(--muted); font-size: 0.9rem; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+      th, td { text-align: left; padding: 0.45rem 0.4rem; border-bottom: 1px solid #334155; }
+      th { color: var(--muted); font-weight: 600; }
+      code { color: var(--accent); }
+      a { color: var(--accent); }
+      .callout {
+        background: var(--panel);
+        border-left: 4px solid var(--accent);
+        padding: 0.9rem 1rem;
+        margin: 1.2rem 0;
+      }
+      .ok { color: var(--ok); }
+      .warn { color: var(--warn); }
+      footer { color: var(--muted); font-size: 0.875rem; border-top: 1px solid #334155; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <p><a href="index.html">← Bob portfolio</a></p>
+      <h1>We started with a cube that could not score.</h1>
+      <p class="tagline">
+        How residual PPO, a 56° ballistic prior, and honest scoring turned Bob
+        into a ~35% free-throw shooter.
+      </p>
+    </header>
+    <main>
+      <div class="callout">
+        <strong>One sentence for classmates:</strong> Bob does not invent the
+        throw from noise. An analytic free-throw solver proposes the shot; a
+        small neural net learns a 3-D residual. Scoring only counts if the ball
+        <em>falls through</em> the rim. Training went <strong>0.5% → 34.5%</strong>.
+      </div>
+
+      <h2>Where we started</h2>
+      <p>
+        June 2026: Unity 6 HDRP lab, one orange cube, one hoop, PPO via
+        ML-Agents. The first honest training run after we fixed episode
+        termination — <code>bob-v4</code> — was <strong>5 makes in 1,001 shots
+        (0.50%)</strong>. The policy could aim generally toward the hoop. It
+        almost never finished the skill.
+      </p>
+      <p>
+        Worse, early episodes ran until the ball bounced out of bounds. A
+        per-step distance penalty dominated. The sparse make reward (+3, later
+        +8) almost never arrived, so PPO optimized apex height and “near the
+        rim,” not baskets. Arc quality on the HUD went up. Makes did not.
+      </p>
+
+      <h2>What “a make” actually is</h2>
+      <p>
+        <code>HoopScoreZone</code> is a cylinder in the rim. Credit only if
+        world velocity is downward (<code>v.y ≤ −0.5</code>). Sideways skims
+        and upward pokes are misses. Swish is VFX only — same +1 basketball
+        point as a rim-in. That is the MDP. If scoring were “close enough,”
+        the graphs would lie.
+      </p>
+
+      <h2>The method that finally moved the needle</h2>
+      <ol>
+        <li>
+          <strong>Shot-resolved episodes</strong> — end on make, rim-plane miss,
+          floor, settled, or timeout. Stop farming bounces.
+        </li>
+        <li>
+          <strong>Reward contrast</strong> — a miss that looks pretty must not
+          pay more than a make. We measured “positive-miss” rate and killed
+          dense terms that failed the gate (57%, then 35%, then 0.2%).
+        </li>
+        <li>
+          <strong>Analytic prior + residual PPO</strong> —
+          <code>BobSwishLaunchSolver</code> solves a 56° high-arc impulse
+          (gravity, lip clearance, damping). The policy outputs
+          <code>(c0, c1, c2)</code> as a <em>clamped residual</em>, not a raw
+          cannon.
+        </li>
+        <li>
+          <strong>Behavioral cloning of makes</strong>, then a
+          <strong>distance curriculum</strong> (hoop slides closer on Z; Bob
+          stays on the free-throw line).
+        </li>
+        <li>
+          <strong>Tighter residual band (v4.8)</strong> — stay near the solved
+          manifold. Session <strong>34.43%</strong>, trailing-1k
+          <strong>34.5%</strong>. Play InferenceOnly matched at ~31–35%.
+        </li>
+      </ol>
+
+      <figure>
+        <img src="ml-timeline.png" alt="Rolling success across Bob training runs" />
+        <figcaption>
+          Visible learning, not a lucky checkpoint: 0.5% → ~2% → 11% (curriculum)
+          → 34.5% (tight prior).
+        </figcaption>
+      </figure>
+
+      <h2>The numbers (do not flatten this table)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Run</th>
+            <th>What changed</th>
+            <th>Success</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>bob-v4</code></td>
+            <td>Shot-resolved episodes</td>
+            <td>0.50%</td>
+          </tr>
+          <tr>
+            <td><code>v4.1–v4.4</code></td>
+            <td>Economics, BC of near-misses</td>
+            <td>~1.2%</td>
+          </tr>
+          <tr>
+            <td><code>v4.6 residual</code></td>
+            <td>Solver + PPO residual</td>
+            <td>2.08%</td>
+          </tr>
+          <tr>
+            <td><code>v4.7 curriculum</code></td>
+            <td>Retuned solver, make-hunt BC, hoop curriculum</td>
+            <td>10.93%</td>
+          </tr>
+          <tr>
+            <td><code>v4.8 tight-prior</code></td>
+            <td>Smaller residual, stronger solver-match</td>
+            <td class="ok"><strong>34.5%</strong> trail-1k</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Two demos — do not mix them up</h2>
+      <p>
+        <span class="warn">SOLVER (heuristic, c≈0)</span> can swish 50 in a
+        row. That proves the <em>environment</em> (physics + score zone).
+      </p>
+      <p>
+        <span class="ok">INFERENCE (v4.8 ONNX)</span> is the learned residual
+        policy. About one make in three. HUD launch actions are <em>not</em>
+        all zero. If you see 100% and <code>c=0</code>, you are watching the
+        solver. We made that mistake once and wrote it down
+        (<code>docs/progress/026-inference-demo-50-makes/</code>).
+      </p>
+
+      <figure>
+        <img
+          src="../progress/025-v48-demo-52-swish/capture.png"
+          alt="Solver wow — 52 consecutive swish, HUD at 100%"
+        />
+        <figcaption>
+          Product shot: lab + dual HUD + swish. Labeled <strong>solver</strong>,
+          not PPO.
+        </figcaption>
+      </figure>
+
+      <h2>Where we ended</h2>
+      <p>
+        A demo-ready Unity lab, a trained ONNX in <code>Assets/Models/Bob.onnx</code>,
+        session CSVs, dashboards, and a Play path that can no longer silently
+        pretend heuristic is inference. We did <em>not</em> chase 70%. Residual
+        RL around a good controller is the result — the same pattern used in
+        robotics. That is the story.
+      </p>
+      <p>
+        Capture guide: <a href="../showcase-capture.md">docs/showcase-capture.md</a>
+        · Repo: <a href="https://github.com/Bigessfour/Bob">github.com/Bigessfour/Bob</a>
+      </p>
+    </main>
+    <footer>Static write-up for Code Platoon / portfolio — August 2026.</footer>
+  </body>
+</html>

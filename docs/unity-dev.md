@@ -203,8 +203,9 @@ See [docs/design/ai-warehouse-ops.md](design/ai-warehouse-ops.md) for the full t
 | Message                                        | Meaning                                                          |
 | ---------------------------------------------- | ---------------------------------------------------------------- |
 | `BOB_TRAINING_OK`                              | Trainer connected; time scale applied                            |
-| `BOB_TRAINING_WARN` / scoreboard orange status | Inference fallback — no trainer on 5004                          |
-| `Couldn't connect to trainer on port 5004`     | Same as above; stop Play, start `./scripts/train.sh`, Play again |
+| `BOB_INFERENCE_OK`                             | InferenceOnly + ONNX assigned — honest learned-policy demo       |
+| `BOB_SHOWCASE_WARN` / HUD chip not INFERENCE   | Heuristic, Default-no-trainer, or recorder on — **not** the net  |
+| `Couldn't connect to trainer on port 5004`     | Expected in showcase Play; start `./scripts/train.sh` only to train |
 
 Ignore: Unity Licensing 404, `NoSubscription` AI generators, MCP WebSocket errors when bridge is off.
 

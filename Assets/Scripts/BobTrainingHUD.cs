@@ -89,10 +89,13 @@ public class BobTrainingHUD : MonoBehaviour
 
         var monitor = BobTrainingConnectionMonitor.Instance;
         bool connected = monitor != null && monitor.IsTrainingConnected;
-        string status = monitor != null ? monitor.StatusLabel : "Play mode";
+        var showcase = BobShowcaseMode.Evaluate();
+        string status = showcase.label;
 
         headerText.text = $"Run <b>{runId}</b>  ·  {status}";
-        headerText.color = BobScoreboardDisplay.StatusColor(connected);
+        headerText.color = connected
+            ? BobScoreboardDisplay.StatusColor(true)
+            : BobShowcaseMode.HudColor(showcase.kind);
 
         string successKey =
             $"{stats.SessionSuccessRate:F4}|{stats.RollingSuccessRate:F4}|{stats.BasketballPoints}|{stats.TotalIterations}";

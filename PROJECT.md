@@ -2,49 +2,53 @@
 
 > **North Star:** [What Right Looks Like](docs/what-right-looks-like.md) (workflow) · [What Finished Looks Like](docs/what-finished-looks-like.md) (product) · [Visual vision](docs/design/visual-vision.md) (look)
 
-**Status:** **Portfolio complete (v4.8)** — visible learning **0.5% → 34.5%**; inference validated **~35%** in Play
-**Branch:** `feature/bob-v4.1-local-impulse-sign` (PR pending merge)
-**Goal:** Fun Deep RL demo + DevOps showcase for Cloud Resume Challenge portfolio
+**Status:** **Classmate-showcase ready (v4.8)** — residual PPO **0.5% → 34.5%**; HUD no longer lies about inference
+**Branch:** `feature/classmate-showcase`
+**Goal:** Honest Code Platoon / Cloud Resume demo — video + blog, solver vs ONNX labeled
 **Tech:** Unity 6 LTS + ML-Agents + Python 3.10 + GitHub Actions (+ Terraform CI validate only; **no AWS hosting**)
 
 ---
 
 ## Current Milestone
 
-**Phase 3–4 — Portfolio demo complete**
+**Phase 4 — Classmate package**
 
-MVP loop + Arc Academy Lab + dual HUD + **bob-v4.8 PPO** (`Assets/Models/Bob.onnx`). Behavior Name **`Bob`**, **13** obs, **3** actions (residual hybrid). See [ml-project-timeline.md](docs/design/ml-project-timeline.md).
+MVP loop + Arc Academy Lab + dual HUD + honest mode chip + **bob-v4.8 PPO** (`Assets/Models/Bob.onnx`). Behavior Name **`Bob`**, **13** obs, **3** actions (residual hybrid). Story: [`docs/portfolio-site/story.html`](docs/portfolio-site/story.html). Capture: [`docs/showcase-capture.md`](docs/showcase-capture.md).
 
 **Product definition:** [docs/what-finished-looks-like.md](docs/what-finished-looks-like.md)
 
-## Build Status (2026-07-20)
+## Build Status (2026-08-16)
 
 | Area               | Status                                                                    |
 | ------------------ | ------------------------------------------------------------------------- |
-| Unity scene        | `BobTraining.unity` — dual HUD + v4.8 trained policy                      |
+| Unity scene        | `BobTraining.unity` — dual HUD + honest `BobShowcaseMode` chip            |
 | Scene validation   | `./scripts/validate-scene.sh` → **VALIDATE_PASS**                         |
 | Offline regression | `pytest tests/test_unity_alignment.py` — **40/40**                        |
 | PPO training peak  | **bob-v4.8-tight-prior** — **34.5%** trailing-1k; inference Play **~35%** |
-| Portfolio          | `docs/portfolio-site/` + progress captures `025`/`026` + ML timeline PNGs |
+| Showcase menus     | `Prepare Classmate Showcase` (ONNX) / `Prepare Solver Wow` (heuristic)    |
+| Portfolio          | `docs/portfolio-site/story.html` + `index.html` + progress `025`/`026`    |
 | ML chronicle       | [docs/design/training-chronicle.md](docs/design/training-chronicle.md)    |
 
-## Next Actions (vNext — optional)
+## Next Actions
 
 **Live checklist:** [docs/bob-done-tracker.md](docs/bob-done-tracker.md)
 
-| P   | Action                                               | Status       |
-| --- | ---------------------------------------------------- | ------------ |
-| 1   | Merge feature branch → `main`                        | This PR      |
-| 2   | Record 5–8 min portfolio video (`docs/demo-package`) | Optional     |
-| 3   | v4.9 tighter residual toward 70%/1k                  | Deferred     |
-| 4   | Standalone build + Recorder hero video               | Deferred     |
-| 5   | AWS / CloudFront hosting                             | Out of scope |
+| P   | Action                                                          | Status                         |
+| --- | --------------------------------------------------------------- | ------------------------------ |
+| 1   | Merge `feature/classmate-showcase` → `main`                     | This PR                        |
+| 2   | Record 3–4 min QuickTime per [`docs/showcase-capture.md`](docs/showcase-capture.md) | **Local Unity — you** |
+| 3   | Link the video (YouTube unlisted or git-lfs) from `story.html`  | After record                   |
+| 4   | v4.9 tighter residual toward 70%/1k                             | Deferred on purpose            |
+| 5   | Standalone player + delete `ArcAcademy_Complex_Backup.unity`    | Optional later                 |
+| 6   | AWS / CloudFront hosting                                        | Out of scope                   |
 
 ## Links
 
 | Resource                | Location                                                                                                       |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Portfolio write-up      | [`docs/portfolio-site/index.html`](docs/portfolio-site/index.html) (in-repo; link from README)                 |
+| **Classmate story**     | [`docs/portfolio-site/story.html`](docs/portfolio-site/story.html)                                             |
+| **Capture / talk track**| [`docs/showcase-capture.md`](docs/showcase-capture.md)                                                         |
+| Portfolio splash        | [`docs/portfolio-site/index.html`](docs/portfolio-site/index.html)                                             |
 | CI workflow             | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) · [AI Review (Ollama)](.github/workflows/ai-review.yml) |
 | Testing strategy        | [`docs/testing-strategy.md`](docs/testing-strategy.md)                                                         |
 | Unity dev guide         | [`docs/unity-dev.md`](docs/unity-dev.md)                                                                       |
@@ -77,6 +81,7 @@ MVP loop + Arc Academy Lab + dual HUD + **bob-v4.8 PPO** (`Assets/Models/Bob.onn
 
 | Date       | Update                                                                                                                     |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-16 | **Classmate showcase** — honest HUD chip, Inference vs Solver menus, `story.html`, capture guide, physics PlayMode test    |
 | 2026-06-18 | Initial repo scaffold pushed to `main`                                                                                     |
 | 2026-06-18 | DevOps foundations added (Terraform, CI, Docker, Cursor config)                                                            |
 | 2026-06-18 | Dev environment locked (Python 3.10.12, CI green)                                                                          |

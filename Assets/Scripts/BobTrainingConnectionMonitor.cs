@@ -15,8 +15,18 @@ public class BobTrainingConnectionMonitor : MonoBehaviour
 
     public static BobTrainingConnectionMonitor Instance { get; private set; }
 
-    public string StatusLabel =>
-        IsTrainingConnected ? "Training (PPO)" : "Inference fallback — start ./scripts/train.sh";
+    public string StatusLabel
+    {
+        get
+        {
+            if (IsTrainingConnected)
+            {
+                return "Training (PPO)";
+            }
+
+            return BobShowcaseMode.Evaluate().label;
+        }
+    }
 
     private BehaviorParameters bobBehavior;
     private float nextCheckTime;

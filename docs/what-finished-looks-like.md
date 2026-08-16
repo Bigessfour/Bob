@@ -8,7 +8,9 @@
 
 ## Finished experience (30-second summary)
 
-Press **Play** (optionally with `./scripts/train.sh` connected). You see a **clean training lab**, an **orange cube agent (Bob)** at the free-throw line, and **one basketball hoop**. Each **iteration**, Bob **shoots toward the hoop**. When the shot **goes in**, Bob earns **+1 basketball point** on the **in-scene scoreboard**. Over many iterations, PPO **improves aim** — visible on a **success-rate graph** and rising **score**. Cumulative **RL rewards** and **penalties** accumulate separately (for learning diagnostics). Decorative geometry never interferes with physics.
+Press **Play** after **Bob → Demo → Prepare Classmate Showcase**. You see a **clean training lab**, an **orange cube (Bob)** at the line, and **one hoop**. The HUD chip reads **INFERENCE · Bob** (green) — not SOLVER. Each **iteration**, Bob shoots. A make is **+1 basketball point** only if the ball **falls through** the rim. The v4.8 ONNX policy makes about **one in three**. Over training history, residual PPO moved honest success **0.5% → 34.5%**. Cumulative **RL rewards** and **penalties** stay on the wall board. Decorative geometry never scores.
+
+The **solver wow** path (HeuristicOnly, chip **SOLVER**) is a separate demo of the environment. Do not mix the two.
 
 ---
 
@@ -42,8 +44,9 @@ flowchart TD
 | **Scoreboard**    | In-scene panels: **iterations**, **score**, **cumulative rewards**, **cumulative penalties**, **net RL** | World-space wall HUD when simple arena active; OnGUI fallback for warehouse                                            |
 | **Success graph** | Rolling **success rate %** + **arc quality** over recent iterations                                      | Wall HUD dual graph + `BobTrainingSuccessGraph` fallback                                                               |
 | **Feedback**      | Speech bubble / popup on made basket                                                                     | Implemented (`BobSpeechBubble` + `ArcAcademyScorePopup`)                                                               |
-| **Training**      | `./scripts/train.sh` + Play; visible **rising success rate**                                             | Handshake verified; **learning blocked** — see [ml-training-recommendations.md](design/ml-training-recommendations.md) |
-| **Portfolio**     | Play-mode GIF + static site (Week 3)                                                                     | Scaffold at `docs/portfolio-site/`; Terraform Week 3                                                                   |
+| **Training**      | `./scripts/train.sh` + Play; visible **rising success rate**                                             | Handshake verified; **bob-v4.8-tight-prior 34.5%** trail-1k — [training-chronicle.md](design/training-chronicle.md) |
+| **Mode chip**     | HUD names InferenceOnly / Heuristic solver / live PPO / Default-no-trainer                               | Implemented (`BobShowcaseMode`) — never say "Inference fallback"                           |
+| **Portfolio**     | Story page + optional 3–4 min video                                                                      | [`story.html`](portfolio-site/story.html) + [`showcase-capture.md`](showcase-capture.md)   |
 
 ---
 
@@ -102,17 +105,19 @@ Work on `feature/*` → PR → green CI. See [visual-vision.md](design/visual-vi
 - [x] Session CSV export + `python/scripts/plot_training_progress.py`
 - [x] Plot copied to `docs/results/training_progress.png` (bob-v2 segment, 2026-06-24)
 - [x] Extended **bob-v2** training run after launch-direction rewards + refresh plot
-- [x] Inference demo menus (`Bob → Demo → Enable Inference Only`)
+- [x] Inference demo menus (`Bob → Demo → Prepare Classmate Showcase` / `Prepare Solver Wow`)
 - [x] Training GIF scaffold — `docs/progress/023-training-gif/` (re-capture after bob-v4)
-- [ ] **ML Tier 1** — shot-resolved episodes, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md))
-- [ ] **`RUN_ID=bob-v4`** extended train + plot showing **rolling success >5%**
-- [ ] **ML Tier 2** (optional) — BC demos, Bob-local impulse, curriculum
+- [x] **ML Tier 1** — shot-resolved episodes, terminal miss proximity, gate per-step dist penalty ([ml-training-recommendations.md](design/ml-training-recommendations.md))
+- [x] **`RUN_ID=bob-v4`** through **v4.8** — rolling success **0.5% → 34.5%** (70%/1k deferred)
+- [x] **ML Tier 2** — residual hybrid + BC makes + hoop curriculum (v4.6–v4.8)
 
 ### Phase 4 — Publish
 
-- [ ] Terraform bootstrap + dev apply (**deferred** — portfolio AWS profile; `aws login` required)
-- [x] Portfolio site scaffold (`docs/portfolio-site/index.html`) — dual HUD write-up + GIF slot + training plot
-- [ ] CloudFront live demo URL in README (after portfolio deploy)
+- [ ] Terraform bootstrap + dev apply (**out of scope** — no AWS hosting for Bob)
+- [x] Portfolio site (`docs/portfolio-site/index.html` + `story.html`) — honest 0.5% → 34.5% arc
+- [x] Capture recipe — [`showcase-capture.md`](showcase-capture.md)
+- [ ] Record classmate QuickTime (local Unity) and link from `story.html`
+- [ ] CloudFront live demo URL in README (**not planned**)
 
 ---
 
